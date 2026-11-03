@@ -1,0 +1,381 @@
+<title>Classroom Mic Troubleshooting</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: a single readable column; a sticky device switcher; each device is a stack of
+   "start-up → light/screen legend → symptom fixes → re-pairing → videos". */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --ink:#13232a; --muted:#52646b; --line:#d5dfdd;
+  --accent:#0e6670; --accent-ink:#ffffff; --accent-soft:#dcefee; --warn-soft:#fff3d6; --warn-ink:#6b4a00;
+  --led-green:#1fae4b; --led-yellow:#e7b416; --led-red:#d93a2f; --led-blue:#2f6fe0; --led-white:#f4f4f4; --led-magenta:#c4359b; --led-off:#7b8a8f;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1719; --surface:#172226; --ink:#e6eeee; --muted:#9db0b4; --line:#2a3a3f;
+  --accent:#5cc3c9; --accent-ink:#06282b; --accent-soft:#163a3d; --warn-soft:#3a2f12; --warn-ink:#f6d98a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1719; --surface:#172226; --ink:#e6eeee; --muted:#9db0b4; --line:#2a3a3f;
+  --accent:#5cc3c9; --accent-ink:#06282b; --accent-soft:#163a3d; --warn-soft:#3a2f12; --warn-ink:#f6d98a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:800}
+h3{font-size:19px;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.lede{color:var(--muted);max-width:62ch}
+header{display:grid;gap:10px}
+
+/* sticky switcher */
+nav.switch{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+nav.switch a{flex:1 1 150px;text-decoration:none;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);
+  border-radius:10px;padding:10px 14px;font-weight:700;display:flex;flex-direction:column;gap:2px}
+nav.switch a small{font-weight:400;color:var(--muted);font-size:13px}
+nav.switch a[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+nav.switch a[aria-current="true"] small{color:var(--accent-ink);opacity:.85}
+
+/* universal check */
+.first{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:14px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:c}
+.checks li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;counter-increment:c}
+.checks li::before{content:counter(c);width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-weight:700;display:grid;place-items:center;font-size:15px}
+.checks b{display:block}
+
+/* device panels */
+section.device{display:grid;gap:22px}
+.dev-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:20px;align-items:start}
+@media (max-width:680px){.dev-head{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:6px}
+figure img{display:block;width:100%;height:auto;border-radius:6px}
+figcaption{font-size:13px;color:#4a5a60}
+.figs{display:grid;gap:12px}
+.block{display:grid;gap:12px}
+ol.steps{margin:0;padding-left:1.4em;display:grid;gap:8px}
+ol.steps li::marker{font-weight:700;color:var(--accent)}
+
+/* LED legend */
+.legend{width:100%;border-collapse:collapse;font-size:16px}
+.legend-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.legend th,.legend td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.legend tr:last-child td{border-bottom:0}
+.legend th{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.led{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-weight:700}
+.led i{width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line),0 0 8px var(--c);flex:none}
+.led.blink i{animation:blink 1s steps(2,start) infinite}
+.led.half i{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
+@keyframes blink{to{opacity:.15}}
+@media (prefers-reduced-motion:reduce){.led.blink i{animation:none;background:repeating-linear-gradient(45deg,var(--c) 0 3px,transparent 3px 6px)}}
+.ok{color:var(--muted)}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn-ink);white-space:nowrap}
+
+/* symptom accordions */
+.symptoms{display:grid;gap:10px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--display);font-size:22px;color:var(--accent);line-height:1}
+details[open] summary::after{content:"–"}
+details[open] summary{border-bottom:1px solid var(--line)}
+.fix{padding:14px 16px 16px;display:grid;gap:10px}
+.fix ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.callout{background:var(--warn-soft);color:var(--warn-ink);border-radius:10px;padding:12px 14px;font-size:16px}
+.callout b{color:inherit}
+
+/* media links */
+.media{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.media a{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);text-decoration:none;color:var(--ink)}
+.media a span{font-size:13px;color:var(--muted)}
+.media a b{color:var(--accent)}
+.kind{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14px;display:grid;gap:8px}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">DHH Services · Teacher quick reference</span>
+    <h1>Classroom Mic Troubleshooting</h1>
+    <p class="lede">Your student can't hear the mic? Pick the device you're wearing, run the 60-second check, then find the symptom. Each fix comes from the manufacturer's user guide.</p>
+  </header>
+
+  <nav class="switch" aria-label="Choose device">
+    <a href="#roger" data-dev="roger">Roger Touchscreen Mic<small>Phonak · screen + lanyard</small></a>
+    <a href="#edumic" data-dev="edumic">EduMic<small>Oticon · white clip-on</small></a>
+    <a href="#minimic" data-dev="minimic">Mini Mic 2+<small>Cochlear · black clip-on</small></a>
+  </nav>
+
+  <section class="first" aria-labelledby="first-h">
+    <h2 id="first-h">60-second check (any device)</h2>
+    <ol class="checks">
+      <li><div><b>Is the mic on and charged?</b>Look for the light or screen. A dead battery is the most common cause.</div></li>
+      <li><div><b>Is the mic muted?</b>Mute is one tap away on all three devices and easy to hit by accident.</div></li>
+      <li><div><b>Is the student's device on the right program?</b>The hearing aid, cochlear implant or BAHA has to be on its mic/streaming program. The district setup is <b>program 1</b> unless the student's plan says otherwise.</div></li>
+      <li><div><b>Is the mic close to your mouth?</b>Wear it 6–10 inches below your mouth, pointing up. Too far away sounds faint; too close sounds muffled.</div></li>
+      <li><div><b>Can the student hear you tap the mic?</b>Tap it gently and watch for a thumbs-up. That confirms the connection.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ ROGER ============ -->
+  <section class="device" id="panel-roger" data-panel="roger" aria-labelledby="roger-h">
+    <div class="dev-head">
+      <div class="block">
+        <span class="eyebrow">Phonak</span>
+        <h2 id="roger-h">Roger Touchscreen Mic</h2>
+        <h3>Start of class</h3>
+        <ol class="steps">
+          <li>Press and hold the <b>On/Off button on the side</b> until the screen turns on.</li>
+          <li>Student switches their hearing aid, CI or BAHA to <b>program 1</b> (their Roger program).</li>
+          <li>Tap <b>Connect</b> on the screen to check the link, and tap the mic to confirm the student can hear you.</li>
+          <li>Put on the lanyard and cinch it so the mic hangs <b>6–10 inches</b> from your mouth.</li>
+          <li>At lunch and end of day, the student switches back to their everyday program. Charge the mic overnight.</li>
+        </ol>
+      </div>
+      <div class="figs">
+        <figure><img src="images/roger-touchscreen.png" alt="Roger Touchscreen Mic front view, with an arrow to the On/Off button on the right side and the mute button below the screen."><figcaption>On/Off is on the right side. The button under the screen is Mute.</figcaption></figure>
+        <figure><img src="images/roger-connect.png" alt="Roger Touchscreen home screen showing SubNet, Network and the Connect button, with an arrow to Connect."><figcaption>Connect is on the home screen.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Reading the screen</h3>
+      <div class="legend-wrap"><table class="legend">
+        <thead><tr><th>You see</th><th>It means</th></tr></thead>
+        <tbody>
+          <tr><td><b>Blank screen</b></td><td>Off, or the battery is empty. Hold On/Off; if nothing happens, plug in the charger.</td></tr>
+          <tr><td><b>Mute button lit / mic shown muted</b></td><td>The mic is muted. Press the mute button below the screen once.</td></tr>
+          <tr><td><b>Lanyard icon</b> in the status bar</td><td>Normal teaching mode. It picks up the wearer's voice.</td></tr>
+          <tr><td><b>Battery icon low</b></td><td>Charge soon. Plan to charge every night.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="block">
+      <h3>Find the problem</h3>
+      <div class="symptoms">
+        <details><summary>Student hears nothing</summary><div class="fix"><ol>
+          <li>Check the screen is on and the battery isn't empty.</li>
+          <li>Make sure the mic isn't muted.</li>
+          <li>Ask the student to confirm their device is on program 1 (the Roger/FM/DAI program).</li>
+          <li>Check the Roger receiver is attached to the hearing aid or processor and switched on.</li>
+          <li>Move closer. If you're far away or around a corner, the signal can drop.</li>
+          <li>Hold the student's device within <b>4 inches (10 cm)</b> of the mic and tap <b>Connect</b>.</li>
+          <li>Still nothing: restart the mic by holding <b>On/Off + Mute together for 10 seconds</b>. Restarting does not erase connections.</li>
+        </ol></div></details>
+        <details><summary>Sound is faint or muffled</summary><div class="fix"><ol>
+          <li>Shorten the lanyard so the mic is 6–10 inches from your mouth.</li>
+          <li>Make sure it's hanging upright and facing you, not flipped or under a jacket or scarf.</li>
+          <li>Don't lay it flat on a desk while teaching. Flat on a table it listens to the whole group, not just you.</li>
+        </ol></div></details>
+        <details><summary>Sound cuts in and out</summary><div class="fix"><ol>
+          <li>Stay in the same room as the student. Walls, doors and distance weaken the signal.</li>
+          <li>Check the mic and the student's receiver are both charged.</li>
+          <li>Tap Connect with the student's device close to the mic to refresh the link.</li>
+        </ol></div></details>
+        <details><summary>Screen frozen or not responding</summary><div class="fix"><ol>
+          <li>Hold <b>On/Off + Mute together for 10 seconds</b> until it restarts. Connections are kept.</li>
+          <li>If it still won't respond, charge it for at least 30 minutes and try again.</li>
+        </ol></div></details>
+        <details><summary>A new student, or a new receiver, needs to be added</summary><div class="fix"><ol>
+          <li>Turn on the student's device with the Roger receiver attached.</li>
+          <li>Hold it within 4 inches of the mic and tap <b>Connect</b>. Keep other Roger devices away while you do this.</li>
+          <li>Connect one device at a time. Once connected, it stays connected.</li>
+        </ol>
+        <p class="callout"><b>Do not use “NewNet.”</b> It erases the mic's network, and every student's receiver and any extra mics then have to be reconnected. Ask your DHH teacher first.</p></div></details>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Videos and manuals</h3>
+      <div class="media">
+        <a href="https://www.phonak.com/en-us/support/how-to-videos/roger-device-videos" target="_blank" rel="noopener"><span class="kind">Video · Phonak</span><b>Roger how-to videos</b><span>Setup, connecting, charging</span></a>
+        <a href="https://www.youtube.com/results?search_query=Phonak+Roger+Touchscreen+Mic+connect" target="_blank" rel="noopener"><span class="kind">Video · YouTube</span><b>Roger Touchscreen: Connect</b><span>Search results for walkthroughs</span></a>
+        <a href="https://www.youtube.com/watch?v=jspsjByvyeI" target="_blank" rel="noopener"><span class="kind">Video · YouTube</span><b>Pair EduMic to Roger Touchscreen</b><span>For rooms that use both</span></a>
+        <a href="https://www.phonak.com/content/dam/celum/phonak/master-assets/en/documents/accessories/roger/roger-touchscreen/ph-user-guide-roger-touchscreen-mic3-92x125-029-1384-02-en.pdf" target="_blank" rel="noopener"><span class="kind">Manual · PDF</span><b>Roger Touchscreen Mic user guide</b><span>Phonak</span></a>
+        <a href="https://www.megaaudio.de/Downloads/Phonak/Roger/FAQ_Roger_TouchscreenMic.pdf" target="_blank" rel="noopener"><span class="kind">FAQ · PDF</span><b>Roger Touchscreen troubleshooting FAQ</b><span>Causes and solutions table</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EDUMIC ============ -->
+  <section class="device" id="panel-edumic" data-panel="edumic" aria-labelledby="edumic-h">
+    <div class="block">
+      <span class="eyebrow">Oticon</span>
+      <h2 id="edumic-h">EduMic</h2>
+      <figure><img src="images/edumic-diagram.png" alt="EduMic diagram: microphone slot on top, one button on the side, 3.5 mm jack and FM connector on the end, power and status lights on top, micro USB charging port, and a rotating clip on the back."><figcaption>One button does everything. Two lights on top: <b>Power</b> (battery icon) and <b>Status</b> (mic icon).</figcaption></figure>
+      <h3>Start of class</h3>
+      <ol class="steps">
+        <li>Press and hold the button for <b>2 seconds</b>, until both lights turn <b>white</b>. Let go.</li>
+        <li>Wait about <b>10 seconds</b> until the Status light turns <b>green</b>. EduMic is on.</li>
+        <li>Student's hearing aids switch to the EduMic stream (program 1). Tap the mic to confirm they hear you.</li>
+        <li>Clip it to the lanyard or your collar, <b>6–10 inches</b> from your mouth.</li>
+        <li>To mute, press the button briefly. Press briefly again to unmute.</li>
+      </ol>
+    </div>
+
+    <div class="block">
+      <h3>Reading the Status light</h3>
+      <div class="legend-wrap"><table class="legend">
+        <thead><tr><th>Status light</th><th>It means</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><span class="led" style="--c:var(--led-white)"><i></i>White</span></td><td>Starting up. Wait for green.</td><td></td></tr>
+          <tr><td><span class="led" style="--c:var(--led-green)"><i></i>Green</span></td><td>Mic is on and sending your voice.</td><td class="ok">Normal</td></tr>
+          <tr><td><span class="led blink" style="--c:var(--led-green)"><i></i>Flashing green</span></td><td>Muted. Press the button briefly to unmute.</td><td></td></tr>
+          <tr><td><span class="led blink" style="--c:var(--led-blue)"><i></i>Flashing blue</span></td><td>Pairing in progress.</td><td></td></tr>
+          <tr><td><span class="led" style="--c:var(--led-yellow)"><i></i>Yellow</span> / <span class="led blink" style="--c:var(--led-yellow)"><i></i>flashing</span></td><td>Jack/FM mode (muted if flashing). The built-in mic isn't the source.</td><td><span class="tag">Call DHH</span></td></tr>
+          <tr><td><span class="led" style="--c:var(--led-magenta)"><i></i>Magenta</span> / <span class="led blink" style="--c:var(--led-magenta)"><i></i>flashing</span></td><td>Telecoil mode (muted if flashing). Not the normal classroom setting.</td><td><span class="tag">Call DHH</span></td></tr>
+          <tr><td><span class="led" style="--c:var(--led-red)"><i></i>Red</span></td><td>All hearing aid pairings were cleared. Students must be re-paired.</td><td><span class="tag">Call DHH</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="ok">Power light <span class="led blink" style="--c:var(--led-red)"><i></i>flashing red</span> = low battery. Charge with the micro USB cable.</p>
+    </div>
+
+    <div class="block">
+      <h3>Find the problem</h3>
+      <div class="symptoms">
+        <details><summary>Student hears nothing</summary><div class="fix"><ol>
+          <li>Status light green? If no lights, hold the button 2 seconds; if still nothing, charge it.</li>
+          <li>Flashing green means muted. Press the button briefly once.</li>
+          <li>Yellow or magenta means it's in the wrong mode. Contact your DHH teacher.</li>
+          <li>Ask the student to check their hearing aids are on the EduMic program (program 1).</li>
+          <li>Have the student turn their hearing aids off and back on (or open and close the battery doors). They reconnect when they restart.</li>
+          <li>Still nothing: the hearing aids may need pairing again (see below).</li>
+        </ol></div></details>
+        <details><summary>Sound is faint or muffled</summary><div class="fix"><ol>
+          <li>Move EduMic up to 6–10 inches from your mouth.</li>
+          <li>Make sure the microphone slot on top isn't covered by clothing, a badge or hair.</li>
+        </ol></div></details>
+        <details><summary>Light turned red</summary><div class="fix">
+          <p>The button was held for about 12 seconds, which clears every pairing. Students won't get sound until their hearing aids are paired again.</p>
+          <p class="callout"><b>To turn EduMic off,</b> hold the button only until the lights go out, then let go. Holding longer clears pairings.</p>
+        </div></details>
+        <details><summary>A student's hearing aids need pairing</summary><div class="fix"><ol>
+          <li>Turn EduMic on (green Status light). Put the student's hearing aids close to it.</li>
+          <li>Restart the hearing aids. <b>Rechargeable:</b> hold the lower part of the hearing aid button 3 seconds (off), then 2 seconds (on). <b>Battery:</b> open and close the battery doors.</li>
+          <li>Pairing must happen within 3 minutes. The Status light flashes <b>blue</b>, then turns <b>green</b> when done.</li>
+          <li>Pair one student at a time. EduMic remembers up to 10 sets of hearing aids, so this is usually a one-time step.</li>
+        </ol></div></details>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Videos and manuals</h3>
+      <div class="media">
+        <a href="https://www.oticon.com/support/pairing/hearing-aid-accessories/how-to-pair-hearing-aids-with-edumic" target="_blank" rel="noopener"><span class="kind">Guide · Oticon</span><b>How to pair hearing aids with EduMic</b><span>Step-by-step with pictures</span></a>
+        <a href="https://www.youtube.com/results?search_query=Oticon+EduMic+how+to" target="_blank" rel="noopener"><span class="kind">Video · YouTube</span><b>Oticon EduMic how-to videos</b><span>Turn on, mute, pairing</span></a>
+        <a href="https://wdh02.azureedge.net/-/media/oticon-us/main/download-center---myoticon---product-literature/edumic/pi/15555-9916---edumic-quick-guide-for-teachers.pdf?rev=8F93&la=en" target="_blank" rel="noopener"><span class="kind">Manual · PDF</span><b>EduMic quick guide for teachers</b><span>Oticon US</span></a>
+        <a href="https://wdh01.azureedge.net/-/media/oticon/main/pdf/master/edumic/214701uk_ifu_edumic_mdr.pdf?rev=F48E&la=en&hash=7CE44C249492F21B32E4D251C2A96FE7" target="_blank" rel="noopener"><span class="kind">Manual · PDF</span><b>EduMic instructions for use</b><span>Full manual with light table</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MINI MIC ============ -->
+  <section class="device" id="panel-minimic" data-panel="minimic" aria-labelledby="minimic-h">
+    <div class="dev-head">
+      <div class="block">
+        <span class="eyebrow">Cochlear</span>
+        <h2 id="minimic-h">Mini Microphone 2+</h2>
+        <h3>Start of class</h3>
+        <ol class="steps">
+          <li>Press and hold the <b>ON/OFF button</b> (top) about 1.5 seconds until the LED turns green. Let go; it then <b>blinks green</b>.</li>
+          <li>Student starts streaming on their CI or BAHA processor: <b>program 1</b>, or press and hold the processor button about 3 seconds (or use their Cochlear app or remote).</li>
+          <li>Tap the mic to confirm the student hears you.</li>
+          <li>Clip it or use the lanyard, <b>6–10 inches</b> from your mouth.</li>
+          <li>At lunch and end of day, student stops streaming with a short press of the processor button. Charge the mic overnight.</li>
+        </ol>
+      </div>
+      <figure><img src="images/minimic-diagram.png" alt="Cochlear Mini Microphone 2+ diagram: LED status indicator and ON/OFF button on top; volume up, mute and volume down on the side; mute LED indicator near the clip; charging connector at the bottom."><figcaption>Volume and Mute are on the side. The Mute LED lights when the mic is muted.</figcaption></figure>
+    </div>
+
+    <div class="block">
+      <h3>Reading the lights</h3>
+      <div class="legend-wrap"><table class="legend">
+        <thead><tr><th>Light</th><th>It means</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><span class="led blink" style="--c:var(--led-green)"><i></i>Blinking green</span></td><td>On and ready.</td><td class="ok">Normal</td></tr>
+          <tr><td><span class="led" style="--c:var(--led-red)"><i></i>Red while holding</span></td><td>Turning off.</td><td></td></tr>
+          <tr><td><span class="led blink" style="--c:var(--led-yellow)"><i></i>Flashing yellow</span></td><td>Less than 30 minutes of battery left. Charge it. (Also shows during the 20-second pairing window.)</td><td></td></tr>
+          <tr><td><span class="led" style="--c:var(--led-red)"><i></i>Red on charger</span></td><td>Charging.</td><td></td></tr>
+          <tr><td><span class="led half" style="--c:var(--led-green)"><i></i>Green + red blink</span></td><td>Fully charged (red flash every 2 seconds while still plugged in).</td><td></td></tr>
+          <tr><td><b>Mute LED on</b></td><td>Muted. Press MUTE once to unmute.</td><td></td></tr>
+        </tbody>
+      </table></div>
+      <p class="ok">A full charge lasts about 10 hours. A new mic needs at least 3 hours of charging before first use.</p>
+    </div>
+
+    <div class="block">
+      <h3>Find the problem</h3>
+      <div class="symptoms">
+        <details><summary>Student hears nothing</summary><div class="fix"><ol>
+          <li>Status LED blinking green? If not, hold ON/OFF; if nothing happens, charge it.</li>
+          <li>Mute LED lit? Press MUTE once.</li>
+          <li>Ask the student to start streaming again on their processor (program 1, or hold the processor button about 3 seconds).</li>
+          <li>Turn the volume up with the volume UP button on the mic.</li>
+          <li>Have the student turn the processor off and on, then start streaming again.</li>
+          <li>Still nothing: the processor may need pairing again (see below).</li>
+        </ol></div></details>
+        <details><summary>Too soft or too loud</summary><div class="fix"><ol>
+          <li>Use the volume UP / DOWN buttons on the side of the mic.</li>
+          <li>Check the mic is 6–10 inches from your mouth and not covered by clothing.</li>
+        </ol></div></details>
+        <details><summary>Sound cuts in and out</summary><div class="fix"><ol>
+          <li>Stay in the same room with a clear path to the student.</li>
+          <li>Check the battery. Flashing yellow means less than 30 minutes left.</li>
+        </ol></div></details>
+        <details><summary>Processor needs pairing</summary><div class="fix"><ol>
+          <li>Turn the Mini Mic on. Keep the processor close by.</li>
+          <li>Press the small <b>pairing button</b> once with a pen tip (channel 1). The LED flashes <b>yellow</b> for 20 seconds.</li>
+          <li>Within those 20 seconds, restart the processor (turn it on, or close the battery door). A melody or flashing light on the processor confirms pairing.</li>
+          <li>If the 20 seconds run out, repeat. Pairing is normally done once by your DHH teacher or audiologist.</li>
+        </ol></div></details>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Videos and manuals</h3>
+      <div class="media">
+        <a href="https://www.youtube.com/results?search_query=Cochlear+Mini+Microphone+2%2B+how+to+pair" target="_blank" rel="noopener"><span class="kind">Video · YouTube</span><b>Mini Microphone 2+ pairing and use</b><span>Search results for walkthroughs</span></a>
+        <a href="https://support.cochlear.com/us/en/support/r/osia-2/articles/using-my-mini-microphone-2+-no-pairing-melody-plays-in-my-sound-processor-when-the-pairing-sequence-times-out" target="_blank" rel="noopener"><span class="kind">Support · Cochlear</span><b>No pairing melody? Timeout fix</b><span>Cochlear support article</span></a>
+        <a href="https://www.cochlear.com/documents/cbas/d771645-zone-1-cochlear-wireless-minimic-2_plus-user-manual" target="_blank" rel="noopener"><span class="kind">Manual · PDF</span><b>Mini Microphone 2+ user manual</b><span>Cochlear</span></a>
+        <a href="https://www.cochlear.com/mics/5f11368c-9b5a-464e-a8c9-ed8157e5fd3f/D777359_2-01_EN_True-Wireless_UG_CAM_WEB.pdf?MOD=AJPERES&amp;CONVERT_TO=url&amp;CACHEID=ROOTWORKSPACE-5f11368c-9b5a-464e-a8c9-ed8157e5fd3f-lJ0B.wX+" target="_blank" rel="noopener"><span class="kind">Manual · PDF</span><b>True Wireless accessories guide</b><span>Streaming and pairing by processor</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="first" aria-labelledby="esc-h">
+    <h2 id="esc-h">When to stop and call</h2>
+    <p>Contact your campus <b>Teacher of the Deaf/Hard of Hearing</b> or the district <b>educational audiologist</b> if:</p>
+    <ol class="checks">
+      <li><div>The student still can't hear after the 60-second check and the device fixes above.</div></li>
+      <li><div>A device needs pairing, or an EduMic light shows yellow, magenta or red.</div></li>
+      <li><div>The student's own hearing aid or processor isn't working, even without the mic. Don't change settings on the student's device beyond switching programs.</div></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Steps summarized from the manufacturers' published guides: Phonak Roger Touchscreen Mic user guide and FAQ, Oticon EduMic instructions for use and teacher quick guide, and Cochlear Mini Microphone 2+ / True Wireless user guides. “Program 1” follows the district DHH in-service slides. Always follow a student's individual plan when it differs.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var devs=["roger","edumic","minimic"];
+  function show(){
+    var h=(location.hash||"").slice(1);
+    if(devs.indexOf(h)<0){try{h=localStorage.getItem("dev")||"roger"}catch(e){h="roger"} if(devs.indexOf(h)<0)h="roger"}
+    devs.forEach(function(d){document.getElementById("panel-"+d).hidden=(d!==h)});
+    document.querySelectorAll("nav.switch a").forEach(function(a){a.setAttribute("aria-current",a.dataset.dev===h?"true":"false")});
+    try{localStorage.setItem("dev",h)}catch(e){}
+  }
+  window.addEventListener("hashchange",show);show();
+})();
+</script>
