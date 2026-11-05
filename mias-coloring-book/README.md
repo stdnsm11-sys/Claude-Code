@@ -8,6 +8,9 @@ A smartboard activity for a 2nd-grade student who is Deaf/Hard of Hearing. Open 
 - **Feedback mode** (switch on): green = correct, orange shake = try again. Data records the *first try*.
 - **Probe mode** (switch off): no feedback until the teacher presses **Check my work**.
 - All feedback is visual. No sound is needed.
+- **“Are you sure?” check:** after the student taps a mark, the sentence opens large and is reread word by word (highlighted, with an optional computer voice). The **Yes, I'm sure** button stays locked until the reread and a wait time (0–8 s) finish. The student can **Read it again** or **Change it**. A wrong mark changed to the right one is logged as a self-correction.
+- **Guiding prompts** (feedback mode) after a confirmed wrong answer: 1) *Is this sentence telling, asking, or a big feeling?* 2) the clue word is highlighted (“Do” is an asking word, “Wow” shows a big feeling) 3) the correct mark glows (modeled). The highest prompt level needed is saved for each sentence.
+- All of these can be turned on or off under **Teacher settings**.
 
 ## 2 · Listen & Color (following 3- and 4-step oral directions)
 - Pick **3 steps** or **4 steps** and press **New directions** (e.g. "First, color the sun yellow. Next, color Mia's cochlear implant purple. Last, color the dog brown.").

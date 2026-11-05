@@ -87,7 +87,8 @@ h2{font-family:var(--display);font-weight:800;font-size:1.9em;margin:0;text-wrap
 .tray{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .mark{border:3px solid var(--line);background:var(--panel);border-radius:22px;padding:10px;min-height:150px;display:grid;justify-items:center;align-content:center;gap:2px}
 .mark b{font-family:var(--display);font-size:clamp(56px,6vw,100px);line-height:.9}
-.mark span{font-weight:700;font-size:.95em;overflow-wrap:anywhere}
+.mark span{font-weight:700;font-size:.82em}
+.coachcard .mark span{font-size:1em}
 .mark small{color:var(--muted)}
 .mark:active{transform:scale(.97);border-color:var(--accent)}
 .readgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,440px);gap:18px;align-items:start}
@@ -147,6 +148,37 @@ td .x{border:0;background:none;color:var(--muted);font-size:1.2em;min-height:40p
 .datagrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .csv{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75em;min-height:120px}
 
+/* coach: "Are you sure?" + guiding prompts */
+.slot.pend{border:4px solid var(--star);border-style:solid;background:var(--panel)}
+.coachwrap{position:fixed;inset:0;z-index:40;background:rgba(15,20,40,.6);display:grid;place-items:center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px}
+.coachcard{background:var(--panel);border:3px solid var(--line);border-radius:28px;width:min(1150px,100%);max-height:100%;overflow:auto;padding:clamp(18px,2.4vw,36px);display:grid;gap:clamp(14px,1.6vw,24px)}
+.coachcard h2{font-size:clamp(30px,3vw,54px)}
+.coachsent{font-size:clamp(30px,3.4vw,64px);line-height:1.55}
+.w{border-radius:10px;padding:0 .08em;transition:background .12s}
+.w.clue{background:var(--accent-soft);box-shadow:inset 0 -.14em 0 var(--accent)}
+.w.hl,.slot.hl{background:var(--star);color:#1f2a44}
+.coachmsg{font-size:clamp(22px,2vw,36px);font-weight:700;margin:0;max-width:40ch}
+.coachmsg em{font-style:normal;color:var(--accent)}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.choice{border:3px solid var(--line);background:var(--paper);border-radius:22px;padding:14px;min-height:130px;display:grid;align-content:center;justify-items:center;gap:6px;text-align:center}
+.choice b{font-family:var(--display);font-size:clamp(26px,2.4vw,42px)}
+.choice span{color:var(--muted);font-weight:700}
+.coachbtns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.coachbtns .btn{min-height:90px;font-size:clamp(20px,1.7vw,30px)}
+.yes{position:relative;overflow:hidden}
+.yes .fill{position:absolute;inset:0;background:rgba(255,255,255,.4);transform-origin:left;transform:scaleX(0)}
+.yes:disabled{opacity:.6}
+.yes .lbl{position:relative}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.mark.glow{border-color:var(--good);box-shadow:0 0 0 8px var(--good-soft);animation:pulse 1.1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 16px var(--good-soft)}}
+.coachfoot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.linkbtn{border:2px solid var(--line);background:transparent;border-radius:14px;min-height:56px;padding:8px 18px;font-weight:700}
+.linkbtn.quiet{border-color:transparent;color:var(--muted);font-size:.85em}
+details.card summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+@media (max-width:700px){.choices,.coachbtns{grid-template-columns:minmax(0,1fr)}}
+
 /* confetti */
 .burst{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
 .burst i{position:absolute;width:18px;height:28px;border-radius:9px 9px 4px 4px;animation:fall 1.6s ease-out forwards}
@@ -179,7 +211,6 @@ td .x{border:0;background:none;color:var(--muted);font-size:1.2em;min-height:40p
 <section class="view" id="view-read">
   <div class="row" style="justify-content:space-between">
     <div class="row" id="passageChips" aria-label="Choose a story"></div>
-    <label class="switch"><input type="checkbox" id="instant" checked> Show right / try again right away</label>
   </div>
   <div class="readgrid">
     <div class="card"><div class="passage" id="passage"></div></div>
@@ -195,7 +226,16 @@ td .x{border:0;background:none;color:var(--muted);font-size:1.2em;min-height:40p
         <button class="btn" id="checkRead" hidden>Check my work</button>
         <button class="btn ghost" id="resetRead">Start this story over</button>
       </div>
-      <p class="mini" id="readNote">Teacher: with the switch on, the student sees green for correct and orange to try again; data records the first try. Turn it off for a probe with no feedback until “Check my work.”</p>
+      <details class="card teacher" id="readSettings">
+        <summary class="label">Teacher settings</summary>
+        <label class="switch"><input type="checkbox" id="instant"> Show right / try again right away</label>
+        <label class="switch"><input type="checkbox" id="confirmOn"> Ask “Are you sure?” before scoring</label>
+        <label class="switch"><input type="checkbox" id="guideOn"> Guiding prompts after a wrong answer</label>
+        <label class="switch"><input type="checkbox" id="voiceOn"> Computer voice reads the sentence</label>
+        <label class="label" for="waitSel">Wait before “Yes, I'm sure” unlocks</label>
+        <select id="waitSel"><option value="0">No extra wait</option><option value="2">2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="8">8 seconds</option></select>
+        <p class="mini" style="margin:0">Scores count the answer the student confirms first. Changing a mark at “Are you sure?” is logged as a self-check. Guiding prompts only run when “Show right / try again” is on; turn that off for a probe with no feedback until “Check my work.”</p>
+      </details>
     </div>
   </div>
 </section>
@@ -341,6 +381,15 @@ td .x{border:0;background:none;color:var(--muted);font-size:1.2em;min-height:40p
     </div>
   </div>
 </section>
+
+<div class="coachwrap" id="coach" hidden>
+  <div class="coachcard" role="dialog" aria-modal="true" aria-labelledby="coachTitle">
+    <h2 id="coachTitle"></h2>
+    <div class="coachsent" id="coachSent"></div>
+    <p class="coachmsg" id="coachMsg"></p>
+    <div id="coachBody" class="teacher"></div>
+  </div>
+</div>
 </main>
 
 <script>
@@ -386,61 +435,159 @@ function celebrate(){
 }
 
 /* ---------- READ & PUNCTUATE ---------- */
-let story=0, active=0, answers=[], first=[], tries=[], done=false;
+store.settings=Object.assign({instant:true,confirm:true,guide:true,voice:true,wait:3},store.settings||{});
+const S=store.settings;
+let story=0, active=0, answers=[], first=[], init=[], changes=[], rereads=[], prompt=[], done=false, locked=false, pending=null, coach=null;
+const KIND={'.':'telling','?':'asking','!':'big feeling'}, ART={'.':'a telling','?':'an asking','!':'a big feeling'};
+function clueOf(t,m){if(m==='?')return t.split(' ')[0];if(m==='!'&&t.includes(','))return t.split(',')[0];return null}
+function clueText(t,m){const c=clueOf(t,m);
+  if(m==='?')return `Look at the first word, <em>“${esc(c)}”</em>. It is an asking word. This sentence asks a question.`;
+  if(m==='!')return c?`Look at <em>“${esc(c)}”</em>. It shows a big feeling! This sentence is excited.`:`This sentence shows a big feeling!`;
+  return `This sentence tells us something. It does not ask a question. It is not a big feeling.`}
 function buildChips(){
   $('#passageChips').innerHTML='';
   STORIES.forEach((st,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=st.title;b.setAttribute('aria-pressed',i===story);b.onclick=()=>{story=i;resetRead()};$('#passageChips').appendChild(b)});
 }
 function resetRead(){
-  const n=STORIES[story].s.length; answers=Array(n).fill(null); first=Array(n).fill(null); tries=Array(n).fill(0); active=0; done=false;
+  const n=STORIES[story].s.length, z=v=>Array(n).fill(v);
+  answers=z(null);first=z(null);init=z(null);changes=z(0);rereads=z(0);prompt=z(0);active=0;done=false;pending=null;
   $('#readBanner').hidden=true; buildChips(); renderPassage(); syncCheck();
 }
 function renderPassage(){
-  const st=STORIES[story], instant=$('#instant').checked;
+  const st=STORIES[story];
   const p=$('#passage'); p.innerHTML=`<h3>${st.title}</h3>`;
   st.s.forEach(([t,m],i)=>{
     const sp=document.createElement('span');sp.className='sent'+(i===active&&!done?' on':'');
     sp.append(t);
     const b=document.createElement('button');b.className='slot';b.setAttribute('aria-label','End mark for sentence '+(i+1));
-    const a=answers[i]; b.textContent=a||'';
+    const pend=pending&&pending.i===i, a=pend?pending.m:answers[i]; b.textContent=a||'';
     if(i===active&&!done) b.classList.add('on');
-    if(a&&(instant||done)) b.classList.add(a===m?'ok':'no');
-    b.onclick=()=>{if(done)return;active=i;renderPassage()};
+    if(pend) b.classList.add('pend');
+    else if(a&&(S.instant||done)) b.classList.add(a===m?'ok':'no');
+    b.onclick=()=>{if(done||locked)return;active=i;renderPassage()};
     sp.appendChild(b); p.append(sp,' ');
   });
 }
-function nextOpen(from){const n=answers.length;const instant=$('#instant').checked;
-  for(let k=1;k<=n;k++){const j=(from+k)%n;const ok=answers[j]===STORIES[story].s[j][1];if(instant?!ok:!answers[j])return j}return -1}
+function nextOpen(from){const n=answers.length;
+  for(let k=1;k<=n;k++){const j=(from+k)%n;const ok=answers[j]===STORIES[story].s[j][1];if(S.instant?!ok:!answers[j])return j}return -1}
 function place(m){
-  if(done||active<0)return;
-  const i=active, want=STORIES[story].s[i][1], instant=$('#instant').checked;
-  if(instant){
-    if(answers[i]===want) return;
-    tries[i]++; if(first[i]===null) first[i]=m;
-    answers[i]=m;
-    if(m===want){addStars(1);active=nextOpen(i);renderPassage();if(active<0)finishRead();}
-    else{renderPassage();const el=$$('.slot')[i];el.classList.add('shake');
-      setTimeout(()=>{answers[i]=null;renderPassage()},900);}
-  }else{
-    answers[i]=m; const nx=nextOpen(i); if(nx>=0) active=nx; renderPassage();
-  }
+  if(done||active<0||locked)return;
+  const i=active, want=STORIES[story].s[i][1];
+  if(S.instant&&answers[i]===want) return;
+  if(init[i]===null) init[i]=m;
+  if(S.confirm){pending={i,m};renderPassage();openCoach(i,'confirm',m)} else commit(i,m);
+}
+function commit(i,m){
+  const want=STORIES[story].s[i][1];
+  if(first[i]===null) first[i]=m;
+  answers[i]=m;
+  if(S.instant){
+    if(m===want){addStars(1);afterCorrect(i);return}
+    renderPassage(); const el=$$('.slot')[i]; el.classList.add('shake');
+    if(S.guide){locked=true;setTimeout(()=>openCoach(i,'type'),500)}
+    else setTimeout(()=>{answers[i]=null;renderPassage()},900);
+  }else{const nx=nextOpen(i);if(nx>=0)active=nx;renderPassage()}
   syncCheck();
 }
+function afterCorrect(i){active=nextOpen(i);renderPassage();syncCheck();if(active<0)finishRead()}
 $$('.mark').forEach(b=>b.onclick=()=>place(b.dataset.m));
-function syncCheck(){const instant=$('#instant').checked;$('#checkRead').hidden=instant||done;$('#checkRead').disabled=answers.some(a=>!a)}
-$('#instant').onchange=()=>resetRead();
+function syncCheck(){$('#checkRead').hidden=S.instant||done;$('#checkRead').disabled=answers.some(a=>!a)}
+
+/* coach: confirm, reread, guiding prompts */
+let readTimer=null, waitTok=0;
+function say(t){try{const sy=window.speechSynthesis;if(!sy||!S.voice)return;sy.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.8;sy.speak(u)}catch(e){}}
+function sentHTML(i,m,withClue,cls){
+  const [t,want]=STORIES[story].s[i], ws=t.split(' ');
+  const cn=withClue?(clueOf(t,want)||'').split(' ').filter(Boolean).length:0;
+  return ws.map((w,k)=>`<span class="w${k<cn?' clue':''}">${esc(w)}</span>`).join(' ')+`<span class="slot ${cls||''}">${m||''}</span>`;
+}
+function reread(m){ // highlight word by word (visual), voice optional; returns ms
+  const els=$$('#coachSent .w, #coachSent .slot'), step=520; let k=0;
+  clearInterval(readTimer); els.forEach(e=>e.classList.remove('hl'));
+  readTimer=setInterval(()=>{els.forEach(e=>e.classList.remove('hl'));if(k<els.length)els[k++].classList.add('hl');else clearInterval(readTimer)},step);
+  say(STORIES[story].s[coach.i][0]+(m||''));
+  return step*(els.length+1);
+}
+function armYes(ms){const tok=++waitTok,y=$('#cYes');if(!y)return;y.disabled=true;const f=y.querySelector('.fill');
+  f.style.animation='none';void f.offsetWidth;f.style.animation=`grow ${ms}ms linear forwards`;
+  setTimeout(()=>{if(tok===waitTok&&$('#cYes'))$('#cYes').disabled=false},ms)}
+function openCoach(i,stage,m){
+  locked=true; coach={i,stage,m}; if(stage==='type')prompt[i]=Math.max(prompt[i],1);
+  $('#coach').hidden=false; renderCoach(stage==='type'?'Not quite. ':'');
+}
+function renderCoach(pre){
+  const c=coach,[t,want]=STORIES[story].s[c.i];
+  const marks=glow=>`<div class="choices">${['.','?','!'].map(k=>`<button class="mark${glow&&k===want?' glow':''}" data-act="mark" data-v="${k}"><b>${k}</b><span>${MARKNAME[k]}</span></button>`).join('')}</div>`;
+  const foot=`<div class="coachfoot"><button class="linkbtn" data-act="again">↻ Read it again</button><button class="linkbtn quiet" data-act="close">Teacher: close</button></div>`;
+  let title="Let's think about it", msg='', body='';
+  if(c.stage==='confirm'){
+    title='Are you sure?'; msg='Read the sentence again. Does this mark fit?';
+    body=`<div class="coachbtns"><button class="btn ghost" data-act="again">↻ Read it again</button><button class="btn ghost" data-act="change">Change it</button><button class="btn good yes" id="cYes" data-act="yes" disabled><span class="fill"></span><span class="lbl">✓ Yes, I'm sure</span></button></div>`;
+  }else if(c.stage==='type'){
+    msg='Read it again. What is this sentence doing?';
+    body=`<div class="choices">${[['.','Telling','It tells something.'],['?','Asking','It asks a question.'],['!','Big feeling','It shows excitement.']].map(([v,b,s])=>`<button class="choice" data-act="type" data-v="${v}"><b>${b}</b><span>${s}</span></button>`).join('')}</div>`+foot;
+  }else if(c.stage==='mark'){
+    msg=`Yes! It is ${ART[want]} sentence. Which mark goes at the end?`; body=marks(false)+foot;
+  }else if(c.stage==='clue'){
+    msg=clueText(t,want)+' Which mark goes at the end?'; body=marks(false)+foot;
+  }else{
+    msg=`${ART[want][0].toUpperCase()+ART[want].slice(1)} sentence ends with ${want==='!'?'an':'a'} ${MARKNAME[want]}. Tap the glowing mark.`; body=marks(true)+foot;
+  }
+  $('#coachTitle').textContent=title;
+  $('#coachSent').innerHTML=sentHTML(c.i,c.stage==='confirm'?c.m:'',c.stage==='clue'||c.stage==='model',c.stage==='confirm'?'pend':'');
+  $('#coachMsg').innerHTML=(pre||'')+msg; $('#coachBody').innerHTML=body;
+  const d=reread(c.stage==='confirm'?c.m:'');
+  if(c.stage==='confirm') armYes(Math.max(d,S.wait*1000));
+}
+function closeCoach(){clearInterval(readTimer);try{speechSynthesis.cancel()}catch(e){}
+  coach=null;pending=null;$('#coach').hidden=true;renderPassage();setTimeout(()=>{if(!coach)locked=false},600)}
+function coachRight(){
+  const i=coach.i,want=STORIES[story].s[i][1]; answers[i]=want; coach.stage='done';
+  $('#coachSent').innerHTML=sentHTML(i,want,false,'ok'); $('#coachMsg').textContent='You got it! Great thinking.'; $('#coachBody').innerHTML='';
+  addStars(1); setTimeout(()=>{closeCoach();afterCorrect(i)},1400);
+}
+$('#coachBody').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]'); const c=coach; if(!b||b.disabled||!c||c.stage==='done')return;
+  const want=STORIES[story].s[c.i][1], act=b.dataset.act, v=b.dataset.v;
+  if(act==='again'){rereads[c.i]++;const d=reread(c.stage==='confirm'?c.m:'');if(c.stage==='confirm')armYes(Math.max(d,S.wait*1000));return}
+  if(act==='close'){if(c.stage!=='confirm')answers[c.i]=null;closeCoach();return}
+  if(act==='change'){changes[c.i]++;closeCoach();return}
+  if(act==='yes'){const {i,m}=c;closeCoach();locked=true;commit(i,m);if(!coach)setTimeout(()=>{if(!coach)locked=false},600);return}
+  if(act==='type'){
+    if(v===want){c.stage='mark';renderCoach()}
+    else{prompt[c.i]=Math.max(prompt[c.i],2);c.stage='clue';renderCoach('Not quite. ')}
+    return}
+  if(act==='mark'){
+    if(v===want){coachRight();return}
+    b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');
+    if(c.stage==='model')return;
+    setTimeout(()=>{if(coach!==c)return;
+      if(c.stage==='mark'){prompt[c.i]=Math.max(prompt[c.i],2);c.stage='clue'}else{prompt[c.i]=3;c.stage='model'}
+      renderCoach('Not quite. ')},550);
+  }
+});
+
+/* settings */
+const SETS=[['instant','instant'],['confirmOn','confirm'],['guideOn','guide'],['voiceOn','voice']];
+SETS.forEach(([id,k])=>{const el=$('#'+id);el.checked=!!S[k];el.onchange=()=>{S[k]=el.checked;save();if(k==='instant')resetRead()}});
+$('#waitSel').value=String(S.wait);$('#waitSel').onchange=e=>{S.wait=+e.target.value;save()};
+if(!window.speechSynthesis)$('#voiceOn').closest('label').hidden=true;
+
 $('#checkRead').onclick=()=>{first=answers.slice();done=true;const c=STORIES[story].s.filter(([,m],i)=>answers[i]===m).length;addStars(c);renderPassage();finishRead()};
 $('#resetRead').onclick=resetRead;
 function finishRead(){
   done=true; const st=STORIES[story];
-  const items=st.s.map(([t,m],i)=>({exp:m,got:first[i],ok:first[i]===m,tries:tries[i]}));
+  const items=st.s.map(([t,m],i)=>({exp:m,got:first[i],ok:first[i]===m,init:init[i],changes:changes[i],rereads:rereads[i],prompt:prompt[i]}));
   const ok=items.filter(x=>x.ok).length;
   const by={};['.','?','!'].forEach(k=>{const xs=items.filter(x=>x.exp===k);by[k]=[xs.filter(x=>x.ok).length,xs.length]});
+  const selfFix=items.filter(x=>x.ok&&x.init!==null&&x.init!==x.exp).length;
+  const pr=[1,2,3].map(l=>items.filter(x=>x.prompt===l).length);
   store.records.push({id:Date.now(),date:new Date().toISOString(),student:store.student,type:'punct',story:st.title,
-    mode:$('#instant').checked?'feedback':'probe',score:ok,total:items.length,by,items});
+    mode:S.instant?'feedback':'probe',confirm:S.confirm,wait:S.wait,score:ok,total:items.length,by,items,
+    selfFix,changes:items.reduce((a,x)=>a+x.changes,0),rereads:items.reduce((a,x)=>a+x.rereads,0),pr});
   save(); renderPassage(); syncCheck();
   const b=$('#readBanner');b.hidden=false;b.className='banner good';
-  b.innerHTML=`<span style="font-size:1.6em">★</span> You finished “${st.title}”! ${ok} of ${items.length} right on the first try.`;
+  b.innerHTML=`<span style="font-size:1.6em">★</span> You finished “${st.title}”! ${ok} of ${items.length} right on the first try.${selfFix?` You checked your work and fixed ${selfFix}.`:''}`;
   if(ok/items.length>=.75) celebrate();
 }
 
@@ -542,14 +689,16 @@ function renderData(){
     xs.length?`${xs.filter(r=>r.score===r.total).length} of ${xs.length} trials fully correct · ${(sum(xs,r=>r.reps)/xs.length).toFixed(1)} repeats avg`:'No trials yet');
   $('#tiles').innerHTML=tile('End punctuation, first try',pct(a,b),P.length?`${a} of ${b} marks across ${P.length} stories`:'No stories checked yet')
     +['.','?','!'].map(k=>{const[x,y]=by(k);return tile(MARKNAME[k]+'  '+k,pct(x,y),y?`${x} of ${y}`:'—')}).join('')
+    +`<div class="tile"><span class="label">Checked &amp; fixed it</span><span class="big">${sum(P,r=>r.selfFix||0)}</span><span class="mini">Wrong mark changed to the right one at “Are you sure?” (${sum(P,r=>r.changes||0)} changes, ${sum(P,r=>r.rereads||0)} extra rereads)</span></div>`
+    +`<div class="tile"><span class="label">Guiding prompts needed</span><span class="big">${sum(P,r=>(r.pr||[0,0,0]).reduce((a,x)=>a+x,0))}</span><span class="mini">Sentence type: ${sum(P,r=>(r.pr||[0])[0])} · clue word: ${sum(P,r=>(r.pr||[0,0])[1])} · modeled: ${sum(P,r=>(r.pr||[0,0,0])[2])}</span></div>`
     +dt(d3)+dt(d4);
   const rows=R.slice().reverse().map(r=>{
     const d=new Date(r.date), when=d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     const p=pct(r.score,r.total), cls=p>=80?'g':p<60?'t':'';
     const act=r.type==='punct'?`Punctuation · ${esc(r.story)}`:`${r.n}-step directions`;
-    const det=r.type==='punct'?`. ${r.by['.'][0]}/${r.by['.'][1]} · ? ${r.by['?'][0]}/${r.by['?'][1]} · ! ${r.by['!'][0]}/${r.by['!'][1]}`
+    const det=r.type==='punct'?`. ${r.by['.'][0]}/${r.by['.'][1]} · ? ${r.by['?'][0]}/${r.by['?'][1]} · ! ${r.by['!'][0]}/${r.by['!'][1]}${r.selfFix?` · self-fixed ${r.selfFix}`:''}${r.pr&&r.pr.some(Boolean)?`<br><span class="mini">Prompts: type ${r.pr[0]} · clue ${r.pr[1]} · modeled ${r.pr[2]}</span>`:''}`
       :`${r.inOrder?'In order':'Out of order'} · repeated ${r.reps}×${r.extra?` · ${r.extra} extra`:''}${r.notes?'<br><span class="mini">'+esc(r.notes)+'</span>':''}`;
-    const sup=r.type==='punct'?(r.mode==='probe'?'Probe (no feedback)':'With feedback'):esc(r.prompt);
+    const sup=r.type==='punct'?(r.mode==='probe'?'Probe (no feedback)':'With feedback')+(r.confirm?`<br><span class="mini">“Are you sure?” on, ${r.wait}s wait</span>`:''):esc(r.prompt);
     return `<tr><td>${when}</td><td>${esc(r.student||'')}</td><td>${act}</td><td><span class="pill ${cls}">${r.score}/${r.total} · ${p}%</span></td><td>${det}</td><td>${sup}</td><td><button class="x" data-id="${r.id}" aria-label="Delete row">✕</button></td></tr>`}).join('');
   $('#rows').innerHTML=rows||'<tr><td colspan="7" class="mini">No data yet. Finish a story in tab 1 or save a coloring trial in tab 2.</td></tr>';
   $$('#rows .x').forEach(b=>b.onclick=()=>{store.records=store.records.filter(r=>r.id!=b.dataset.id);save();renderData()});
@@ -557,10 +706,11 @@ function renderData(){
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const head=['date','student','activity','score','total','percent','period','question','exclamation','in_order','repetitions','support','notes','directions'];
+  const head=['date','student','activity','score','total','percent','period','question','exclamation','in_order','repetitions','support','self_corrections','changes_at_confirm','rereads','prompt_type','prompt_clue','prompt_modeled','notes','directions'];
   const lines=store.records.map(r=>[r.date,r.student,r.type==='punct'?'Punctuation: '+r.story:r.n+'-step directions',r.score,r.total,pct(r.score,r.total),
     r.by?r.by['.'].join('/'):'',r.by?r.by['?'].join('/'):'',r.by?r.by['!'].join('/'):'',r.type==='dir'?(r.inOrder?'yes':'no'):'',r.reps??'',
-    r.type==='punct'?(r.mode==='probe'?'probe':'feedback'):r.prompt,r.notes||'',r.directions||''].map(q).join(','));
+    r.type==='punct'?(r.mode==='probe'?'probe':'feedback')+(r.confirm?' + are-you-sure '+r.wait+'s':''):r.prompt,
+    r.selfFix??'',r.changes??'',r.rereads??'',r.pr?r.pr[0]:'',r.pr?r.pr[1]:'',r.pr?r.pr[2]:'',r.notes||'',r.directions||''].map(q).join(','));
   return [head.join(','),...lines].join('\n');
 }
 $('#copyCsv').onclick=()=>{const t=csv(),box=$('#csvBox');box.value=t;box.hidden=false;
