@@ -166,10 +166,17 @@ button{cursor:pointer}
   <main class="board" id="board" aria-live="polite"></main>
 
   <section class="panel" id="panel" hidden aria-label="Adult tools">
+    <div class="row">
+      <span class="field">Pictures and ready-made schedules for</span>
+      <div class="seg" role="group" aria-label="Where">
+        <button type="button" data-place="School" aria-pressed="true">School</button>
+        <button type="button" data-place="Home" aria-pressed="false">Home</button>
+      </div>
+    </div>
     <div class="split">
       <div>
         <h3>Schedules</h3>
-        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one.</p>
+        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one. Switch School / Home above for home routines.</p>
         <div class="row">
           <label class="field" style="flex:1 1 180px">Showing
             <select id="schedSel"></select>
@@ -220,7 +227,7 @@ button{cursor:pointer}
 
     <div>
       <h3>Make your own step</h3>
-      <p class="hint">Real photos of your classroom, teacher and cubby often work best. Photos stay on this device.</p>
+      <p class="hint">Real photos of his own potty, plate, cubby or teacher often work best. Photos stay on this device.</p>
       <div class="form">
         <label class="field">Word on the tile
           <input id="cLabel" maxlength="28" placeholder="Feed the fish">
@@ -279,15 +286,55 @@ const LIB = {
     ["🌬️","Deep breaths","Take deep breaths"],["🧸","Calm corner","Go to the calm corner"],["🛋️","Break","Take a break"],["⏳","Wait","Wait"],
     ["🤲","Hands to self","Hands to yourself"],["🙋","Help please","Help please"],["✅","All done","All done"],["⭐","Choice time","Choice time"]]
 };
-const TEMPLATES = {
+const LIB_HOME = {
+  "Potty": [
+    ["🚽","Potty","Go potty"],["👖","Pants down","Pull down your pants"],["🚽","Sit on potty","Sit on the potty"],["🧻","Wipe","Wipe"],
+    ["🚽","Flush","Flush the toilet"],["👖","Pull up pants","Pull up your pants"],["🧼","Wash hands","Wash your hands"],["💨","Dry hands","Dry your hands"],
+    ["🩲","Underwear on","Put on your underwear"]],
+  "Morning": [
+    ["🌞","Wake up","Wake up. Good morning!"],["🚽","Potty","Go potty"],["👕","Get dressed","Get dressed"],["🧦","Socks on","Put on your socks"],
+    ["🥣","Breakfast","Eat your breakfast"],["🪥","Brush teeth","Brush your teeth"],["💇","Brush hair","Brush your hair"],["👟","Shoes on","Put on your shoes"],
+    ["🎒","Get backpack","Get your backpack"],["🚗","Car seat","Get in your car seat"]],
+  "Mealtime": [
+    ["🧼","Wash hands","Wash your hands"],["🪑","Sit at table","Sit at the table"],["🍗","Eat my food","First, eat your food"],["🥦","Eat veggies","Eat your vegetables"],
+    ["🥣","Breakfast","Eat your breakfast"],["🍝","Dinner","Dinner time"],["🥛","Drink","Take a drink"],["🍪","Treat","Then, a treat!"],
+    ["🍦","Ice cream","Then, ice cream!"],["🧁","Dessert","Then, dessert!"],["🍽️","Plate to sink","Put your plate in the sink"],["🗑️","Throw away trash","Throw away your trash"]],
+  "Clean up": [
+    ["🧸","Toys away","Put your toys away"],["🗑️","Throw away trash","Throw away your trash"],["🧺","Clothes in hamper","Put your clothes in the hamper"],
+    ["🛏️","Make bed","Make your bed"],["👟","Shoes by door","Put your shoes by the door"],["🧼","Wash hands","Wash your hands"],["🐶","Feed the pet","Feed the dog"]],
+  "Bedtime": [
+    ["🛁","Bath","Bath time"],["🧴","Lotion","Put on lotion"],["👚","Pajamas on","Put on your pajamas"],["🪥","Brush teeth","Brush your teeth"],
+    ["🚽","Potty","Go potty"],["📖","Bedtime story","Read a bedtime story"],["🤗","Hugs","Hugs and kisses"],["💡","Lights off","Lights off"],["😴","Sleep","Time to sleep"]],
+  "Out & about": [
+    ["🚗","Car seat","Get in your car seat"],["🤝","Hold hands","Hold my hand"],["🛒","Store","Go to the store"],["🏞️","Park","Go to the park"],
+    ["🍔","Restaurant","Eat at a restaurant"],["👩‍⚕️","Doctor","Go to the doctor"],["🦷","Dentist","Go to the dentist"],["💇","Haircut","Get a haircut"],
+    ["👵","Grandma's house","Go to Grandma's house"],["🏠","Go home","Go home"]],
+  "Play & screens": [
+    ["⏰","Timer","Set the timer"],["📺","TV","TV time"],["📱","Tablet","Tablet time"],["🛑","Tablet off","Tablet off. All done"],
+    ["🌳","Play outside","Play outside"],["🧩","Puzzles","Do a puzzle"],["🖍️","Color","Color a picture"],["🫧","Bubbles","Play with bubbles"],["🤝","Share","Share with your friend"]]
+};
+const TPL_SCHOOL = {
   "Arriving at school": [["🚗","Get out of car"],["🚶","Walk inside"],["👋","Say hello"],["🎒","Hang up backpack"],["🧼","Wash hands"],["🧑‍🤝‍🧑","Circle time"]],
   "Bathroom": [["🚽","Bathroom"],["🧻","Wipe"],["👖","Pull up pants"],["🚽","Flush"],["🧼","Wash hands"],["💨","Dry hands"],["🏫","Classroom"]],
   "Lunch": [["🚸","Line up"],["🧼","Wash hands"],["🍽️","Cafeteria"],["🥪","Lunch"],["🗑️","Throw away trash"],["🚸","Line up"]],
   "Recess": [["🧥","Coat on"],["🚸","Line up"],["🛝","Recess"],["🚸","Line up"],["🚰","Drink water"],["🏫","Classroom"]],
   "Going home": [["🧹","Clean up"],["🎒","Pack backpack"],["🧥","Coat on"],["🚸","Line up"],["⏳","Wait for ride"],["🏠","Go home"]]
 };
+const TPL_HOME = {
+  "Potty time": [["🚽","Potty"],["👖","Pants down"],["🚽","Sit on potty"],["🧻","Wipe"],["🚽","Flush"],["👖","Pull up pants"],["🧼","Wash hands"],["💨","Dry hands"]],
+  "Food first, then treat": [["🍗","Eat my food"],["🍪","Treat"],["🗑️","Throw away trash"]],
+  "Dinner time": [["🧼","Wash hands"],["🪑","Sit at table"],["🍝","Dinner"],["🥦","Eat veggies"],["🍦","Ice cream"],["🍽️","Plate to sink"],["🗑️","Throw away trash"]],
+  "Morning at home": [["🌞","Wake up"],["🚽","Potty"],["👕","Get dressed"],["🥣","Breakfast"],["🪥","Brush teeth"],["👟","Shoes on"],["🚗","Car seat"]],
+  "Clean up toys": [["⏰","Timer"],["🧸","Toys away"],["🗑️","Throw away trash"],["🧺","Clothes in hamper"],["🧼","Wash hands"]],
+  "Tablet time": [["⏰","Timer"],["📱","Tablet"],["🛑","Tablet off"],["🌳","Play outside"]],
+  "Going to the store": [["👟","Shoes on"],["🚗","Car seat"],["🤝","Hold hands"],["🛒","Store"],["🚗","Car seat"],["🏠","Go home"]],
+  "Bedtime": [["🛁","Bath"],["👚","Pajamas on"],["🪥","Brush teeth"],["🚽","Potty"],["📖","Bedtime story"],["💡","Lights off"]]
+};
+LIB_HOME["Calm & wait"] = LIB["Calm & wait"];
+const PLACES = {School:{lib:LIB, tpl:TPL_SCHOOL}, Home:{lib:LIB_HOME, tpl:TPL_HOME}};
+const TEMPLATES = {...TPL_SCHOOL, ...TPL_HOME};
 const PICKS = ["🐟","🐶","🌳","🧃","🎂","🎈","🚂","🧦","🪥","🛁","👩‍🏫","👦","👧","❤️","🔔","🎁","🌞","🌧️","🪴","🧺","🖍️","📝","💻","🚪"];
-const SAY = {}; Object.values(LIB).flat().forEach(([e,l,s]) => { SAY[l] = s; });
+const SAY = {}; [...Object.values(LIB_HOME), ...Object.values(LIB)].flat().forEach(([e,l,s]) => { SAY[l] = s; });
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
@@ -297,7 +344,7 @@ const fromTemplate = name => ({id:uid(), name, tiles:TEMPLATES[name].map(([e,l])
 const KEY = "step-by-step-schedule-v1";
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.schedules && s.schedules.length) return s; } catch(e){} return null; }
 let S = load() || (() => { const a = fromTemplate("Arriving at school"); a.tiles[0].status="done"; a.tiles[1].status="done"; a.tiles[2].status="wait";
-  return {schedules:[a, fromTemplate("Going home")], current:a.id, view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8}; })();
+  return {schedules:[a, fromTemplate("Going home"), fromTemplate("Potty time"), fromTemplate("Food first, then treat")], current:a.id, view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8}; })();
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
 const cur = () => S.schedules.find(x => x.id === S.current) || S.schedules[0];
 let adult = false;
@@ -424,7 +471,7 @@ $("delYes").onclick = () => {
   if (!S.schedules.length) S.schedules.push(fromTemplate("Arriving at school"));
   S.current = S.schedules[0].id; $("delConfirm").hidden = true; save(); render(); toast("Schedule deleted.");
 };
-$("templates").innerHTML = Object.keys(TEMPLATES).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
+
 $("templates").onclick = e => { const b = e.target.closest("[data-t]"); if (!b) return;
   const s = fromTemplate(b.dataset.t); S.schedules.push(s); S.current = s.id; save(); render(); toast(`Added “${s.name}”.`); };
 $("tapCycles").onchange = e => { S.tapCycles = e.target.checked; save(); };
@@ -433,14 +480,18 @@ $("cheerOn").onchange = e => { S.cheer = e.target.checked; save(); };
 $("rate").onchange = e => { S.rate = +e.target.value; save(); speak("This is how I sound."); };
 document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size = b.dataset.size; save(); render(); });
 
-let cat = Object.keys(LIB)[0];
+let place = "School", cat = Object.keys(LIB)[0];
 function renderLib(){
-  $("cats").innerHTML = Object.keys(LIB).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
-  $("lib").innerHTML = LIB[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
+  const L = PLACES[place].lib;
+  document.querySelectorAll("[data-place]").forEach(b => b.setAttribute("aria-pressed", b.dataset.place === place));
+  $("templates").innerHTML = Object.keys(PLACES[place].tpl).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
+  $("cats").innerHTML = Object.keys(L).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
+  $("lib").innerHTML = L[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
 }
+document.querySelectorAll("[data-place]").forEach(b => b.onclick = () => { place = b.dataset.place; cat = Object.keys(PLACES[place].lib)[0]; renderLib(); });
 $("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
 $("lib").onclick = e => { const b = e.target.closest("[data-i]"); if (!b) return;
-  const [em,l,s] = LIB[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
+  const [em,l,s] = PLACES[place].lib[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
 
 /* custom step */
 let cEmoji = PICKS[0], cImg = null;
