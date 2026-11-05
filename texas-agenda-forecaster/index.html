@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- ARTIFACT-START -->
+<title>Texas Agenda Forecaster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600;700&family=Zilla+Slab:wght@600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<!-- ARTIFACT-HEAD-END -->
+</head>
+<body>
+<!-- ARTIFACT-BODY-START -->
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Texas · 2027–2028 · Democratic leadership</div>
+    <h1>Texas Agenda Forecaster</h1>
+    <p class="dek">What Texas's newly elected Democratic leaders have promised, how each promise would have to become real, and how likely it is to happen with a Democratic House and a Republican Senate.</p>
+    <div class="asof" id="asof"></div>
+  </div>
+</header>
+
+<section class="power" aria-label="Balance of power">
+  <div class="wrap power-grid" id="power"></div>
+</section>
+
+<nav class="wrap" aria-label="Views">
+  <div class="tabs" id="tabs">
+    <a href="#agenda">Projected agenda</a>
+    <a href="#promises">Promises</a>
+    <a href="#history">Track record</a>
+    <a href="#method">Method</a>
+  </div>
+</nav>
+
+<div class="wrap main">
+  <aside class="rail" aria-label="Scenario">
+    <h2>Scenario</h2>
+    <p>Move these to test how the 2027 session could break. Every likelihood updates.</p>
+    <div class="ctl">
+      <label for="s-senate">GOP Senate's posture</label>
+      <input id="s-senate" type="range" min="-1" max="1" step="0.25" value="0">
+      <div class="ends"><span>Blocks all</span><span>Cuts deals</span></div>
+    </div>
+    <label class="toggle"><input id="s-ltgov" type="checkbox" checked>
+      <span>Lt. Gov. Goodwin keeps her traditional power over committees and bill referral</span></label>
+    <div class="ctl">
+      <label for="s-fiscal">State budget picture</label>
+      <input id="s-fiscal" type="range" min="-1" max="1" step="0.25" value="0">
+      <div class="ends"><span>Shortfall</span><span>Big surplus</span></div>
+    </div>
+    <div class="ctl">
+      <label for="s-courts">Courts on executive orders</label>
+      <input id="s-courts" type="range" min="-1" max="1" step="0.25" value="0">
+      <div class="ends"><span>Hostile</span><span>Deferential</span></div>
+    </div>
+    <div class="ctl">
+      <label for="s-congress">Congress and the White House</label>
+      <input id="s-congress" type="range" min="-1" max="1" step="0.25" value="0">
+      <div class="ends"><span>Gridlock</span><span>Deals</span></div>
+    </div>
+    <label class="toggle"><input id="s-federal" type="checkbox" checked>
+      <span>Include Sen.-elect Talarico's federal agenda</span></label>
+    <button class="btn" id="reset" type="button">Reset scenario</button>
+  </aside>
+
+  <main id="view" aria-live="polite"></main>
+</div>
+
+<footer>
+  <div class="wrap" id="foot"></div>
+</footer>
+
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script src="app.js"></script>
+<!-- ARTIFACT-BODY-END -->
+</body>
+</html>
