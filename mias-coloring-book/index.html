@@ -82,6 +82,11 @@ h2{font-family:var(--display);font-weight:800;font-size:1.9em;margin:0;text-wrap
 
 /* ---------- Read & Punctuate ---------- */
 .passage{font-size:clamp(26px,2.35vw,46px);line-height:2.05;max-width:34em}
+.storypick{display:grid;gap:10px}
+.storypick .label{min-width:7.5em}
+.chip.gen{border-style:dashed}
+.chip.gen[aria-pressed="true"]{border-style:solid}
+.passage .theme{display:block;font-family:var(--body);font-size:.5em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.2em}
 .passage h3{font-family:var(--display);font-size:1.15em;margin:0 0 .3em;line-height:1.2}
 .sent{border-radius:10px;padding:2px 4px;transition:background .2s}
 .sent.on{background:var(--accent-soft)}
@@ -218,7 +223,10 @@ details.card summary{cursor:pointer;min-height:44px;display:flex;align-items:cen
 <!-- ================= READ & PUNCTUATE ================= -->
 <section class="view" id="view-read">
   <div class="row" style="justify-content:space-between">
-    <div class="row" id="passageChips" aria-label="Choose a story"></div>
+    <div class="storypick">
+      <div class="row" id="passageChips" aria-label="Mia's stories"></div>
+      <div class="row" id="genChips" aria-label="Make a new story"></div>
+    </div>
   </div>
   <div class="readgrid">
     <div class="card"><div class="passage" id="passage"></div></div>
@@ -236,6 +244,9 @@ details.card summary{cursor:pointer;min-height:44px;display:flex;align-items:cen
       </div>
       <details class="card teacher" id="readSettings">
         <summary class="label">Teacher settings</summary>
+        <label class="label" for="heroName">Hero of new stories</label>
+        <div class="row" style="flex-wrap:nowrap"><input type="text" id="heroName" maxlength="14" placeholder="Leo"><select id="heroPron" style="width:auto" aria-label="Pronouns"><option value="he">he / his</option><option value="she">she / her</option></select></div>
+        <label class="switch"><input type="checkbox" id="ciOn"> Put cochlear implant sentences in new stories</label>
         <label class="switch"><input type="checkbox" id="instant"> Show right / try again right away</label>
         <label class="switch"><input type="checkbox" id="confirmOn"> Ask “Are you sure?” before scoring</label>
         <label class="switch"><input type="checkbox" id="guideOn"> Guiding prompts after a wrong answer</label>
@@ -423,6 +434,112 @@ const STORIES=[
   ["Where is her dog","?"],["Oh no, he ran outside","!"],["Mia calls his name","."],["Can he hear her","?"],
   ["Yes, he runs back to Mia","!"],["At night, Mia takes off her implant to sleep","."]]}
 ];
+/* ---------- story maker: themed beats; each option is a short chunk of [sentence, end mark] ---------- */
+const THEMES={
+ hero:{label:'Superhero',titles:['{N} the Web Hero','Super {N}','{N} Saves the Day'],beats:[
+  [[["{N} loves superheroes","."],["{His} favorite hero is Spider-Man","."]],
+   [["{N} has a red and blue hero mask","."],["{He} calls {him}self Web Racer","."]],
+   [["{N} is playing superheroes with {F}","."],["{N} is the hero called Web Racer","."]]],
+  [[["What is that loud sound","?"],["Oh no, a kitten is stuck in a tree","!"]],
+   [["Where did the ball go","?"],["Oh no, it is on the roof","!"]],
+   [["Who is calling for help","?"],["Oh no, {F}'s kite is stuck in a tree","!"]]],
+  [[["{N} runs fast","."],["{He} climbs up like a spider","."]],
+   [["{N} makes a plan with {F}","."],["They get a long ladder","."]],
+   [["{N} jumps into action","."]]],
+  [[["Can {N} reach it","?"],["Yes, {he} saves the day","!"]],
+   [["Will the plan work","?"],["Hooray, it works","!"]],
+   [["Is {N} a real hero","?"],["Yes, {he} is","!"]]],
+  [[["Then {N} and {F} eat a snack","."]],[["Even heroes need a nap","."]],[["{N} hangs up {his} cape for the night","."]]]],
+  ci:[[["{N} wears {his} cochlear implant under {his} mask","."],["It helps {him} hear people who need help","."]]]},
+ games:{label:'Video games',titles:['Game Time','{N} Levels Up','The High Score'],beats:[
+  [[["{N} loves video games","."],["{His} favorite game has race cars","."]],
+   [["{N} plays a game about robots","."],["{He} plays with {his} friend {F}","."]],
+   [["It is game time for {N}","."],["{He} picks the blue controller","."]]],
+  [[["Who will win the race","?"],["Wow, {N} is in first place","!"]],
+   [["Can {N} beat level three","?"],["Oh no, a big robot is in the way","!"]],
+   [["Where is the secret door","?"],["Wow, {N} found it","!"]]],
+  [[["{N} presses the jump button","."],["{He} goes over the wall","."]],
+   [["{N} and {F} work as a team","."]],
+   [["{N} tries again and again","."],["{He} does not give up","."]]],
+  [[["Did {he} win","?"],["Yes, {he} got a gold star","!"]],
+   [["What will happen next","?"],["Hooray, {N} beat the level","!"]],
+   [["Is it a high score","?"],["Yes, it is the best score ever","!"]]],
+  [[["Now it is time to turn off the game","."]],[["{N} gives {F} a high five","."]],[["Next, {N} goes outside to play","."]]]],
+  ci:[[["{N} turns on the captions","."],["Now {he} can read what the characters say","."]],
+      [["{N} wears {his} cochlear implant","."],["{He} can hear the game music","."]]]},
+ soccer:{label:'Soccer',titles:['The Big Game','{N} Scores','Soccer Day'],beats:[
+  [[["{N} plays soccer on the {T} team","."],["{He} wears a {T} shirt","."]],
+   [["Today is a big soccer game","."],["{N} is ready to play","."]],
+   [["{N} loves to kick the ball","."],["{His} friend {F} is the goalie","."]]],
+  [[["Where is the ball","?"],["Oh no, the other team has it","!"]],
+   [["Can {N} get the ball","?"],["Wow, {he} takes it away","!"]],
+   [["Who will score first","?"],["Oh no, the other team scores","!"]]],
+  [[["{N} runs down the field","."],["{He} passes to {F}","."]],
+   [["{N} kicks the ball hard","."]],
+   [["The coach waves {his} arms","."],["{N} sees the signal and runs","."]]],
+  [[["Will it go in the net","?"],["Goal, {N} scores","!"]],
+   [["Did the team win","?"],["Yes, the {T} team wins","!"]],
+   [["Is that a goal","?"],["Hooray, it is","!"]]],
+  [[["After the game, the team eats orange slices","."]],[["{N} shakes hands with the other team","."]],[["{N} is tired and happy","."]]]],
+  ci:[[["{N} wears {his} cochlear implant with a sports band","."],["It stays on when {he} runs","."]]]},
+ hoops:{label:'Basketball',titles:['Hoop Time','{N} Shoots','Game Day'],beats:[
+  [[["{N} loves basketball","."],["{He} plays at the park with {F}","."]],
+   [["{N} has a new orange ball","."],["{He} bounces it all day","."]],
+   [["It is basketball day at school","."],["{N} is on the {T} team","."]]],
+  [[["Can {N} make a basket","?"],["Oh no, the ball hits the rim","!"]],
+   [["Who has the ball","?"],["Wow, {F} passes it to {N}","!"]],
+   [["How tall is the hoop","?"],["Wow, it is so high","!"]]],
+  [[["{N} tries again","."],["{He} bends {his} knees and jumps","."]],
+   [["{N} dribbles down the court","."]],
+   [["{N} looks at the hoop","."],["{He} takes a deep breath","."]]],
+  [[["Will it go in","?"],["Swish, it goes in","!"]],
+   [["Did {N} score","?"],["Yes, two points","!"]],
+   [["What will the team do now","?"],["Hooray, they win the game","!"]]],
+  [[["{N} drinks a lot of water","."]],[["{N} and {F} walk home together","."]],[["{N} cannot wait to play again","."]]]],
+  ci:[[["{N} wears {his} cochlear implant at the game","."],["{He} also watches the coach's hands for signs","."]]]},
+ football:{label:'Football',titles:['Touchdown Day','{N} Runs','The Big Catch'],beats:[
+  [[["{N} plays football with {F}","."],["They play in the backyard","."]],
+   [["Today is a football game","."],["{N} wears a {T} jersey","."]],
+   [["{N} has a brown football","."],["{He} likes to throw it far","."]]],
+  [[["Who will catch the ball","?"],["Wow, {N} catches it","!"]],
+   [["Where should {N} run","?"],["Oh no, a big player is in the way","!"]],
+   [["Can {F} throw that far","?"],["Wow, the ball flies high","!"]]],
+  [[["{N} runs fast","."],["{He} holds the ball tight","."]],
+   [["{N} runs around the big player","."]],
+   [["{N} throws the ball to {F}","."]]],
+  [[["Can {he} make it to the end zone","?"],["Touchdown, {N} did it","!"]],
+   [["Did the team win","?"],["Yes, they did","!"]],
+   [["Is it a touchdown","?"],["Hooray, it is","!"]]],
+  [[["The team does a happy dance","."]],[["{N} drinks a lot of water","."]],[["{N} gives {F} a high five","."]]]]},
+ baseball:{label:'Baseball',titles:['Batter Up','{N} at Bat','Home Run Day'],beats:[
+  [[["{N} is at bat","."],["{He} holds the bat tight","."]],
+   [["{N} plays baseball on the {T} team","."],["{He} has a new glove","."]],
+   [["It is a sunny day at the ball park","."],["{N} and {F} are on the same team","."]]],
+  [[["Will {N} hit the ball","?"],["Crack, {he} hits it far","!"]],
+   [["Who will catch the fly ball","?"],["Wow, {F} catches it","!"]],
+   [["Can {N} hit this pitch","?"],["Oh no, {he} misses","!"]]],
+  [[["{N} runs to first base","."],["Then {he} runs to second base","."]],
+   [["{N} watches the ball fly","."]],
+   [["{N} tries again","."],["{He} keeps {his} eyes on the ball","."]]],
+  [[["Is it a home run","?"],["Yes, it is a home run","!"]],
+   [["Can {N} make it home","?"],["Hooray, {he} is safe","!"]],
+   [["Did the team win","?"],["Yes, the {T} team wins","!"]]],
+  [[["The fans clap and cheer","."]],[["{N} gives {F} a high five","."]],[["After the game, they get ice cream","."]]]]}
+};
+const CI_ANY=[[["{N} has a cochlear implant","."],["It helps {him} hear sounds","."]],
+  [["{N} wears {his} cochlear implant every day","."]],
+  [["{N} puts on {his} cochlear implant in the morning","."],["Now {he} is ready","."]]];
+const FRIENDS=['Max','Sam','Kai','Ben','Omar','Luis','Jay','Theo','Ava','Zoe'], TEAMS=['red','blue','green','gold','purple','orange'];
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+function makeStory(key){
+  const theme=key==='surprise'?rnd(Object.keys(THEMES)):key, T=THEMES[theme];
+  const N=(S.hero||'').trim()||'Leo', she=S.pron==='she', F=rnd(FRIENDS.filter(f=>f!==N)), team=rnd(TEAMS);
+  const chunks=T.beats.map(rnd);
+  if(S.ci) chunks.splice(1,0,rnd((T.ci||[]).concat(CI_ANY)));
+  const V={N,F,T:team,He:she?'She':'He',he:she?'she':'he',His:she?'Her':'His',his:she?'her':'his',him:she?'her':'him'};
+  const fill=t=>t.replace(/\{(\w+)\}/g,(m,k)=>V[k]??m);
+  return {title:fill(rnd(T.titles)),theme:T.label,s:chunks.flat().map(([t,m])=>[fill(t),m])};
+}
 const MARKNAME={'.':'period','?':'question mark','!':'exclamation point'};
 
 /* ---------- tabs ---------- */
@@ -443,27 +560,32 @@ function celebrate(){
 }
 
 /* ---------- READ & PUNCTUATE ---------- */
-store.settings=Object.assign({instant:true,confirm:true,guide:true,voice:true,wait:3},store.settings||{});
+store.settings=Object.assign({hero:'Leo',pron:'he',ci:true,instant:true,confirm:true,guide:true,voice:true,wait:3},store.settings||{});
 const S=store.settings;
-let story=0, active=0, answers=[], first=[], init=[], changes=[], rereads=[], prompt=[], done=false, locked=false, pending=null, coach=null;
+let story=0, gen=null, genKey=null, active=0, answers=[], first=[], init=[], changes=[], rereads=[], prompt=[], done=false, locked=false, pending=null, coach=null;
 const KIND={'.':'telling','?':'asking','!':'big feeling'}, ART={'.':'a telling','?':'an asking','!':'a big feeling'};
 function clueOf(t,m){if(m==='?')return t.split(' ')[0];if(m==='!'&&t.includes(','))return t.split(',')[0];return null}
 function clueText(t,m){const c=clueOf(t,m);
   if(m==='?')return `Look at the first word, <em>“${esc(c)}”</em>. It is an asking word. This sentence asks a question.`;
   if(m==='!')return c?`Look at <em>“${esc(c)}”</em>. It shows a big feeling! This sentence is excited.`:`This sentence shows a big feeling!`;
   return `This sentence tells us something. It does not ask a question. It is not a big feeling.`}
+const cur=()=>story<0?gen:STORIES[story];
+function chip(box,label,pressed,fn,cls){const b=document.createElement('button');b.className='chip'+(cls?' '+cls:'');b.textContent=label;b.setAttribute('aria-pressed',pressed);b.onclick=fn;box.appendChild(b)}
 function buildChips(){
-  $('#passageChips').innerHTML='';
-  STORIES.forEach((st,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=st.title;b.setAttribute('aria-pressed',i===story);b.onclick=()=>{story=i;resetRead()};$('#passageChips').appendChild(b)});
+  const a=$('#passageChips'), g=$('#genChips');
+  a.innerHTML='<span class="label">Mia’s stories</span>'; g.innerHTML='<span class="label">New story</span>';
+  STORIES.forEach((st,i)=>chip(a,st.title,i===story,()=>{story=i;resetRead()}));
+  Object.entries(THEMES).map(([k,v])=>[k,v.label]).concat([['surprise','Surprise me']])
+    .forEach(([k,l])=>chip(g,l,story<0&&genKey===k,()=>{genKey=k;gen=makeStory(k);story=-1;resetRead()},'gen'));
 }
 function resetRead(){
-  const n=STORIES[story].s.length, z=v=>Array(n).fill(v);
+  const n=cur().s.length, z=v=>Array(n).fill(v);
   answers=z(null);first=z(null);init=z(null);changes=z(0);rereads=z(0);prompt=z(0);active=0;done=false;pending=null;
   $('#readBanner').hidden=true; buildChips(); renderPassage(); syncCheck();
 }
 function renderPassage(){
-  const st=STORIES[story];
-  const p=$('#passage'); p.innerHTML=`<h3>${st.title}</h3>`;
+  const st=cur();
+  const p=$('#passage'); p.innerHTML=`<h3>${story<0?`<span class="theme">${esc(st.theme)} story · tap “${esc(genKey==='surprise'?'Surprise me':st.theme)}” again for a new one</span>`:''}${esc(st.title)}</h3>`;
   st.s.forEach(([t,m],i)=>{
     const sp=document.createElement('span');sp.className='sent'+(i===active&&!done?' on':'');
     sp.append(t);
@@ -477,16 +599,16 @@ function renderPassage(){
   });
 }
 function nextOpen(from){const n=answers.length;
-  for(let k=1;k<=n;k++){const j=(from+k)%n;const ok=answers[j]===STORIES[story].s[j][1];if(S.instant?!ok:!answers[j])return j}return -1}
+  for(let k=1;k<=n;k++){const j=(from+k)%n;const ok=answers[j]===cur().s[j][1];if(S.instant?!ok:!answers[j])return j}return -1}
 function place(m){
   if(done||active<0||locked)return;
-  const i=active, want=STORIES[story].s[i][1];
+  const i=active, want=cur().s[i][1];
   if(S.instant&&answers[i]===want) return;
   if(init[i]===null) init[i]=m;
   if(S.confirm){pending={i,m};renderPassage();openCoach(i,'confirm',m)} else commit(i,m);
 }
 function commit(i,m){
-  const want=STORIES[story].s[i][1];
+  const want=cur().s[i][1];
   if(first[i]===null) first[i]=m;
   answers[i]=m;
   if(S.instant){
@@ -505,7 +627,7 @@ function syncCheck(){$('#checkRead').hidden=S.instant||done;$('#checkRead').disa
 let readTimer=null, waitTok=0;
 function say(t){try{const sy=window.speechSynthesis;if(!sy||!S.voice)return;sy.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.8;sy.speak(u)}catch(e){}}
 function sentHTML(i,m,withClue,cls){
-  const [t,want]=STORIES[story].s[i], ws=t.split(' ');
+  const [t,want]=cur().s[i], ws=t.split(' ');
   const cn=withClue?(clueOf(t,want)||'').split(' ').filter(Boolean).length:0;
   return ws.map((w,k)=>`<span class="w${k<cn?' clue':''}">${esc(w)}</span>`).join(' ')+`<span class="slot ${cls||''}">${m||''}</span>`;
 }
@@ -513,7 +635,7 @@ function reread(m){ // highlight word by word (visual), voice optional; returns 
   const els=$$('#coachSent .w, #coachSent .slot'), step=520; let k=0;
   clearInterval(readTimer); els.forEach(e=>e.classList.remove('hl'));
   readTimer=setInterval(()=>{els.forEach(e=>e.classList.remove('hl'));if(k<els.length)els[k++].classList.add('hl');else clearInterval(readTimer)},step);
-  say(STORIES[story].s[coach.i][0]+(m||''));
+  say(cur().s[coach.i][0]+(m||''));
   return step*(els.length+1);
 }
 function armYes(ms){const tok=++waitTok,y=$('#cYes');if(!y)return;y.disabled=true;const f=y.querySelector('.fill');
@@ -524,7 +646,7 @@ function openCoach(i,stage,m){
   $('#coach').hidden=false; renderCoach(stage==='type'?'Not quite. ':'');
 }
 function renderCoach(pre){
-  const c=coach,[t,want]=STORIES[story].s[c.i];
+  const c=coach,[t,want]=cur().s[c.i];
   const marks=glow=>`<div class="choices">${['.','?','!'].map(k=>`<button class="mark${glow&&k===want?' glow':''}" data-act="mark" data-v="${k}"><b>${k}</b><span>${MARKNAME[k]}</span></button>`).join('')}</div>`;
   const foot=`<div class="coachfoot"><button class="linkbtn" data-act="again">↻ Read it again</button><button class="linkbtn quiet" data-act="close">Teacher: close</button></div>`;
   let title="Let's think about it", msg='', body='';
@@ -550,13 +672,13 @@ function renderCoach(pre){
 function closeCoach(){clearInterval(readTimer);try{speechSynthesis.cancel()}catch(e){}
   coach=null;pending=null;$('#coach').hidden=true;renderPassage();setTimeout(()=>{if(!coach)locked=false},600)}
 function coachRight(){
-  const i=coach.i,want=STORIES[story].s[i][1]; answers[i]=want; coach.stage='done';
+  const i=coach.i,want=cur().s[i][1]; answers[i]=want; coach.stage='done';
   $('#coachSent').innerHTML=sentHTML(i,want,false,'ok'); $('#coachMsg').textContent='You got it! Great thinking.'; $('#coachBody').innerHTML='';
   addStars(1); setTimeout(()=>{closeCoach();afterCorrect(i)},1400);
 }
 $('#coachBody').addEventListener('click',e=>{
   const b=e.target.closest('button[data-act]'); const c=coach; if(!b||b.disabled||!c||c.stage==='done')return;
-  const want=STORIES[story].s[c.i][1], act=b.dataset.act, v=b.dataset.v;
+  const want=cur().s[c.i][1], act=b.dataset.act, v=b.dataset.v;
   if(act==='again'){rereads[c.i]++;const d=reread(c.stage==='confirm'?c.m:'');if(c.stage==='confirm')armYes(Math.max(d,S.wait*1000));return}
   if(act==='close'){if(c.stage!=='confirm')answers[c.i]=null;closeCoach();return}
   if(act==='change'){changes[c.i]++;closeCoach();return}
@@ -578,19 +700,22 @@ $('#coachBody').addEventListener('click',e=>{
 /* settings */
 const SETS=[['instant','instant'],['confirmOn','confirm'],['guideOn','guide'],['voiceOn','voice']];
 SETS.forEach(([id,k])=>{const el=$('#'+id);el.checked=!!S[k];el.onchange=()=>{S[k]=el.checked;save();if(k==='instant')resetRead()}});
+$('#heroName').value=S.hero||'';$('#heroName').oninput=e=>{S.hero=e.target.value.trim();save()};
+$('#heroPron').value=S.pron;$('#heroPron').onchange=e=>{S.pron=e.target.value;save()};
+$('#ciOn').checked=!!S.ci;$('#ciOn').onchange=e=>{S.ci=e.target.checked;save()};
 $('#waitSel').value=String(S.wait);$('#waitSel').onchange=e=>{S.wait=+e.target.value;save()};
 if(!window.speechSynthesis)$('#voiceOn').closest('label').hidden=true;
 
-$('#checkRead').onclick=()=>{first=answers.slice();done=true;const c=STORIES[story].s.filter(([,m],i)=>answers[i]===m).length;addStars(c);renderPassage();finishRead()};
+$('#checkRead').onclick=()=>{first=answers.slice();done=true;const c=cur().s.filter(([,m],i)=>answers[i]===m).length;addStars(c);renderPassage();finishRead()};
 $('#resetRead').onclick=resetRead;
 function finishRead(){
-  done=true; const st=STORIES[story];
+  done=true; const st=cur();
   const items=st.s.map(([t,m],i)=>({exp:m,got:first[i],ok:first[i]===m,init:init[i],changes:changes[i],rereads:rereads[i],prompt:prompt[i]}));
   const ok=items.filter(x=>x.ok).length;
   const by={};['.','?','!'].forEach(k=>{const xs=items.filter(x=>x.exp===k);by[k]=[xs.filter(x=>x.ok).length,xs.length]});
   const selfFix=items.filter(x=>x.ok&&x.init!==null&&x.init!==x.exp).length;
   const pr=[1,2,3].map(l=>items.filter(x=>x.prompt===l).length);
-  store.records.push({id:Date.now(),date:new Date().toISOString(),student:store.student,type:'punct',story:st.title,
+  store.records.push({id:Date.now(),date:new Date().toISOString(),student:store.student,type:'punct',story:st.title+(story<0?` (${st.theme})`:''),
     mode:S.instant?'feedback':'probe',confirm:S.confirm,wait:S.wait,score:ok,total:items.length,by,items,
     selfFix,changes:items.reduce((a,x)=>a+x.changes,0),rereads:items.reduce((a,x)=>a+x.rereads,0),pr});
   save(); renderPassage(); syncCheck();

@@ -12,6 +12,11 @@ A smartboard activity for a 2nd-grade student who is Deaf/Hard of Hearing. Open 
 - **Guiding prompts** (feedback mode) after a confirmed wrong answer: 1) *Is this sentence telling, asking, or a big feeling?* 2) the clue word is highlighted (“Do” is an asking word, “Wow” shows a big feeling) 3) the correct mark glows (modeled). The highest prompt level needed is saved for each sentence.
 - All of these can be turned on or off under **Teacher settings**.
 
+### New stories
+- Under **New story**, tap **Superhero, Video games, Soccer, Basketball, Football, Baseball** or **Surprise me**. You get a new random story (8–11 sentences) each time you tap.
+- Stories are put together from hand-written, school-appropriate sentence sets, so every end mark is correct. Every question starts with an asking word and every exclamation has a clue word (“Wow,” “Goal,” “Swish”), which the guiding prompts use.
+- Under **Teacher settings**, set the hero's name and pronouns (default: Leo, he/his) and choose whether stories include a cochlear implant sentence.
+
 ## 2 · Listen & Color (following 3- and 4-step oral directions)
 - Pick **3 steps** or **4 steps** and press **New directions** (e.g. "First, color the sun yellow. Next, color Mia's cochlear implant purple. Last, color the dog brown.").
 - Directions are **blurred on screen**. Press and hold the box to read them, then say them aloud (or use **Read aloud** for a computer voice). Use **+ / −** to count repetitions.
