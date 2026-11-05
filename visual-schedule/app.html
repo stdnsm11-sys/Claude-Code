@@ -1,0 +1,467 @@
+<title>Step by Step Schedule</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&family=Noto+Color+Emoji&display=swap">
+<style>
+/* Layout: an AAC-style picture board. Square, Boardmaker-like cells (picture on top, word below)
+   sit in sequence on a soft felt-board ground. Each cell's thick outline carries its status:
+   coral red = not yet, amber = waiting on the child, green = done. Badges repeat the status as a
+   shape (number, hourglass, check) so color is never the only cue.
+   Adult tools live behind an "Adult" switch in quiet dashed panels so the child's board stays calm.
+   Deliberately one soft light look (best for tablets in a classroom), so no dark-mode blocks. */
+:root{
+  --ground:#eef3f1; --ground-2:#e2ebe8;
+  --card:#ffffff; --quiet:#f6f8f7;
+  --ink:#24323a; --muted:#5d6d74; --line:#cfdbd8;
+  --accent:#3a6fb0; --accent-d:#2a5389; --accent-s:#e3edf9;
+  --todo:#e2574c; --todo-s:#fde9e7;
+  --wait:#e8a90c; --wait-s:#fff4d1;
+  --done:#2e9d5b; --done-s:#e1f5e8;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
+  --emoji:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
+  --tile:168px;
+  --r:18px;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 32px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+/* top bar */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.bar h1{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,3.4vw,2.1rem);margin:0;line-height:1.1;text-wrap:balance;flex:1 1 220px;min-width:0}
+.bar h1 small{display:block;font-family:var(--body);font-weight:400;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.95rem;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-d)}
+.btn[aria-pressed="true"]{background:var(--accent-s);border-color:var(--accent);color:var(--accent-d)}
+.btn .e{font-family:var(--emoji);font-size:1.1em;line-height:1}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:999px;background:var(--card);padding:3px}
+.seg button{border:0;background:none;border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem;min-height:36px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:22px;height:22px;border-radius:7px;border:4px solid;background:var(--card)}
+.legend .l-todo i{border-color:var(--todo)} .legend .l-wait i{border-color:var(--wait)} .legend .l-done i{border-color:var(--done)}
+
+/* board */
+.board{background:var(--ground-2);border-radius:24px;padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;min-height:200px}
+.board.firstthen{justify-content:center;gap:22px}
+.cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tile{position:relative;width:var(--tile);max-width:100%;aspect-ratio:1/1.12;background:var(--card);border:7px solid var(--todo);border-radius:var(--r);
+  display:flex;flex-direction:column;align-items:stretch;padding:8px 8px 6px;gap:4px;box-shadow:0 3px 0 rgba(36,50,58,.12);
+  transition:border-color .25s,transform .12s,background-color .25s;touch-action:manipulation;-webkit-user-select:none;user-select:none;text-align:center}
+.tile:active{transform:scale(.97)}
+.tile .pic{flex:1;display:grid;place-items:center;border-radius:10px;overflow:hidden;min-height:0}
+.tile .pic .emo{font-family:var(--emoji);font-size:calc(var(--tile) * .42);line-height:1;display:flex;gap:2px}
+.tile .pic .emo.two{font-size:calc(var(--tile) * .3)}
+.tile .pic img{width:100%;height:100%;object-fit:cover}
+.tile .word{font-family:var(--display);font-weight:600;font-size:calc(var(--tile) * .118);line-height:1.1;min-height:2.2em;display:grid;place-items:center;text-wrap:balance;overflow-wrap:anywhere}
+.tile[data-s="wait"]{border-color:var(--wait);background:var(--wait-s)}
+.tile[data-s="done"]{border-color:var(--done);background:var(--done-s)}
+.tile[data-s="done"] .pic{opacity:.55}
+.badge{position:absolute;top:-12px;left:-12px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-family:var(--display);
+  color:#fff;background:var(--todo);border:3px solid var(--card);font-size:1rem;font-variant-numeric:tabular-nums}
+.tile[data-s="wait"] .badge{background:var(--wait)}
+.tile[data-s="done"] .badge{background:var(--done)}
+.badge svg{width:18px;height:18px}
+.tag{position:absolute;top:-13px;right:10px;background:var(--ink);color:#fff;font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.08em;border-radius:999px;padding:2px 10px;text-transform:uppercase}
+.tile.speaking{box-shadow:0 0 0 6px var(--accent-s),0 3px 0 rgba(36,50,58,.12)}
+@media (prefers-reduced-motion:no-preference){
+  .tile[data-s="wait"]{animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{50%{box-shadow:0 0 0 7px var(--wait-s),0 3px 0 rgba(36,50,58,.12)}}
+  .tile.pop{animation:pop .4s ease-out}
+  @keyframes pop{40%{transform:scale(1.07)}}
+}
+.ft-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ft-col h2{font-family:var(--display);font-size:1.7rem;margin:0}
+.ft-arrow{align-self:center;font-family:var(--display);font-size:3rem;color:var(--muted);line-height:1}
+
+/* adult per-tile controls */
+.ctl{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:var(--tile)}
+.ctl button{border:2px solid var(--line);background:var(--card);border-radius:10px;min-width:36px;min-height:36px;font-weight:700;font-size:.85rem;padding:2px 6px}
+.ctl button:hover{border-color:var(--accent)}
+.ctl .s-todo{border-color:var(--todo)} .ctl .s-wait{border-color:var(--wait)} .ctl .s-done{border-color:var(--done)}
+.ctl button[aria-pressed="true"].s-todo{background:var(--todo);color:#fff}
+.ctl button[aria-pressed="true"].s-wait{background:var(--wait);color:#fff}
+.ctl button[aria-pressed="true"].s-done{background:var(--done);color:#fff}
+.empty{color:var(--muted);padding:24px;max-width:46ch}
+.empty b{color:var(--ink)}
+
+/* adult panel */
+.panel{border:2px dashed var(--line);border-radius:20px;background:var(--quiet);padding:16px;display:flex;flex-direction:column;gap:18px}
+.panel h3{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0 0 8px}
+.panel p.hint{margin:0 0 8px;color:var(--muted);font-size:.9rem;max-width:68ch}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.88rem;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.lib button{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.85rem;font-weight:700;line-height:1.15;min-height:96px}
+.lib button:hover{border-color:var(--accent)}
+.lib .e{font-family:var(--emoji);font-size:2rem;line-height:1.2}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700;color:var(--muted);min-width:0}
+.field input,.field select{border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);font-weight:400;min-height:44px;width:100%}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;align-items:end}
+.emopick{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.emopick button{font-family:var(--emoji);font-size:1.5rem;width:44px;height:44px;border:2px solid var(--line);background:var(--card);border-radius:10px;line-height:1}
+.emopick button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-s)}
+.preview{display:flex;gap:12px;align-items:center;margin-top:8px;color:var(--muted);font-size:.9rem}
+.preview .mini{width:72px;height:72px;border-radius:12px;border:4px solid var(--todo);background:var(--card);display:grid;place-items:center;overflow:hidden;font-family:var(--emoji);font-size:2rem}
+.preview .mini img{width:100%;height:100%;object-fit:cover}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+
+/* celebration */
+.cheer{position:fixed;inset:0;background:rgba(36,50,58,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.cheer .box{background:var(--card);border:8px solid var(--done);border-radius:28px;padding:28px 36px;text-align:center;max-width:420px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.cheer .big{font-family:var(--emoji);font-size:5rem;line-height:1}
+.cheer h2{font-family:var(--display);font-size:2.2rem;margin:0}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 18px;font-weight:700;z-index:30}
+@media (max-width:520px){
+  :root{--tile:136px}
+  .board{padding:14px 10px;gap:12px;justify-content:center}
+  .ft-arrow{transform:rotate(90deg)}
+  .board.firstthen{flex-direction:column;align-items:center}
+}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <h1 id="title"><small>Visual schedule</small><span id="schedName">Arriving at school</span></h1>
+    <div class="tools">
+      <button class="btn" id="readAll" type="button"><span class="e">🔊</span> Read it</button>
+      <div class="seg" role="group" aria-label="Board view">
+        <button type="button" id="vAll" aria-pressed="true">All steps</button>
+        <button type="button" id="vFT" aria-pressed="false">First / Then</button>
+      </div>
+      <button class="btn" id="adultBtn" type="button" aria-pressed="false"><span class="e">🔒</span> Adult</button>
+    </div>
+  </header>
+
+  <div class="legend" aria-label="What the colors mean">
+    <span class="l-todo"><i></i>Not yet</span>
+    <span class="l-wait"><i></i>Waiting for child</span>
+    <span class="l-done"><i></i>Done</span>
+  </div>
+
+  <main class="board" id="board" aria-live="polite"></main>
+
+  <section class="panel" id="panel" hidden aria-label="Adult tools">
+    <div class="split">
+      <div>
+        <h3>Schedules</h3>
+        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one.</p>
+        <div class="row">
+          <label class="field" style="flex:1 1 180px">Showing
+            <select id="schedSel"></select>
+          </label>
+          <label class="field" style="flex:1 1 180px">Name
+            <input id="schedNameIn" maxlength="40">
+          </label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="resetBtn" type="button"><span class="e">🔄</span> Start over</button>
+          <button class="btn" id="newBlank" type="button">+ Blank schedule</button>
+          <button class="btn" id="delSched" type="button">Delete schedule</button>
+        </div>
+        <p class="hint" id="delConfirm" hidden style="margin-top:8px">Delete this schedule for good?
+          <button class="btn" id="delYes" type="button">Yes, delete</button>
+          <button class="btn" id="delNo" type="button">Keep it</button></p>
+        <h3 style="margin-top:14px">Ready-made</h3>
+        <div class="chips" id="templates"></div>
+      </div>
+      <div>
+        <h3>Settings</h3>
+        <div class="row" style="flex-direction:column;align-items:flex-start;gap:10px">
+          <label class="toggle"><input type="checkbox" id="tapCycles" checked> A tap changes the color (red → yellow → green)</label>
+          <label class="toggle"><input type="checkbox" id="speakOn" checked> Say the step out loud when tapped</label>
+          <label class="toggle"><input type="checkbox" id="cheerOn" checked> Celebrate when every step is done</label>
+          <div class="row">
+            <span class="field">Tile size</span>
+            <div class="seg" role="group" aria-label="Tile size">
+              <button type="button" data-size="s" aria-pressed="false">Small</button>
+              <button type="button" data-size="m" aria-pressed="true">Medium</button>
+              <button type="button" data-size="l" aria-pressed="false">Large</button>
+            </div>
+          </div>
+          <label class="field" style="width:100%;max-width:260px">Voice speed
+            <input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="0.8">
+          </label>
+        </div>
+        <p class="hint" style="margin-top:10px">With color taps off, the child's taps only speak. Use the buttons under each tile to set the color yourself.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3>Add a step</h3>
+      <p class="hint">Tap a picture to add it to the end of the schedule. Use ◀ ▶ under a tile to move it.</p>
+      <div class="chips" id="cats"></div>
+      <div class="lib" id="lib"></div>
+    </div>
+
+    <div>
+      <h3>Make your own step</h3>
+      <p class="hint">Real photos of your classroom, teacher and cubby often work best. Photos stay on this device.</p>
+      <div class="form">
+        <label class="field">Word on the tile
+          <input id="cLabel" maxlength="28" placeholder="Feed the fish">
+        </label>
+        <label class="field">What it says out loud
+          <input id="cSay" maxlength="80" placeholder="Time to feed the fish">
+        </label>
+        <label class="field">Use a photo instead
+          <input id="cPhoto" type="file" accept="image/*">
+        </label>
+        <button class="btn primary" id="cAdd" type="button" style="justify-content:center">Add step</button>
+      </div>
+      <div class="emopick" id="emopick" aria-label="Pick a picture"></div>
+      <div class="preview"><div class="mini" id="cMini">🐟</div><span id="cMsg">Pick a picture or add a photo.</span></div>
+    </div>
+  </section>
+</div>
+
+<div class="cheer" id="cheer" hidden>
+  <div class="box">
+    <div class="big">⭐</div>
+    <h2>All done!</h2>
+    <p id="cheerTxt" style="margin:0;color:var(--muted)">You did every step.</p>
+    <button class="btn primary" id="cheerClose" type="button">Yay!</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+const LIB = {
+  "Arriving": [
+    ["🚗","Get out of car","Get out of the car"],["🚌","Get off bus","Get off the bus"],["🚶","Walk inside","Walk inside"],
+    ["👋","Say hello","Say hello"],["🎒","Hang up backpack","Hang up your backpack"],["🧥","Hang up coat","Hang up your coat"],
+    ["🍱","Put away lunch","Put away your lunchbox"],["🏷️","Find my name","Find your name"],["📁","Folder in basket","Put your folder in the basket"],
+    ["🪑","Sit at table","Sit at your table"]],
+  "Class": [
+    ["🧑‍🤝‍🧑","Circle time","Circle time. Sit on the rug"],["📅","Calendar","Calendar time"],["🎵","Sing songs","Sing songs"],
+    ["📖","Story time","Listen to the story"],["🧩","Centers","Centers"],["🎨","Art","Art time"],["🧱","Blocks","Play with blocks"],
+    ["✏️","Write my name","Write your name"],["✂️","Cut","Cut with scissors"],["📱","Tablet","Tablet time"],["👂","Listen","Listen to the teacher"],
+    ["✋","Raise hand","Raise your hand"],["🤫","Quiet voice","Use a quiet voice"],["🧹","Clean up","Clean up"],["🚸","Line up","Line up"]],
+  "Self-care": [
+    ["🚽","Bathroom","Go to the bathroom"],["🧻","Wipe","Wipe"],["🚽","Flush","Flush the toilet"],["👖","Pull up pants","Pull up your pants"],
+    ["🧼","Wash hands","Wash your hands"],["💨","Dry hands","Dry your hands"],["🚰","Drink water","Get a drink of water"],["🤧","Blow nose","Blow your nose"],
+    ["👟","Shoes on","Put on your shoes"]],
+  "Food": [
+    ["🍎","Snack","Snack time"],["🥪","Lunch","Lunch time"],["🍽️","Cafeteria","Go to the cafeteria"],["🥛","Milk","Drink your milk"],
+    ["🥫","Open it","Open your food"],["🙋","Ask for help","Ask for help"],["🗑️","Throw away trash","Throw away your trash"]],
+  "Places": [
+    ["🛝","Recess","Recess. Play on the playground"],["⚽","PE / gym","Go to PE"],["🎶","Music","Go to music"],["📚","Library","Go to the library"],
+    ["🏥","Nurse","Go to the nurse"],["😴","Rest time","Rest time. Lie down and rest"],["🏫","Classroom","Go back to the classroom"]],
+  "Going home": [
+    ["🎒","Pack backpack","Pack your backpack"],["🧥","Coat on","Put on your coat"],["⏳","Wait for ride","Wait for your ride"],
+    ["🚌","Ride the bus","Ride the bus"],["🚗","Car rider","Get in the car"],["👨‍👩‍👧","See family","See your family"],["🏠","Go home","Go home"]],
+  "Calm & wait": [
+    ["🌬️","Deep breaths","Take deep breaths"],["🧸","Calm corner","Go to the calm corner"],["🛋️","Break","Take a break"],["⏳","Wait","Wait"],
+    ["🤲","Hands to self","Hands to yourself"],["🙋","Help please","Help please"],["✅","All done","All done"],["⭐","Choice time","Choice time"]]
+};
+const TEMPLATES = {
+  "Arriving at school": [["🚗","Get out of car"],["🚶","Walk inside"],["👋","Say hello"],["🎒","Hang up backpack"],["🧼","Wash hands"],["🧑‍🤝‍🧑","Circle time"]],
+  "Bathroom": [["🚽","Bathroom"],["🧻","Wipe"],["👖","Pull up pants"],["🚽","Flush"],["🧼","Wash hands"],["💨","Dry hands"],["🏫","Classroom"]],
+  "Lunch": [["🚸","Line up"],["🧼","Wash hands"],["🍽️","Cafeteria"],["🥪","Lunch"],["🗑️","Throw away trash"],["🚸","Line up"]],
+  "Recess": [["🧥","Coat on"],["🚸","Line up"],["🛝","Recess"],["🚸","Line up"],["🚰","Drink water"],["🏫","Classroom"]],
+  "Going home": [["🧹","Clean up"],["🎒","Pack backpack"],["🧥","Coat on"],["🚸","Line up"],["⏳","Wait for ride"],["🏠","Go home"]]
+};
+const PICKS = ["🐟","🐶","🌳","🧃","🎂","🎈","🚂","🧦","🪥","🛁","👩‍🏫","👦","👧","❤️","🔔","🎁","🌞","🌧️","🪴","🧺","🖍️","📝","💻","🚪"];
+const SAY = {}; Object.values(LIB).flat().forEach(([e,l,s]) => { SAY[l] = s; });
+
+const $ = id => document.getElementById(id);
+const uid = () => Math.random().toString(36).slice(2,10);
+const mk = (e,l,s) => ({id:uid(), label:l, say:s || SAY[l] || l, emoji:e, img:null, status:"todo"});
+const fromTemplate = name => ({id:uid(), name, tiles:TEMPLATES[name].map(([e,l]) => mk(e,l))});
+
+const KEY = "step-by-step-schedule-v1";
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.schedules && s.schedules.length) return s; } catch(e){} return null; }
+let S = load() || (() => { const a = fromTemplate("Arriving at school"); a.tiles[0].status="done"; a.tiles[1].status="done"; a.tiles[2].status="wait";
+  return {schedules:[a, fromTemplate("Going home")], current:a.id, view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8}; })();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
+const cur = () => S.schedules.find(x => x.id === S.current) || S.schedules[0];
+let adult = false;
+
+/* speech */
+function speak(text, el){
+  if (!S.speak || !("speechSynthesis" in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.rate = S.rate; u.pitch = 1.05;
+    if (el){ el.classList.add("speaking"); u.onend = u.onerror = () => el.classList.remove("speaking"); }
+    speechSynthesis.speak(u);
+  } catch(e){}
+}
+
+/* rendering */
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const HOUR = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></svg>';
+const STATE_WORD = {todo:"not yet", wait:"waiting", done:"done"};
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function picHTML(t){
+  if (t.img) return `<img src="${t.img}" alt="">`;
+  const em = t.emoji || "⭐", n = window.Intl && Intl.Segmenter ? [...new Intl.Segmenter().segment(em)].length : (em.match(/\p{Extended_Pictographic}/gu) || []).length - (em.match(/\u200d/g) || []).length;
+  return `<span class="emo${n > 1 ? " two" : ""}" aria-hidden="true">${esc(t.emoji || "⭐")}</span>`;
+}
+function tileHTML(t, i, tag){
+  const badge = t.status === "done" ? CHECK : t.status === "wait" ? HOUR : (i + 1);
+  return `<button type="button" class="tile" data-id="${t.id}" data-s="${t.status}" aria-label="Step ${i+1}: ${esc(t.label)}, ${STATE_WORD[t.status]}">
+    <span class="badge">${badge}</span>${tag ? `<span class="tag">${tag}</span>` : ""}
+    <span class="pic">${picHTML(t)}</span><span class="word">${esc(t.label)}</span></button>`;
+}
+function ctlHTML(t, i, n){
+  const p = s => `aria-pressed="${t.status === s}"`;
+  return `<div class="ctl" data-id="${t.id}">
+    <button type="button" data-act="todo" class="s-todo" ${p("todo")} aria-label="Not yet">✕</button>
+    <button type="button" data-act="wait" class="s-wait" ${p("wait")} aria-label="Waiting">…</button>
+    <button type="button" data-act="done" class="s-done" ${p("done")} aria-label="Done">✓</button>
+    <button type="button" data-act="left" ${i === 0 ? "disabled" : ""} aria-label="Move earlier">◀</button>
+    <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button>
+    <button type="button" data-act="del" aria-label="Remove step">🗑</button></div>`;
+}
+function render(){
+  const sc = cur(), tiles = sc.tiles, board = $("board");
+  $("schedName").textContent = sc.name;
+  document.documentElement.style.setProperty("--tile", {s:"128px", m:"168px", l:"220px"}[S.size] || "168px");
+  $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
+  board.classList.toggle("firstthen", S.view === "ft");
+  const nowI = tiles.findIndex(t => t.status !== "done");
+  if (!tiles.length){
+    board.innerHTML = `<p class="empty"><b>This schedule has no steps yet.</b> Turn on <b>Adult</b>, then tap pictures under “Add a step”.</p>`;
+  } else if (S.view === "ft"){
+    const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
+    let h = `<div class="ft-col"><h2>First</h2><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`;
+    if (b < tiles.length) h += `<div class="ft-arrow" aria-hidden="true">➜</div><div class="ft-col"><h2>Then</h2><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`;
+    board.innerHTML = h;
+  } else {
+    board.innerHTML = tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`).join("");
+  }
+  // adult panel
+  $("panel").hidden = !adult;
+  $("adultBtn").setAttribute("aria-pressed", adult);
+  $("adultBtn").innerHTML = adult ? '<span class="e">🔓</span> Done editing' : '<span class="e">🔒</span> Adult';
+  if (adult){
+    $("schedSel").innerHTML = S.schedules.map(x => `<option value="${x.id}" ${x.id === sc.id ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+    if (document.activeElement !== $("schedNameIn")) $("schedNameIn").value = sc.name;
+    $("tapCycles").checked = S.tapCycles; $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
+    document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
+  }
+}
+
+/* interactions */
+const NEXT = {todo:"wait", wait:"done", done:"todo"};
+function setStatus(id, s, fromTap){
+  const sc = cur(), t = sc.tiles.find(x => x.id === id); if (!t) return;
+  const wasAllDone = sc.tiles.every(x => x.status === "done");
+  t.status = s; save(); render();
+  const el = document.querySelector(`.tile[data-id="${id}"]`);
+  if (el){ el.classList.add("pop"); }
+  if (fromTap) speak(s === "done" ? `${t.say}. All done!` : t.say, el);
+  if (S.cheer && !wasAllDone && sc.tiles.length && sc.tiles.every(x => x.status === "done")) setTimeout(celebrate, 700);
+}
+function celebrate(){
+  $("cheerTxt").textContent = `You finished ${cur().name.toLowerCase()}.`;
+  $("cheer").hidden = false; $("cheerClose").focus();
+  setTimeout(() => speak("All done! Great job!"), 300);
+}
+$("cheerClose").onclick = () => { $("cheer").hidden = true; };
+
+$("board").addEventListener("click", e => {
+  const ctl = e.target.closest(".ctl button");
+  if (ctl){
+    const id = ctl.parentElement.dataset.id, act = ctl.dataset.act, sc = cur(), i = sc.tiles.findIndex(x => x.id === id);
+    if (["todo","wait","done"].includes(act)) return setStatus(id, act, false);
+    if (act === "left" && i > 0) [sc.tiles[i-1], sc.tiles[i]] = [sc.tiles[i], sc.tiles[i-1]];
+    if (act === "right" && i < sc.tiles.length - 1) [sc.tiles[i+1], sc.tiles[i]] = [sc.tiles[i], sc.tiles[i+1]];
+    if (act === "del") sc.tiles.splice(i, 1);
+    save(); render(); return;
+  }
+  const tile = e.target.closest(".tile"); if (!tile) return;
+  const t = cur().tiles.find(x => x.id === tile.dataset.id);
+  if (S.tapCycles) setStatus(t.id, NEXT[t.status], true);
+  else speak(t.say, tile);
+});
+
+$("readAll").onclick = () => {
+  const ts = cur().tiles; if (!ts.length) return;
+  const i = ts.findIndex(t => t.status !== "done");
+  if (S.view === "ft" && i >= 0) speak(`First, ${ts[i].say}.` + (ts[i+1] ? ` Then, ${ts[i+1].say}.` : ""));
+  else speak(ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + t.say).join(". ") + ".");
+};
+$("vAll").onclick = () => { S.view = "all"; save(); render(); };
+$("vFT").onclick = () => { S.view = "ft"; save(); render(); };
+$("adultBtn").onclick = () => { adult = !adult; render(); if (adult) $("panel").scrollIntoView({behavior:"smooth", block:"nearest"}); };
+
+/* adult panel */
+$("schedSel").onchange = e => { S.current = e.target.value; save(); render(); };
+$("schedNameIn").oninput = e => { cur().name = e.target.value.trim() || "My schedule"; save(); render(); };
+$("resetBtn").onclick = () => { cur().tiles.forEach(t => t.status = "todo"); save(); render(); toast("Every step is back to red."); };
+$("newBlank").onclick = () => { const s = {id:uid(), name:"My schedule", tiles:[]}; S.schedules.push(s); S.current = s.id; save(); render(); $("schedNameIn").focus(); $("schedNameIn").select(); };
+$("delSched").onclick = () => { $("delConfirm").hidden = false; };
+$("delNo").onclick = () => { $("delConfirm").hidden = true; };
+$("delYes").onclick = () => {
+  S.schedules = S.schedules.filter(x => x.id !== S.current);
+  if (!S.schedules.length) S.schedules.push(fromTemplate("Arriving at school"));
+  S.current = S.schedules[0].id; $("delConfirm").hidden = true; save(); render(); toast("Schedule deleted.");
+};
+$("templates").innerHTML = Object.keys(TEMPLATES).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
+$("templates").onclick = e => { const b = e.target.closest("[data-t]"); if (!b) return;
+  const s = fromTemplate(b.dataset.t); S.schedules.push(s); S.current = s.id; save(); render(); toast(`Added “${s.name}”.`); };
+$("tapCycles").onchange = e => { S.tapCycles = e.target.checked; save(); };
+$("speakOn").onchange = e => { S.speak = e.target.checked; save(); };
+$("cheerOn").onchange = e => { S.cheer = e.target.checked; save(); };
+$("rate").onchange = e => { S.rate = +e.target.value; save(); speak("This is how I sound."); };
+document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size = b.dataset.size; save(); render(); });
+
+let cat = Object.keys(LIB)[0];
+function renderLib(){
+  $("cats").innerHTML = Object.keys(LIB).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
+  $("lib").innerHTML = LIB[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
+}
+$("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
+$("lib").onclick = e => { const b = e.target.closest("[data-i]"); if (!b) return;
+  const [em,l,s] = LIB[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
+
+/* custom step */
+let cEmoji = PICKS[0], cImg = null;
+$("emopick").innerHTML = PICKS.map(p => `<button type="button" data-p="${p}" aria-pressed="${p === cEmoji}">${p}</button>`).join("");
+function miniPreview(){ $("cMini").innerHTML = cImg ? `<img src="${cImg}" alt="">` : cEmoji; }
+$("emopick").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; cEmoji = b.dataset.p; cImg = null; $("cPhoto").value = "";
+  $("emopick").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); miniPreview(); $("cMsg").textContent = "Picture picked."; };
+$("cPhoto").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { const img = new Image(); img.onload = () => {
+      const side = 360, c = document.createElement("canvas"), m = Math.min(img.width, img.height);
+      c.width = c.height = side;
+      c.getContext("2d").drawImage(img, (img.width - m)/2, (img.height - m)/2, m, m, 0, 0, side, side);
+      cImg = c.toDataURL("image/jpeg", 0.8); miniPreview(); $("cMsg").textContent = "Photo ready. It is cropped to a square.";
+    }; img.onerror = () => { $("cMsg").textContent = "That file isn't a picture this browser can open. Try a JPG or PNG."; }; img.src = r.result; };
+  r.readAsDataURL(f);
+};
+$("cAdd").onclick = () => {
+  const l = $("cLabel").value.trim();
+  if (!l){ $("cMsg").textContent = "Type the word for the tile first."; $("cLabel").focus(); return; }
+  const t = mk(cEmoji, l, $("cSay").value.trim() || l); t.img = cImg;
+  cur().tiles.push(t); save(); render();
+  $("cLabel").value = ""; $("cSay").value = ""; $("cPhoto").value = ""; cImg = null; miniPreview();
+  $("cMsg").textContent = `Added “${l}”.`;
+};
+
+let tt; function toast(m){ const el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2200); }
+
+renderLib(); render();
+})();
+</script>
