@@ -47,6 +47,21 @@ button{cursor:pointer}
 .seg button{border:0;background:none;border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem;min-height:36px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
 
+/* routine shelf: School / Home switch + one-tap routines */
+.shelf{display:flex;flex-direction:column;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:12px}
+.where{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.where button{display:flex;align-items:center;justify-content:center;gap:10px;border:3px solid var(--line);background:var(--quiet);border-radius:16px;min-height:60px;
+  font-family:var(--display);font-weight:600;font-size:1.35rem;color:var(--muted)}
+.where button .e{font-family:var(--emoji);font-size:1.9rem;line-height:1}
+.where button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-s);color:var(--accent-d)}
+.routines{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:thin}
+.routines button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;width:108px;border:2px solid var(--line);background:var(--card);border-radius:16px;
+  padding:8px 6px;font-weight:700;font-size:.85rem;line-height:1.15;min-height:92px}
+.routines button:hover{border-color:var(--accent)}
+.routines button .e{font-family:var(--emoji);font-size:2rem;line-height:1.2}
+.routines button[aria-current="true"]{border-color:var(--accent);background:var(--accent-s);color:var(--accent-d);box-shadow:inset 0 -4px 0 var(--accent)}
+.routines .lbl{align-self:center;flex:0 0 auto;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg)}
+
 /* legend */
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.92rem;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:7px}
@@ -149,6 +164,14 @@ button{cursor:pointer}
     </div>
   </header>
 
+  <nav class="shelf" aria-label="Choose a routine">
+    <div class="where" role="group" aria-label="Where are we?">
+      <button type="button" data-where="School" aria-pressed="true"><span class="e" aria-hidden="true">🏫</span> School</button>
+      <button type="button" data-where="Home" aria-pressed="false"><span class="e" aria-hidden="true">🏠</span> Home</button>
+    </div>
+    <div class="routines" id="routines"></div>
+  </nav>
+
   <div class="legend" aria-label="What the colors mean">
     <span class="l-todo"><i></i>Not yet</span>
     <span class="l-wait"><i></i>Waiting for child</span>
@@ -158,17 +181,11 @@ button{cursor:pointer}
   <main class="board" id="board" aria-live="polite"></main>
 
   <section class="panel" id="panel" hidden aria-label="Adult tools">
-    <div class="row">
-      <span class="field">Pictures and ready-made schedules for</span>
-      <div class="seg" role="group" aria-label="Where">
-        <button type="button" data-place="School" aria-pressed="true">School</button>
-        <button type="button" data-place="Home" aria-pressed="false">Home</button>
-      </div>
-    </div>
+    <p class="hint" id="placeHint" style="margin:0"></p>
     <div class="split">
       <div>
         <h3>Schedules</h3>
-        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one. Switch School / Home above for home routines.</p>
+        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one.</p>
         <div class="row">
           <label class="field" style="flex:1 1 180px">Showing
             <select id="schedSel"></select>
@@ -325,19 +342,24 @@ const TPL_HOME = {
 LIB_HOME["Calm & wait"] = LIB["Calm & wait"];
 const PLACES = {School:{lib:LIB, tpl:TPL_SCHOOL}, Home:{lib:LIB_HOME, tpl:TPL_HOME}};
 const TEMPLATES = {...TPL_SCHOOL, ...TPL_HOME};
+const ICON = {"Arriving at school":"🏫","Bathroom":"🚽","Lunch":"🥪","Recess":"🛝","Going home":"🎒",
+  "Potty time":"🚽","Food first, then treat":"🍪","Dinner time":"🍝","Morning at home":"🌞","Clean up toys":"🧸","Tablet time":"📱","Going to the store":"🛒","Bedtime":"😴"};
 const PICKS = ["🐟","🐶","🌳","🧃","🎂","🎈","🚂","🧦","🪥","🛁","👩‍🏫","👦","👧","❤️","🔔","🎁","🌞","🌧️","🪴","🧺","🖍️","📝","💻","🚪"];
 const SAY = {}; [...Object.values(LIB_HOME), ...Object.values(LIB)].flat().forEach(([e,l,s]) => { SAY[l] = s; });
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
 const mk = (e,l,s) => ({id:uid(), label:l, say:s || SAY[l] || l, emoji:e, img:null, status:"todo"});
-const fromTemplate = name => ({id:uid(), name, tiles:TEMPLATES[name].map(([e,l]) => mk(e,l))});
+const placeOf = name => TPL_HOME[name] ? "Home" : "School";
+const fromTemplate = name => ({id:uid(), name, tpl:name, place:placeOf(name), tiles:TEMPLATES[name].map(([e,l]) => mk(e,l))});
 
 const KEY = "step-by-step-schedule-v1";
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.schedules && s.schedules.length) return s; } catch(e){} return null; }
 let S = load() || (() => { const a = fromTemplate("Arriving at school"); a.tiles[0].status="done"; a.tiles[1].status="done"; a.tiles[2].status="wait";
   return {schedules:[a, fromTemplate("Going home"), fromTemplate("Potty time"), fromTemplate("Food first, then treat")], current:a.id, view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8}; })();
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
+function save(){ try { const c = S.schedules.find(x => x.id === S.current); if (c){ S.lastBy = S.lastBy || {}; S.lastBy[c.place] = c.id; } localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
+S.place = S.place === "Home" ? "Home" : "School";
+S.schedules.forEach(x => { if (!x.place) x.place = placeOf(x.name); if (!x.tpl && TEMPLATES[x.name]) x.tpl = x.name; });
 const cur = () => S.schedules.find(x => x.id === S.current) || S.schedules[0];
 let adult = false;
 
@@ -378,7 +400,17 @@ function ctlHTML(t, i, n){
     <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button>
     <button type="button" data-act="del" aria-label="Remove step">🗑</button></div>`;
 }
+function renderShelf(){
+  const sc = cur(), P = S.place;
+  document.querySelectorAll("[data-where]").forEach(b => b.setAttribute("aria-pressed", b.dataset.where === P));
+  const mine = S.schedules.filter(x => x.place === P && !(x.tpl && PLACES[P].tpl[x.tpl]));
+  const btn = (key, name, icon, on) => `<button type="button" ${key} aria-current="${on}"><span class="e" aria-hidden="true">${icon}</span>${esc(name)}</button>`;
+  $("routines").innerHTML =
+    Object.keys(PLACES[P].tpl).map(n => btn(`data-r="${esc(n)}"`, n, ICON[n] || "⭐", sc.tpl === n && sc.place === P)).join("") +
+    mine.map(x => btn(`data-sid="${x.id}"`, x.name, x.tiles[0] ? (x.tiles[0].img ? "📷" : x.tiles[0].emoji) : "⭐", x.id === sc.id)).join("");
+}
 function render(){
+  renderShelf();
   const sc = cur(), tiles = sc.tiles, board = $("board");
   $("schedName").textContent = sc.name;
   document.documentElement.style.setProperty("--tile", {s:"128px", m:"168px", l:"220px"}[S.size] || "168px");
@@ -400,7 +432,7 @@ function render(){
   $("adultBtn").setAttribute("aria-pressed", adult);
   $("adultBtn").innerHTML = adult ? '<span class="e">🔓</span> Done editing' : '<span class="e">🔒</span> Adult';
   if (adult){
-    $("schedSel").innerHTML = S.schedules.map(x => `<option value="${x.id}" ${x.id === sc.id ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+    $("schedSel").innerHTML = ["School","Home"].map(P => `<optgroup label="${P}">` + S.schedules.filter(x => x.place === P).map(x => `<option value="${x.id}" ${x.id === sc.id ? "selected" : ""}>${esc(x.name)}</option>`).join("") + "</optgroup>").join("");
     if (document.activeElement !== $("schedNameIn")) $("schedNameIn").value = sc.name;
     $("tapCycles").checked = S.tapCycles; $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
     document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
@@ -441,6 +473,26 @@ $("board").addEventListener("click", e => {
   else speak(t.say, tile);
 });
 
+function openRoutine(name){
+  let s = S.schedules.find(x => x.tpl === name);
+  if (!s){ s = fromTemplate(name); S.schedules.push(s); }
+  S.current = s.id; save(); render();
+}
+document.querySelectorAll("[data-where]").forEach(b => b.onclick = () => {
+  if (S.place === b.dataset.where) return;
+  save();
+  S.place = b.dataset.where; cat = Object.keys(PLACES[S.place].lib)[0];
+  const last = S.schedules.filter(x => x.place === S.place).pop();
+  if (S.lastBy && S.lastBy[S.place] && S.schedules.some(x => x.id === S.lastBy[S.place])) S.current = S.lastBy[S.place];
+  else if (last) S.current = last.id;
+  else { save(); renderLib(); return openRoutine(Object.keys(PLACES[S.place].tpl)[0]); }
+  save(); renderLib(); render();
+});
+$("routines").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.r) openRoutine(b.dataset.r); else { S.current = b.dataset.sid; save(); render(); }
+  const t = cur(); speak(t.name);
+};
 $("readAll").onclick = () => {
   const ts = cur().tiles; if (!ts.length) return;
   const i = ts.findIndex(t => t.status !== "done");
@@ -452,38 +504,38 @@ $("vFT").onclick = () => { S.view = "ft"; save(); render(); };
 $("adultBtn").onclick = () => { adult = !adult; render(); if (adult) $("panel").scrollIntoView({behavior:"smooth", block:"nearest"}); };
 
 /* adult panel */
-$("schedSel").onchange = e => { S.current = e.target.value; save(); render(); };
+$("schedSel").onchange = e => { S.current = e.target.value; const p = cur().place; if (p !== S.place){ S.place = p; cat = Object.keys(PLACES[p].lib)[0]; renderLib(); } save(); render(); };
 $("schedNameIn").oninput = e => { cur().name = e.target.value.trim() || "My schedule"; save(); render(); };
 $("resetBtn").onclick = () => { cur().tiles.forEach(t => t.status = "todo"); save(); render(); toast("Every step is back to red."); };
-$("newBlank").onclick = () => { const s = {id:uid(), name:"My schedule", tiles:[]}; S.schedules.push(s); S.current = s.id; save(); render(); $("schedNameIn").focus(); $("schedNameIn").select(); };
+$("newBlank").onclick = () => { const s = {id:uid(), name:"My schedule", place:S.place, tiles:[]}; S.schedules.push(s); S.current = s.id; save(); render(); $("schedNameIn").focus(); $("schedNameIn").select(); };
 $("delSched").onclick = () => { $("delConfirm").hidden = false; };
 $("delNo").onclick = () => { $("delConfirm").hidden = true; };
 $("delYes").onclick = () => {
   S.schedules = S.schedules.filter(x => x.id !== S.current);
-  if (!S.schedules.length) S.schedules.push(fromTemplate("Arriving at school"));
-  S.current = S.schedules[0].id; $("delConfirm").hidden = true; save(); render(); toast("Schedule deleted.");
+  const same = S.schedules.filter(x => x.place === S.place);
+  if (!S.schedules.length || !same.length){ const n = fromTemplate(Object.keys(PLACES[S.place].tpl)[0]); S.schedules.push(n); S.current = n.id; }
+  else S.current = same[0].id; $("delConfirm").hidden = true; save(); render(); toast("Schedule deleted.");
 };
 
 $("templates").onclick = e => { const b = e.target.closest("[data-t]"); if (!b) return;
-  const s = fromTemplate(b.dataset.t); S.schedules.push(s); S.current = s.id; save(); render(); toast(`Added “${s.name}”.`); };
+  openRoutine(b.dataset.t); toast(`Showing “${b.dataset.t}”.`); };
 $("tapCycles").onchange = e => { S.tapCycles = e.target.checked; save(); };
 $("speakOn").onchange = e => { S.speak = e.target.checked; save(); };
 $("cheerOn").onchange = e => { S.cheer = e.target.checked; save(); };
 $("rate").onchange = e => { S.rate = +e.target.value; save(); speak("This is how I sound."); };
 document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size = b.dataset.size; save(); render(); });
 
-let place = "School", cat = Object.keys(LIB)[0];
+let cat = Object.keys(PLACES[S.place].lib)[0];
 function renderLib(){
-  const L = PLACES[place].lib;
-  document.querySelectorAll("[data-place]").forEach(b => b.setAttribute("aria-pressed", b.dataset.place === place));
-  $("templates").innerHTML = Object.keys(PLACES[place].tpl).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
+  const L = PLACES[S.place].lib;
+  $("placeHint").textContent = `Showing ${S.place.toLowerCase()} pictures and routines. Switch with the School / Home buttons at the top.`;
+  $("templates").innerHTML = Object.keys(PLACES[S.place].tpl).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
   $("cats").innerHTML = Object.keys(L).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
   $("lib").innerHTML = L[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
 }
-document.querySelectorAll("[data-place]").forEach(b => b.onclick = () => { place = b.dataset.place; cat = Object.keys(PLACES[place].lib)[0]; renderLib(); });
 $("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
 $("lib").onclick = e => { const b = e.target.closest("[data-i]"); if (!b) return;
-  const [em,l,s] = PLACES[place].lib[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
+  const [em,l,s] = PLACES[S.place].lib[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
 
 /* custom step */
 let cEmoji = PICKS[0], cImg = null;

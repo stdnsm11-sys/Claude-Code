@@ -2,6 +2,11 @@
 
 A picture schedule for a 4-year-old learning routines and transitions at school and at home. It works like an AAC board or a Boardmaker strip: square picture tiles shown in order. Open `index.html` in any browser on a tablet, Chromebook or smartboard. Nothing to install.
 
+## Choosing a routine (no Adult mode needed)
+- The big **🏫 School / 🏠 Home** buttons at the top switch settings. Each side remembers the routine you used last.
+- Under them is a row of one-tap routines. At home: Potty time, Food first then treat, Dinner time, Morning at home, Clean up toys, Tablet time, Going to the store, Bedtime. At school: Arriving at school, Bathroom, Lunch, Recess, Going home. Schedules you make yourself appear in the same row.
+- Tapping a routine opens it right away and keeps the child's progress if it was opened before.
+
 ## For the child
 - **Tap a tile** and it says the step out loud (for example, "Hang up your backpack").
 - Each tap also changes the outline color:
@@ -15,7 +20,7 @@ A picture schedule for a 4-year-old learning routines and transitions at school 
 
 ## For the adult (tap **Adult**)
 - Buttons under each tile set the color directly (✕ red, … yellow, ✓ green), move a tile earlier or later (◀ ▶), or remove it.
-- **School / Home switch** at the top of the adult tools picks which pictures and ready-made schedules you see.
+- The School / Home buttons also choose which pictures and ready-made schedules the adult tools show.
 - **Ready-made school schedules:** Arriving at school, Bathroom, Lunch, Recess, Going home.
 - **Ready-made home schedules:** Potty time, Food first then treat, Dinner time, Morning at home, Clean up toys, Tablet time, Going to the store, Bedtime.
 - **Add a step** from 60+ school pictures (Arriving, Class, Self-care, Food, Places, Going home, Calm & wait) and 60+ home pictures (Potty, Morning, Mealtime, Clean up, Bedtime, Out & about, Play & screens, Calm & wait).
