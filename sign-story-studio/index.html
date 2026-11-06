@@ -1008,8 +1008,8 @@ async function readPptx(file,progress){
       const ent=zip.get(path);if(!ent)continue;vids.push({path,ext,ent});
     }
     if(!vids.length){if(s===0)titleText=slideText(xml);continue}
-    let text=slideText(xml);
-    if(!text){const notes=rels.find(r=>/\/notesSlide$/.test(r.type));if(notes)text=slideText(await readXml(file,zip,partPath(part,notes.target)))}
+    // only words shown on the slide itself count; a slide with none leaves its page blank for the author
+    const text=slideText(xml);
     for(let k=0;k<vids.length;k++){
       const v=vids[k];const blob=await zipBlob(file,v.ent);
       const f=new File([blob],`${base} slide ${s+1}${vids.length>1?'-'+(k+1):''}.${v.ext}`,{type:VIDEO_TYPES[v.ext]});
@@ -1213,15 +1213,18 @@ async function addClips(fileList){
   }
   if(!items.length){flash(msg,notes.join(' ')||'Those files are not videos or PowerPoint files. Choose .mp4 or .mov clips, or a .pptx file.',true);return}
   if(book.example){book.pages=[];book.title=pendingTitle||'';book.example=false;$('#title').value=book.title;notes.push('The example story was removed.'+(pendingTitle?' The title came from the first slide.':''))}
-  storeFailed=false;let filled=0,n=0;
+  storeFailed=false;let filled=0,n=0;const blanks=[];
   for(const it of items){
     say(`Saving clip ${++n} of ${items.length}…`);
     const clip=await putClip(it.file);let p=book.pages.find(p=>!p.clip);if(!p){p=blankPage();book.pages.push(p)}
     p.clip=clip;p.times=null;p.timesText=null;if(it.text&&!p.text.trim()){p.text=it.text;filled++}
+    if(!p.text.trim())blanks.push(book.pages.indexOf(p)+1);
   }
   save();renderMake();
   const head=`Added ${items.length} clip${items.length>1?'s':''}.`;
-  const tail=filled?`The words for ${filled} page${filled>1?'s':''} came from the slides. Check that they match what is signed.`:'Now type what is signed under each one.';
+  const list=n=>n.length>1?n.slice(0,-1).join(', ')+' and '+n[n.length-1]:String(n[0]);
+  let tail=filled?`The words for ${filled} page${filled>1?'s':''} came from the slides. Check that they match what is signed.`:'';
+  if(blanks.length)tail+=(tail?' ':'')+(filled?`Page${blanks.length>1?'s':''} ${list(blanks)} had no words on the slide, so type what is signed there.`:'Now type what is signed under each one.');
   if(storeFailed){bad=true;notes.push('This browser would not save the clips, so keep this tab open or add them again next time.')}
   msg.textContent=[head,...notes,tail].join(' ');msg.classList.toggle('bad',bad);clearTimeout(msg._t);
 }
