@@ -295,10 +295,10 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
       <div class="panel">
         <h2><span class="step">1</span>Add ASL clips</h2>
         <div class="drop" id="drop">
-          <input type="file" id="clipsIn" accept="video/*" multiple aria-label="Choose ASL video clips">
+          <input type="file" id="clipsIn" accept="video/*,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple aria-label="Choose ASL video clips or a PowerPoint file">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V5.5a1.5 1.5 0 013 0V10m0-5.5a1.5 1.5 0 013 0V10m0-4a1.5 1.5 0 013 0v5m0-2a1.5 1.5 0 013 0v5.5A7.5 7.5 0 0111.5 22h-.3a6 6 0 01-4.6-2.2l-3.2-4.2a1.6 1.6 0 012.4-2.1L7 14.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <b>Drop sign clips here</b>
-          <span class="hint">or tap to choose. Pick several at once. Each clip becomes a page, in file-name order (1, 2, 3…).</span>
+          <b>Drop sign clips or a PowerPoint here</b>
+          <span class="hint">or tap to choose. Each clip becomes a page, in file-name order (1, 2, 3…). In a PowerPoint (.pptx), each video becomes a page in slide order, and the slide&#39;s words fill in the text.</span>
         </div>
         <p class="msg" id="clipMsg" role="status"></p>
       </div>
@@ -913,6 +913,104 @@ function renderScene(model,opt={}){
 function stickerIcon(key,color){const r=resolve(key);if(!r)return'';return `<svg viewBox="-10 -10 220 220" aria-hidden="true" class="still">${r.draw(color||r.c,'happy')}</svg>`}
 
 
+/* ================= PowerPoint (.pptx) reader =================
+   A .pptx is a zip. We read only the parts we need, straight from the file (no library, works offline):
+   slide order from ppt/presentation.xml, each slide's videos from its .rels file, and the slide's text. */
+const isPptx=f=>/\.pptx$/i.test(f.name)||f.type==='application/vnd.openxmlformats-officedocument.presentationml.presentation';
+const isOldPpt=f=>/\.(ppt|pps|key)$/i.test(f.name);
+async function zipIndex(file){
+  const tailLen=Math.min(file.size,65557);const base=file.size-tailLen;
+  const tail=new DataView(await file.slice(base).arrayBuffer());
+  let e=-1;for(let i=tailLen-22;i>=0;i--)if(tail.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('notzip');
+  let count=tail.getUint16(e+10,true),cdSize=tail.getUint32(e+12,true),cdOff=tail.getUint32(e+16,true);
+  if(cdOff===0xffffffff||count===0xffff||cdSize===0xffffffff){ // zip64 (very large presentations)
+    if(e<20||tail.getUint32(e-20,true)!==0x07064b50)throw new Error('notzip');
+    const z64=Number(tail.getBigUint64(e-12,true));const r=new DataView(await file.slice(z64,z64+56).arrayBuffer());
+    count=Number(r.getBigUint64(32,true));cdSize=Number(r.getBigUint64(40,true));cdOff=Number(r.getBigUint64(48,true));
+  }
+  const cd=new DataView(await file.slice(cdOff,cdOff+cdSize).arrayBuffer());const dec=new TextDecoder();
+  const map=new Map();let p=0;
+  for(let n=0;n<count&&p+46<=cd.byteLength;n++){
+    if(cd.getUint32(p,true)!==0x02014b50)break;
+    const method=cd.getUint16(p+10,true);let csize=cd.getUint32(p+20,true),usize=cd.getUint32(p+24,true);
+    const nl=cd.getUint16(p+28,true),xl=cd.getUint16(p+30,true),cl=cd.getUint16(p+32,true);let off=cd.getUint32(p+42,true);
+    const name=dec.decode(new Uint8Array(cd.buffer,cd.byteOffset+p+46,nl));
+    let x=p+46+nl;const xe=x+xl;
+    while(x+4<=xe){const id=cd.getUint16(x,true),sz=cd.getUint16(x+2,true);
+      if(id===1){let q=x+4;if(usize===0xffffffff){usize=Number(cd.getBigUint64(q,true));q+=8}if(csize===0xffffffff){csize=Number(cd.getBigUint64(q,true));q+=8}if(off===0xffffffff)off=Number(cd.getBigUint64(q,true))}
+      x+=4+sz}
+    map.set(name,{method,csize,usize,off});p+=46+nl+xl+cl;
+  }
+  return map;
+}
+async function zipBlob(file,ent){
+  const lh=new DataView(await file.slice(ent.off,ent.off+30).arrayBuffer());
+  const start=ent.off+30+lh.getUint16(26,true)+lh.getUint16(28,true);const raw=file.slice(start,start+ent.csize);
+  if(ent.method===0)return raw;
+  if(ent.method===8){if(typeof DecompressionStream==='undefined')throw new Error('nodeflate');
+    return new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()}
+  throw new Error('method');
+}
+const R_NS='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+function partPath(fromPart,target){
+  if(target.startsWith('/'))return target.slice(1);
+  const parts=fromPart.split('/');parts.pop();
+  for(const seg of target.split('/')){if(seg==='..')parts.pop();else if(seg&&seg!=='.')parts.push(seg)}
+  return parts.join('/');
+}
+const relsOf=part=>{const i=part.lastIndexOf('/');return part.slice(0,i)+'/_rels/'+part.slice(i+1)+'.rels'};
+async function readXml(file,zip,part){const ent=zip.get(part);if(!ent)return null;const t=await (await zipBlob(file,ent)).text();return new DOMParser().parseFromString(t,'application/xml')}
+async function readRels(file,zip,part){
+  const doc=await readXml(file,zip,relsOf(part));const out=[];if(!doc)return out;
+  for(const r of doc.getElementsByTagName('Relationship'))out.push({id:r.getAttribute('Id'),type:r.getAttribute('Type')||'',target:r.getAttribute('Target')||'',external:r.getAttribute('TargetMode')==='External'});
+  return out;
+}
+function slideText(doc){
+  if(!doc)return'';
+  const paras=[...doc.getElementsByTagNameNS('*','p')].filter(p=>p.namespaceURI&&/drawingml/.test(p.namespaceURI));
+  const inFld=n=>{for(let x=n.parentNode;x&&x.nodeType===1;x=x.parentNode)if(x.localName==='fld')return true;return false};
+  const lines=paras.map(p=>[...p.getElementsByTagNameNS('*','t')].filter(t=>!inFld(t)).map(t=>t.textContent).join('')).map(s=>s.trim()).filter(Boolean);
+  // skip bare slide numbers
+  return lines.filter(l=>!/^\d+$/.test(l)).join(' ').replace(/\s+/g,' ').trim();
+}
+const VIDEO_TYPES={mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',ogv:'video/ogg','3gp':'video/3gpp'};
+async function readPptx(file,progress){
+  const zip=await zipIndex(file);
+  if(!zip.has('ppt/presentation.xml'))throw new Error('notpptx');
+  const pres=await readXml(file,zip,'ppt/presentation.xml');
+  const presRels=await readRels(file,zip,'ppt/presentation.xml');
+  const ids=[...pres.getElementsByTagNameNS('*','sldId')].map(s=>s.getAttributeNS(R_NS,'id')||s.getAttribute('r:id'));
+  const slides=ids.map(id=>presRels.find(r=>r.id===id)).filter(Boolean).map(r=>partPath('ppt/presentation.xml',r.target));
+  const found=[],skipped={linked:0,format:new Set()};let titleText='';
+  const base=file.name.replace(/\.pptx$/i,'');
+  for(let s=0;s<slides.length;s++){
+    progress&&progress(s+1,slides.length);
+    const part=slides[s];const xml=await readXml(file,zip,part);const rels=await readRels(file,zip,part);
+    const xmlText=xml?new XMLSerializer().serializeToString(xml):'';
+    // videos on this slide, in the order they appear in the slide
+    const media=rels.filter(r=>/\/(video|media)$/.test(r.type));
+    media.sort((a,b)=>{const ia=xmlText.indexOf('"'+a.id+'"'),ib=xmlText.indexOf('"'+b.id+'"');return (ia<0?1e9:ia)-(ib<0?1e9:ib)});
+    const seen=new Set();const vids=[];
+    for(const r of media){
+      if(r.external){if(!seen.has(r.target)){seen.add(r.target);skipped.linked++}continue}
+      const path=partPath(part,r.target);if(seen.has(path))continue;seen.add(path);
+      const ext=(path.split('.').pop()||'').toLowerCase();
+      if(!VIDEO_TYPES[ext]){skipped.format.add(ext);continue}
+      const ent=zip.get(path);if(!ent)continue;vids.push({path,ext,ent});
+    }
+    if(!vids.length){if(s===0)titleText=slideText(xml);continue}
+    let text=slideText(xml);
+    if(!text){const notes=rels.find(r=>/\/notesSlide$/.test(r.type));if(notes)text=slideText(await readXml(file,zip,partPath(part,notes.target)))}
+    for(let k=0;k<vids.length;k++){
+      const v=vids[k];const blob=await zipBlob(file,v.ent);
+      const f=new File([blob],`${base} slide ${s+1}${vids.length>1?'-'+(k+1):''}.${v.ext}`,{type:VIDEO_TYPES[v.ext]});
+      found.push({file:f,text:vids.length>1?'':text,slide:s+1});
+    }
+  }
+  return{found,slides:slides.length,skipped,titleText};
+}
+
 /* ================= icons ================= */
 const IC={
   play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
@@ -1088,16 +1186,36 @@ const leaveExample=()=>{if(book.example){book.example=false;$('#banner').innerHT
 let titleT;$('#title').addEventListener('input',e=>{book.title=e.target.value;leaveExample();save();clearTimeout(titleT);titleT=setTimeout(()=>{refreshCards();renderCover()},400)});
 $('#author').addEventListener('input',e=>{book.author=e.target.value;leaveExample();save()});
 
-async function addClips(files){
-  files=[...files].filter(isVideo).sort(natural);
-  if(!files.length){flash($('#clipMsg'),'Those files are not videos. Choose video clips such as .mp4 or .mov.',true);return}
-  let note='';
-  if(book.example){book.pages=[];book.title='';book.example=false;$('#title').value='';note=' The example story was removed.'}
-  flash($('#clipMsg'),`Adding ${files.length} clip${files.length>1?'s':''}…`);
-  storeFailed=false;
-  for(const f of files){const clip=await putClip(f);let p=book.pages.find(p=>!p.clip);if(!p){p=blankPage();book.pages.push(p)}p.clip=clip;p.times=null;p.timesText=null}
+async function addClips(fileList){
+  const msg=$('#clipMsg');const all=[...fileList].sort(natural);const items=[],notes=[];let bad=false,pendingTitle='';
+  const say=t=>{msg.textContent=t;msg.classList.remove('bad');clearTimeout(msg._t)};
+  for(const f of all){
+    if(isPptx(f)){
+      say(`Opening ${f.name}…`);
+      try{const r=await readPptx(f,(i,n)=>say(`Opening ${f.name}: slide ${i} of ${n}…`));
+        items.push(...r.found);
+        if(r.titleText&&!book.title.trim()&&!book.example&&r.found.length){book.title=r.titleText.slice(0,80);$('#title').value=book.title;notes.push(`The title came from the first slide.`)}
+        else if(r.titleText&&book.example&&r.found.length)pendingTitle=r.titleText.slice(0,80);
+        notes.push(`Found ${r.found.length} video${r.found.length===1?'':'s'} on ${r.slides} slide${r.slides===1?'':'s'} in ${f.name}.`);
+        if(r.skipped.linked)notes.push(`${r.skipped.linked} video${r.skipped.linked>1?'s are':' is'} only linked from the slides, not saved inside the file, so ${r.skipped.linked>1?'they were':'it was'} skipped. Add ${r.skipped.linked>1?'those clips':'that clip'} directly.`);
+        if(r.skipped.format.size){bad=true;notes.push(`Skipped videos in a format browsers cannot play (.${[...r.skipped.format].join(', .')}). In PowerPoint, choose File > Info > Optimize Media Compatibility, save, and add the file again.`)}
+      }catch(e){bad=true;notes.push(e.message==='nodeflate'?`${f.name} could not be opened: this browser is too old. Try a current Chrome, Edge, Safari or Firefox.`:`${f.name} could not be opened. Make sure it is a PowerPoint .pptx file.`)}
+    }else if(isOldPpt(f)){bad=true;notes.push(`${f.name} is an older PowerPoint file. Open it in PowerPoint, choose File > Save As > PowerPoint Presentation (.pptx), and add that file.`)}
+    else if(isVideo(f))items.push({file:f,text:''});
+  }
+  if(!items.length){flash(msg,notes.join(' ')||'Those files are not videos or PowerPoint files. Choose .mp4 or .mov clips, or a .pptx file.',true);return}
+  if(book.example){book.pages=[];book.title=pendingTitle||'';book.example=false;$('#title').value=book.title;notes.push('The example story was removed.'+(pendingTitle?' The title came from the first slide.':''))}
+  storeFailed=false;let filled=0,n=0;
+  for(const it of items){
+    say(`Saving clip ${++n} of ${items.length}…`);
+    const clip=await putClip(it.file);let p=book.pages.find(p=>!p.clip);if(!p){p=blankPage();book.pages.push(p)}
+    p.clip=clip;p.times=null;p.timesText=null;if(it.text&&!p.text.trim()){p.text=it.text;filled++}
+  }
   save();renderMake();
-  flash($('#clipMsg'),storeFailed?'Clips added for now, but this browser would not save them. Keep this tab open, or add them again next time.':`Added ${files.length} clip${files.length>1?'s':''}.${note} Now type what is signed under each one.`,storeFailed);
+  const head=`Added ${items.length} clip${items.length>1?'s':''}.`;
+  const tail=filled?`The words for ${filled} page${filled>1?'s':''} came from the slides. Check that they match what is signed.`:'Now type what is signed under each one.';
+  if(storeFailed){bad=true;notes.push('This browser would not save the clips, so keep this tab open or add them again next time.')}
+  msg.textContent=[head,...notes,tail].join(' ');msg.classList.toggle('bad',bad);clearTimeout(msg._t);
 }
 $('#clipsIn').addEventListener('change',e=>{addClips(e.target.files);e.target.value=''});
 const drop=$('#drop');

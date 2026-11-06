@@ -6,6 +6,10 @@ Open `index.html` in any browser. There is nothing to install, and it works offl
 
 ## Make (for the grown-up)
 1. **Add ASL clips.** Drop several clips at once, or tap to choose them. Each clip becomes a page, in file-name order (`1`, `2`, … `10`). New clips fill pages that have no clip first, so you can type the text before or after adding clips.
+   - **From PowerPoint:** drop a `.pptx` file and every video embedded in it becomes a page, in slide order. The words on each slide (or in its speaker notes, if the slide has none) fill in that page's text. If the first slide has no video, its words become the book title. Everything is read inside the browser, and nothing is uploaded.
+   - Older `.ppt` files need to be saved as `.pptx` first (File > Save As > PowerPoint Presentation).
+   - Videos that are only *linked* from a slide (not saved inside the file) are skipped. Add those clips directly.
+   - If a video is in a format browsers can't play (such as `.wmv`), use PowerPoint's **File > Info > Optimize Media Compatibility**, save, and add the file again.
 2. **Book cover.** Add a title, a name and, if you like, a clip of the title being signed.
 3. **Type what is signed** under each clip, in English. To type everything at once, open **Type all the sentences at once** and enter one line per page.
 4. **Match words to signs** (on each page). Play the clip, slowly if you like, and tap the English word each time its sign starts. Because ASL word order is different from English, you can tap words in any order. Leave words that have no sign, such as "the", empty. Without this step, the words light up at an even pace.
