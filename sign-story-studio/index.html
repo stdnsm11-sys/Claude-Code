@@ -1,15 +1,23 @@
-<title>Storytime Studio</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Sign Story Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Grandstander:wght@600;800&display=swap">
 <style>
-/* Layout: two rooms. "Make" is a grown-up workbench (story box + video on the left, page cards on the right).
-   "Read" is the child's picture book: one big illustrated page, huge tappable words, chunky round buttons.
-   Pictures are cartoon stickers drawn in code from the words in each sentence, so no image service is needed.
+/* Layout: two rooms. "Make" is the grown-up workbench: drop ASL clips, type what each clip signs, match words to signs.
+   "Read" is the child's book: the signer and an animated cartoon side by side, big tappable words under them.
+   Everything works by sight first (signer, highlighted words, animation). Voice and sounds are extras.
    Deliberately one bright, light look (a picture book), so there are no dark-mode blocks; every color is set here. */
 :root{
   --bg:#e3f4ee; --dot1:rgba(255,138,61,.16); --dot2:rgba(123,92,214,.13); --dot3:rgba(63,179,107,.16);
-  --paper:#ffffff; --quiet:#f4f2fa; --line:#ddd6ec;
+  --paper:#ffffff; --quiet:#f4f2fa; --line:#ddd6ec; --screen:#231c3a; --screen-ink:#d8d0f2;
   --ink:#2d2540; --muted:#665e80;
   --tangerine:#ff8a3d; --tangerine-d:#d4621a; --tangerine-s:#fff0e5;
   --grape:#7b5cd6; --grape-d:#5a3cb0; --grape-s:#efe9ff;
@@ -46,8 +54,6 @@ svg{overflow:visible}
   background:var(--quiet);box-shadow:0 4px 0 var(--line);display:flex;align-items:center;gap:8px}
 .tab svg{width:22px;height:22px}
 .tab[aria-selected="true"]{background:var(--grape);color:#fff;box-shadow:0 4px 0 var(--grape-d)}
-.tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-
 main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 48px;max-width:1320px;margin:0 auto}
 
 /* buttons */
@@ -56,105 +62,149 @@ main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px
 .btn svg{width:22px;height:22px;flex:none}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
 .btn.go{background:var(--tangerine);color:#fff;box-shadow:0 4px 0 var(--tangerine-d)}
-.btn.go:active{box-shadow:0 1px 0 var(--tangerine-d)}
 .btn.grape{background:var(--grape);color:#fff;box-shadow:0 4px 0 var(--grape-d)}
-.btn.leaf{background:var(--leaf);color:#fff;box-shadow:0 4px 0 var(--leaf-d)}
 .btn.small{min-height:38px;padding:4px 14px;font-size:.92rem}
-.btn[aria-pressed="true"]{background:var(--sun);box-shadow:0 4px 0 var(--sun-d)}
+.btn.big{min-height:60px;padding:8px 28px;font-size:1.25rem}
+.btn.big svg{width:28px;height:28px}
+.btn[aria-pressed="true"]{background:var(--sun);color:var(--ink);box-shadow:0 4px 0 var(--sun-d)}
+.btn.go[aria-pressed="true"]{background:var(--tangerine);color:#fff;box-shadow:0 4px 0 var(--tangerine-d)}
 .btn:disabled{opacity:.45;cursor:default}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:0;background:var(--quiet);box-shadow:0 3px 0 var(--line);display:grid;place-items:center;padding:0}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn:disabled{opacity:.35;cursor:default}
+.iconbtn.del:hover{background:var(--berry);color:#fff}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg>span{font-weight:700;font-size:.9rem;color:var(--muted)}
 
 /* make view */
-.make-grid{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:24px;align-items:start}
+.make-grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
 .side{display:grid;gap:20px}
 .panel{background:var(--paper);border-radius:var(--r);padding:20px;box-shadow:0 6px 0 var(--line);display:grid;gap:14px;min-width:0}
 .panel h2{font-size:1.35rem;display:flex;align-items:center;gap:10px}
 .step{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--tangerine);color:#fff;font-size:1.05rem;flex:none}
 .panel.quiet{background:transparent;box-shadow:none;border:3px dashed var(--line)}
-.field{display:grid;gap:6px}
+.field{display:grid;gap:6px;min-width:0}
 .field>span{font-weight:700;font-size:.95rem}
 .hint{color:var(--muted);font-size:.92rem;margin:0}
 input[type=text],textarea,select{border:3px solid var(--line);border-radius:14px;background:var(--paper);padding:10px 12px;width:100%;min-width:0}
 input[type=text]:focus,textarea:focus,select:focus{border-color:var(--grape);outline:none}
-textarea#story{min-height:260px;resize:vertical;font-size:1.08rem;line-height:1.6}
-.seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg label{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:var(--quiet);border:3px solid var(--line);font-weight:700;font-size:.92rem;cursor:pointer}
-.seg input{accent-color:var(--grape)}
-.seg label:has(input:checked){border-color:var(--grape);background:var(--grape-s)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.filebtn{position:relative;overflow:hidden}
-.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.vbox{display:grid;gap:10px}
-.vbox video,.vbox iframe{width:100%;aspect-ratio:16/9;border-radius:14px;background:#1d1830;border:0;display:block}
-.vname{font-weight:700;overflow-wrap:anywhere}
-.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem}
-.or::before,.or::after{content:"";flex:1;height:3px;background:var(--line);border-radius:2px}
-.example{display:inline-block;background:var(--sun);border-radius:8px;padding:1px 8px;font-size:.82rem;font-weight:700}
-.msg{font-size:.92rem;font-weight:700;color:var(--leaf-d);margin:0}
+.drop{position:relative;border:4px dashed var(--grape);border-radius:20px;background:var(--grape-s);padding:24px 16px;text-align:center;display:grid;gap:6px;justify-items:center}
+.drop svg{width:54px;height:54px;color:var(--grape)}
+.drop b{font-family:var(--display);font-size:1.25rem}
+.drop.over{background:#ddd2ff;border-style:solid}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.msg{font-size:.95rem;font-weight:700;color:var(--leaf-d);margin:0}
 .msg.bad{color:var(--berry)}
+.msg:empty{display:none}
+.coverbox{display:grid;gap:10px}
+.coverbox video{width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--screen);border-radius:14px;display:block}
 details.share summary{cursor:pointer;font-family:var(--display);font-weight:800;font-size:1.1rem;list-style:none;display:flex;align-items:center;gap:8px}
 details.share summary::-webkit-details-marker{display:none}
-details.share summary::before{content:"+";width:28px;height:28px;border-radius:50%;background:var(--quiet);display:grid;place-items:center;font-size:1.2rem}
+details.share summary::before{content:"+";width:28px;height:28px;border-radius:50%;background:var(--quiet);display:grid;place-items:center;font-size:1.2rem;flex:none}
 details.share[open] summary::before{content:"–"}
 details.share .inner{display:grid;gap:12px;margin-top:12px}
 .confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--tangerine-s);padding:10px 12px;border-radius:14px;font-weight:700}
+.confirm:empty{display:none}
+.banner{background:var(--sun);border-radius:18px;padding:12px 16px;font-weight:700;margin-bottom:14px}
 
 .pages-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin-bottom:14px}
 .pages-head h2{font-size:1.5rem;display:flex;align-items:center;gap:10px}
-.pagelist{display:grid;gap:16px}
-.pcard{background:var(--paper);border-radius:var(--r);padding:14px;box-shadow:0 6px 0 var(--line);display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:16px;align-items:start}
+.pagelist{display:grid;gap:16px;margin-bottom:16px}
+.pcard{background:var(--paper);border-radius:var(--r);padding:14px;box-shadow:0 6px 0 var(--line);display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr);gap:16px;align-items:start}
+.media{display:grid;gap:10px}
+.clipbox{position:relative;border-radius:16px;overflow:hidden;background:var(--screen);aspect-ratio:16/10}
+.clipbox video{width:100%;height:100%;object-fit:contain;display:block}
+.addclip{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:6px;color:var(--screen-ink);font-weight:700;cursor:pointer;text-align:center;padding:10px}
+.addclip svg{width:44px;height:44px}
+.addclip input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.addclip:hover{color:#fff}
 .thumb{border-radius:16px;overflow:hidden;border:3px solid var(--line);aspect-ratio:800/480;background:var(--quiet)}
 .thumb svg{width:100%;height:100%;display:block}
 .pbody{display:grid;gap:10px;min-width:0}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .pnum{font-family:var(--display);font-weight:800;color:var(--tangerine-d);font-size:.95rem;letter-spacing:.04em;text-transform:uppercase}
-.ptext{margin:0;font-size:1.12rem;font-weight:700;overflow-wrap:anywhere}
+.tools{display:flex;gap:6px}
+textarea.ptext{font-size:1.12rem;font-weight:700;min-height:70px;resize:vertical;line-height:1.4}
 .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 4px;border-radius:999px;background:var(--quiet);border:2px solid var(--line);font-weight:700;font-size:.9rem}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px;border-radius:999px;background:var(--quiet);border:2px solid var(--line);font-weight:700;font-size:.9rem}
 .chip svg{width:30px;height:30px;flex:none}
 .chip .x{border:0;background:var(--paper);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;padding:0;font-size:1rem;line-height:1;color:var(--muted)}
 .chip .x:hover{background:var(--berry);color:#fff}
 .chip.added{border-color:var(--leaf);background:var(--leaf-s)}
 select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999px;font-weight:700;font-size:.9rem}
 .prow{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-.prow .field{min-width:0}
 .prow select{width:auto;max-width:100%}
-.prow input.vtime{width:92px;font-variant-numeric:tabular-nums}
-.prow input.vtime.bad{border-color:var(--berry)}
+.timing{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--grape-s);border-radius:14px;padding:10px 12px}
+.timing p{margin:0;flex:1 1 220px;font-size:.92rem}
+.timing.done{background:var(--leaf-s)}
 .empty{background:var(--paper);border-radius:var(--r);padding:30px;text-align:center;border:3px dashed var(--line)}
 
 /* read view */
-.readbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:16px}
-.reader{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;justify-items:center}
-.reader.with-video{grid-template-columns:minmax(0,1fr) minmax(0,400px);align-items:start}
-.book{width:min(100%,max(520px,calc((100vh - 330px) * 1.667)));max-width:1100px;background:var(--paper);border-radius:30px;padding:14px;box-shadow:0 10px 0 var(--line);display:grid;gap:6px}
+.reader{display:grid;justify-items:center}
+.book{width:min(100%,1240px);background:var(--paper);border-radius:30px;padding:14px;box-shadow:0 10px 0 var(--line);display:grid;gap:8px}
 .book.turn-next{animation:turnNext .4s ease-out}
 .book.turn-prev{animation:turnPrev .4s ease-out}
 @keyframes turnNext{from{opacity:.2;transform:translateX(40px) rotate(1deg)}to{opacity:1;transform:none}}
 @keyframes turnPrev{from{opacity:.2;transform:translateX(-40px) rotate(-1deg)}to{opacity:1;transform:none}}
+.stage{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
+.stage.big{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+.stage.nosign{grid-template-columns:minmax(0,1fr)}
+.stage.nosign .signer{display:none}
 .pic{position:relative;border-radius:22px;overflow:hidden;aspect-ratio:800/480;background:var(--quiet);touch-action:pan-y}
 .pic svg{width:100%;height:100%;display:block}
+.signer{position:relative;border-radius:22px;overflow:hidden;background:var(--screen);min-height:180px;transition:box-shadow .2s}
+.signer video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--screen);cursor:pointer}
+.signer.ring{box-shadow:0 0 0 6px var(--sun)}
+.bigplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:50%;border:0;background:var(--tangerine);color:#fff;box-shadow:0 5px 0 var(--tangerine-d);display:grid;place-items:center}
+.bigplay svg{width:40px;height:40px}
+.noclip{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:8px;text-align:center;color:var(--screen-ink);padding:16px;font-weight:700}
+.noclip svg{width:48px;height:48px}
 .fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.words{font-size:clamp(24px,3.3vw,42px);line-height:1.5;text-align:center;padding:12px 8px 4px;min-height:2.6em;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;column-gap:.3em}
-.word{border:0;background:transparent;padding:0 .1em;border-radius:.3em;font:inherit;line-height:1.35;transition:background .15s,transform .15s}
+.words{font-size:clamp(24px,3vw,40px);line-height:1.5;text-align:center;padding:10px 8px 0;min-height:2.4em;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;column-gap:.3em}
+.word{position:relative;border:0;background:transparent;padding:0 .1em;border-radius:.3em;font:inherit;line-height:1.35;transition:background .15s,transform .15s}
 .word.magic{text-decoration:underline wavy var(--tangerine);text-decoration-thickness:3px;text-underline-offset:.22em}
+.word.signed::after{content:"";position:absolute;top:.08em;right:-.06em;width:.22em;height:.22em;border-radius:50%;background:var(--grape)}
 .word.on{background:var(--sun);transform:translateY(-3px)}
-.cover-title{font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,64px);line-height:1.1}
+.legend{text-align:center;color:var(--muted);font-size:.9rem;margin:0}
+.legend:empty{display:none}
+.legend i{font-style:normal;text-decoration:underline wavy var(--tangerine);text-underline-offset:.2em}
+.legend b{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--grape);vertical-align:.1em}
+.cover-title{font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,62px);line-height:1.1}
 .cover-by{width:100%;font-size:.6em;color:var(--muted);margin-top:.15em}
 .end-title{font-family:var(--display);font-weight:800;font-size:clamp(40px,6vw,72px);color:var(--tangerine-d)}
-.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:4px 0 6px}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:4px 0}
+.controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:6px 0 2px}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 2px}
 .round{width:68px;height:68px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--tangerine);color:#fff;box-shadow:0 5px 0 var(--tangerine-d);flex:none}
 .round svg{width:34px;height:34px}
-.round:active{transform:translateY(3px);box-shadow:0 2px 0 var(--tangerine-d)}
 .round:disabled{background:var(--quiet);color:var(--line);box-shadow:0 5px 0 var(--line)}
 .dots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-width:0}
 .dots button{width:16px;height:16px;border-radius:50%;border:0;background:var(--line);padding:0}
 .dots button[aria-current="true"]{background:var(--grape);transform:scale(1.3)}
-.vidpanel{width:100%;background:var(--paper);border-radius:var(--r);padding:14px;box-shadow:0 6px 0 var(--line);display:grid;gap:10px;position:sticky;top:90px}
-.vidpanel h3{font-size:1.15rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.vidpanel video,.vidpanel iframe{width:100%;aspect-ratio:16/9;border-radius:14px;background:#1d1830;border:0;display:block}
-.sync{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem}
-.sync input{width:22px;height:22px;accent-color:var(--grape)}
-.reader:fullscreen{background:var(--bg);padding:16px;overflow:auto}
+.reader:fullscreen{background:var(--bg);padding:16px;overflow:auto;align-content:center}
+
+/* match-words dialog */
+.dlg{position:fixed;inset:0;z-index:20;background:rgba(35,28,60,.6);display:grid;place-items:center;overflow:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dlg-card{background:var(--paper);border-radius:26px;padding:20px;width:min(1000px,100%);display:grid;gap:14px}
+.dlg-card h2{font-size:1.4rem}
+.dlg-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+.dlg-vid{display:grid;gap:10px}
+.dlg-vid video{width:100%;aspect-ratio:4/3;background:var(--screen);border-radius:16px;object-fit:contain;display:block}
+.clock{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted)}
+.twords{display:flex;flex-wrap:wrap;gap:8px}
+.twrap{display:inline-flex;align-items:center;gap:2px}
+.tword{border:3px solid var(--line);background:var(--paper);border-radius:14px;padding:6px 12px;display:grid;justify-items:center;min-width:66px}
+.tword b{font-size:1.2rem}
+.tword small{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tword.set{border-color:var(--grape);background:var(--grape-s)}
+.tword.now{background:var(--sun);border-color:var(--sun-d)}
+.tx{border:0;background:transparent;color:var(--muted);font-size:1.2rem;padding:0 4px;line-height:1}
+.steps{margin:0;padding-left:1.3em;display:grid;gap:4px;font-size:.95rem}
+.dlg-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
 
 /* picture animation */
 .stk{cursor:pointer;transform-box:fill-box;transform-origin:50% 100%}
@@ -167,6 +217,17 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
 .a-swim{animation:swim 3.6s ease-in-out infinite}
 .a-run{animation:run .45s ease-in-out infinite}
 .stk.boing{animation:boing .75s cubic-bezier(.3,1.5,.5,1)}
+.stk.off{opacity:0}
+.stk.enter-walk{animation:walkIn 1.3s cubic-bezier(.25,.7,.35,1) backwards}
+.stk.enter-drop{animation:dropIn 1.1s cubic-bezier(.3,1.3,.5,1) backwards}
+.stk.enter-pop{animation:popIn .65s cubic-bezier(.3,1.6,.5,1) backwards}
+.stk.enter-grow{animation:growIn .9s cubic-bezier(.3,1.4,.5,1) backwards}
+@keyframes walkIn{from{transform:translateX(var(--in))}to{transform:none}}
+@keyframes dropIn{from{transform:translateY(var(--in))}to{transform:none}}
+@keyframes popIn{from{transform:scale(0)}60%{transform:scale(1.15)}to{transform:none}}
+@keyframes growIn{from{transform:scale(.2,0)}to{transform:none}}
+.wx{transition:opacity .9s}
+.wx.off{opacity:0}
 @keyframes breathe{50%{transform:scale(1.035,.97)}}
 @keyframes hop{0%,100%{transform:translateY(0) scale(1.05,.95)}35%,55%{transform:translateY(-26%) scale(.97,1.04)}}
 @keyframes dance{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
@@ -199,30 +260,34 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
 .conf{position:absolute;top:-20px;width:14px;height:20px;border-radius:4px;animation:conf 2.6s ease-in forwards}
 @keyframes conf{to{transform:translateY(640px) rotate(720deg)}}
 @media (prefers-reduced-motion:reduce){
-  .anim,.twinkle,.drift,.spin,.wave,.fall,.snowfall,.flicker,.zzz,.book.turn-next,.book.turn-prev{animation:none!important}
+  .anim,.twinkle,.drift,.spin,.wave,.fall,.snowfall,.flicker,.zzz,.book.turn-next,.book.turn-prev,.stk{animation:none!important}
   .conf{display:none}
 }
 
 @media (max-width:960px){
   .make-grid{grid-template-columns:minmax(0,1fr)}
-  .reader.with-video{grid-template-columns:minmax(0,1fr)}
-  .vidpanel{position:static}
+}
+@media (max-width:760px){
+  .stage,.stage.big{grid-template-columns:minmax(0,1fr)}
+  .signer{aspect-ratio:4/3;order:-1}
+  .dlg-grid{grid-template-columns:minmax(0,1fr)}
+  .pcard{grid-template-columns:minmax(0,1fr)}
+  .controls .btn:not(.big) .lbl{display:none}
+  #sizeBtn{display:none}
 }
 @media (max-width:640px){
-  .pcard{grid-template-columns:minmax(0,1fr)}
-  .brand{font-size:1.25rem}
+  .brand{font-size:1.2rem}
   .brand svg{width:36px;height:36px}
   .tab{padding:6px 14px}
   .round{width:56px;height:56px}
   .book{padding:8px;border-radius:22px}
-  .readbar .btn .lbl{display:none}
 }
 </style>
 
 <header class="top">
   <div class="brand">
-    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 12q10-4 20 2v28q-10-6-20-2z" fill="#ff8a3d" stroke="#2d2540" stroke-width="3" stroke-linejoin="round"/><path d="M44 12q-10-4-20 2v28q10-6 20-2z" fill="#7b5cd6" stroke="#2d2540" stroke-width="3" stroke-linejoin="round"/><path d="M33 4l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#ffd23f" stroke="#2d2540" stroke-width="2" stroke-linejoin="round"/></svg>
-    Storytime Studio
+    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 14q10-4 20 2v28q-10-6-20-2z" fill="#ff8a3d" stroke="#2d2540" stroke-width="3" stroke-linejoin="round"/><path d="M44 14q-10-4-20 2v28q10-6 20-2z" fill="#7b5cd6" stroke="#2d2540" stroke-width="3" stroke-linejoin="round"/><path d="M19 15V5.5a2 2 0 014 0V12m0-7.5a2 2 0 014 0V12m0-5a2 2 0 014 0v8a7 7 0 01-12 5l-4-4.5a2 2 0 013-2.6l1 1" fill="#ffd23f" stroke="#2d2540" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Sign Story Studio
   </div>
   <nav class="tabs" role="tablist" aria-label="Choose a room">
     <button class="tab" id="tab-make" role="tab" aria-selected="true" aria-controls="make"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L16 4l4 4L9 19z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>Make</button>
@@ -236,42 +301,42 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
   <div class="make-grid">
     <div class="side">
       <div class="panel">
-        <h2><span class="step">1</span>Your story</h2>
-        <label class="field"><span>Book title</span><input type="text" id="title" maxlength="80" autocomplete="off"></label>
-        <label class="field"><span>Written by</span><input type="text" id="author" maxlength="60" autocomplete="off"></label>
-        <label class="field"><span>Your sentences</span><textarea id="story" spellcheck="true"></textarea></label>
-        <div class="seg" role="radiogroup" aria-label="How to make pages">
-          <label><input type="radio" name="split" id="split-sentence" value="sentence" checked> One page per sentence</label>
-          <label><input type="radio" name="split" id="split-line" value="line"> One page per line</label>
+        <h2><span class="step">1</span>Add ASL clips</h2>
+        <div class="drop" id="drop">
+          <input type="file" id="clipsIn" accept="video/*" multiple aria-label="Choose ASL video clips">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V5.5a1.5 1.5 0 013 0V10m0-5.5a1.5 1.5 0 013 0V10m0-4a1.5 1.5 0 013 0v5m0-2a1.5 1.5 0 013 0v5.5A7.5 7.5 0 0111.5 22h-.3a6 6 0 01-4.6-2.2l-3.2-4.2a1.6 1.6 0 012.4-2.1L7 14.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b>Drop sign clips here</b>
+          <span class="hint">or tap to choose. Pick several at once. Each clip becomes a page, in file-name order (1, 2, 3…).</span>
         </div>
-        <p class="hint">Words like <b>cat</b>, <b>moon</b>, <b>rain</b>, <b>beach</b> or <b>night</b> become pictures. Names like <b>Mia</b> become a child who looks the same on every page. Write "Pip the bunny" to make Pip a bunny.</p>
-        <p class="hint" id="exampleNote"><span class="example">Example story</span> Replace it with your own sentences.</p>
+        <p class="msg" id="clipMsg" role="status"></p>
       </div>
 
       <div class="panel">
-        <h2><span class="step">2</span>Companion video</h2>
-        <div class="row">
-          <span class="btn grape filebtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 10l5-3v10l-5-3z" fill="currentColor"/></svg>Choose a video file<input type="file" id="vfile" accept="video/*" aria-label="Choose a video file"></span>
-        </div>
-        <div class="or">or paste a link</div>
-        <div class="row">
-          <input type="text" id="vurl" placeholder="https://… (YouTube or .mp4)" style="flex:1 1 200px" autocomplete="off">
-          <button class="btn small" id="vurlBtn">Use link</button>
-        </div>
-        <div class="vbox" id="vbox"></div>
-        <p class="msg" id="vmsg" role="status"></p>
-        <p class="hint">To match pages to your video, play the video above, pause where a page starts, and press <b>Use video time</b> on that page. In Read, the pages can then turn by themselves while the video plays.</p>
+        <h2><span class="step">2</span>Book cover</h2>
+        <label class="field"><span>Book title</span><input type="text" id="title" maxlength="80" autocomplete="off"></label>
+        <label class="field"><span>Signed and written by</span><input type="text" id="author" maxlength="60" autocomplete="off"></label>
+        <div class="coverbox" id="coverBox"></div>
       </div>
+
+      <details class="panel quiet share" id="bulk">
+        <summary>Type all the sentences at once</summary>
+        <div class="inner">
+          <p class="hint">One line for each page, in the same order as your clips.</p>
+          <label class="field"><span>Sentences</span><textarea id="bulkText" rows="6" placeholder="The cat is sleepy.&#10;The dog wants to play!"></textarea></label>
+          <div class="row"><button class="btn small" id="bulkBtn">Put them on the pages</button></div>
+          <div class="confirm" id="bulkAsk"></div>
+          <p class="msg" id="bulkMsg" role="status"></p>
+        </div>
+      </details>
 
       <details class="panel quiet share" id="share">
         <summary>Save, share, start over</summary>
         <div class="inner">
-          <p class="hint">Your book saves itself in this browser. To move it to another device, copy the book code and paste it there. The video file stays on this device.</p>
+          <p class="hint">Your book and clips save themselves in this browser. A book code holds the words and settings, not the clips, so add the clips again on the other device.</p>
           <div class="row"><button class="btn small" id="copyCode">Copy book code</button></div>
-          <label class="field"><span>Paste a book code</span><textarea id="pasteCode" rows="3" placeholder='{"title":…}'></textarea></label>
-          <div class="row"><button class="btn small" id="loadCode">Load this book</button></div>
-          <div class="row"><button class="btn small" id="newBook">Start a new book</button></div>
-          <div id="confirmBox"></div>
+          <label class="field"><span>Paste a book code</span><textarea id="pasteCode" rows="3" placeholder='{"v":2,…}'></textarea></label>
+          <div class="row"><button class="btn small" id="loadCode">Load this book</button><button class="btn small" id="newBook">Start a new book</button></div>
+          <div class="confirm" id="shareAsk"></div>
           <p class="msg" id="shareMsg" role="status"></p>
         </div>
       </details>
@@ -279,10 +344,12 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
 
     <div>
       <div class="pages-head">
-        <h2><span class="step">3</span>Your pages <span id="pageCount" class="hint" style="font-family:var(--body);font-size:1rem"></span></h2>
+        <h2><span class="step">3</span>Pages <span id="pageCount" class="hint" style="font-family:var(--body);font-size:1rem"></span></h2>
         <button class="btn go" id="readBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Read my book</button>
       </div>
+      <div id="banner"></div>
       <div class="pagelist" id="pagelist"></div>
+      <button class="btn" id="addPage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Add a page</button>
     </div>
   </div>
 </section>
@@ -290,34 +357,64 @@ select.addpic{width:auto;border-style:dashed;padding:5px 10px;border-radius:999p
 <!-- ============ READ ============ -->
 <section id="read" role="tabpanel" aria-labelledby="tab-read" hidden>
   <div class="reader" id="reader">
-    <div style="width:100%;display:grid;justify-items:center;min-width:0">
-      <div class="readbar">
-        <button class="btn go" id="sayBtn" aria-label="Read to me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="lbl">Read to me</span></button>
-        <button class="btn" id="autoBtn" aria-pressed="false" aria-label="Turn pages for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0112-5l2 2M19 12a7 7 0 01-12 5l-2-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 4v5h-5M5 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Turn pages for me</span></button>
-        <button class="btn grape" id="watchBtn" hidden aria-label="Watch the video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 10l5-3v10l-5-3z" fill="currentColor"/></svg><span class="lbl">Watch the video</span></button>
+    <div class="book" id="book">
+      <div class="stage" id="stage">
+        <div class="pic" id="pic"></div>
+        <div class="signer" id="signer"></div>
+      </div>
+      <div class="words" id="words" aria-live="polite"></div>
+      <p class="legend" id="legend"></p>
+      <div class="cta-row" id="cta" hidden></div>
+      <div class="controls">
+        <button class="btn go big" id="playBtn" aria-pressed="false"><span class="ic"></span><span class="lbl">Play</span></button>
+        <div class="seg" role="group" aria-label="Speed"><span>Speed</span>
+          <button class="btn small" data-speed="0.5">Slow</button><button class="btn small" data-speed="0.75">Medium</button><button class="btn small" data-speed="1">Normal</button>
+        </div>
+        <button class="btn" id="hearBtn" aria-label="Hear it read aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="lbl">Hear it</span></button>
+        <button class="btn" id="autoBtn" aria-pressed="false" aria-label="Play the whole book"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0112-5l2 2M19 12a7 7 0 01-12 5l-2-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 4v5h-5M5 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Whole book</span></button>
+        <button class="btn" id="sizeBtn" aria-pressed="false" aria-label="Bigger signer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="7" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="12" y="3" width="9" height="18" rx="2" fill="currentColor"/></svg><span class="lbl">Bigger signer</span></button>
         <button class="btn" id="soundBtn" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17V6l11-2v11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="2.5" fill="currentColor"/><circle cx="17.5" cy="15" r="2.5" fill="currentColor"/></svg><span class="lbl">Sounds</span></button>
         <button class="btn" id="fullBtn" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Full screen</span></button>
       </div>
-      <div class="book" id="book">
-        <div class="pic" id="pic"></div>
-        <div class="words" id="words" aria-live="polite"></div>
-        <div class="cta-row" id="cta" hidden></div>
-        <div class="nav">
-          <button class="round" id="prevBtn" aria-label="Previous page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="dots" id="dots"></div>
-          <button class="round" id="nextBtn" aria-label="Next page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        </div>
+      <div class="nav">
+        <button class="round" id="prevBtn" aria-label="Previous page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="dots" id="dots"></div>
+        <button class="round" id="nextBtn" aria-label="Next page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
     </div>
-    <aside class="vidpanel" id="vidpanel" hidden>
-      <h3>Companion video <button class="btn small" id="closeVid">Close</button></h3>
-      <div id="rvbox"></div>
-      <label class="sync" id="syncWrap" hidden><input type="checkbox" id="syncOn" checked> Turn pages with the video</label>
-      <p class="hint" id="rvHint"></p>
-    </aside>
   </div>
 </section>
 </main>
+
+<!-- ============ MATCH WORDS TO SIGNS ============ -->
+<div class="dlg" id="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="dlg-card">
+    <h2 id="dlgTitle">Match words to signs</h2>
+    <div class="dlg-grid">
+      <div class="dlg-vid">
+        <video id="dlgVid" controls playsinline></video>
+        <div class="row">
+          <button class="btn small grape" id="dlgPlay">Play from the start</button>
+          <div class="seg" role="group" aria-label="Clip speed"><span>Speed</span>
+            <button class="btn small" data-dspeed="0.5">Slow</button><button class="btn small" data-dspeed="0.75">Medium</button><button class="btn small" data-dspeed="1">Normal</button>
+          </div>
+          <span class="clock" id="dlgClock">0:00.0</span>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px;min-width:0">
+        <ol class="steps">
+          <li>Play the clip. Slow is easiest.</li>
+          <li>When a sign starts, tap the English word it means. Words can be in any order.</li>
+          <li>Leave words with no sign, like “the”, empty.</li>
+          <li>Tap a word again to move its time. Tap × to clear it.</li>
+        </ol>
+        <div class="twords" id="dlgWords"></div>
+        <div class="row"><button class="btn small" id="dlgUndo">Undo</button><button class="btn small" id="dlgClear">Clear all</button></div>
+      </div>
+    </div>
+    <div class="dlg-foot"><button class="btn" id="dlgCancel">Cancel</button><button class="btn go" id="dlgSave">Save</button></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -730,7 +827,7 @@ function bgSVG(sc,u,has){
     if(sc.time==='sunset'&&!has.sun)s+=C(400,330,96,'#ffcf5a',0)+C(400,330,70,'#ffe08a',0);
     if(sc.time==='night'&&!has.moon)s+=`<g transform="translate(650 22) scale(.55)">${S.moon.draw('#ffe680','sleepy')}</g>`;
     if(sc.time!=='night'&&sc.weather!=='rain')s+=`<g class="drift" opacity=".95">${blob([[120,90,22],[150,76,28],[184,90,22]],'#ffffff')}</g><g class="drift" style="animation-delay:-4s" opacity=".9">${blob([[420,60,18],[446,48,24],[474,60,18]],'#ffffff')}</g>`;
-    if(sc.weather==='rainbow'){['#ef4b4b','#ff8c42','#ffd43b','#5cc65c','#4d9cff','#9b6bea'].forEach((c,i)=>{s+=`<path d="M${130+i*14} 380 A${270-i*14} ${250-i*14} 0 0 1 ${670-i*14} 380" fill="none" stroke="${c}" stroke-width="15" opacity=".9"/>`})}
+    if(sc.weather==='rainbow'){s+='<g class="wx" data-wx="rainbow">';['#ef4b4b','#ff8c42','#ffd43b','#5cc65c','#4d9cff','#9b6bea'].forEach((c,i)=>{s+=`<path d="M${130+i*14} 380 A${270-i*14} ${250-i*14} 0 0 1 ${670-i*14} 380" fill="none" stroke="${c}" stroke-width="15" opacity=".9"/>`});s+='</g>'}
   }
   if(p==='space'){
     s+=C(140,110,40,'#ff9fb5')+`<ellipse cx="140" cy="110" rx="68" ry="16" fill="none" stroke="#ffd23f" stroke-width="7" transform="rotate(-18 140 110)"/>`+C(640,80,18,'#8fd3ff');
@@ -758,25 +855,32 @@ function bgSVG(sc,u,has){
     for(let i=0;i<10;i++){const x=(r()*800)|0,y=395+(r()*70)|0;s+=C(x,y,4.5,T(['#fff','#ffd23f','#ff7eb6'][i%3]),0)}
   }
   if(sc.weather==='rain'){
-    top+=`<g opacity=".95">${blob([[60,30,46],[140,20,52],[230,34,44],[330,22,50],[430,32,46],[530,20,52],[630,32,46],[730,24,52],[800,34,40]],T('#9aa6bf'))}</g>`;
+    top+=`<g class="wx" data-wx="rain" opacity=".95">${blob([[60,30,46],[140,20,52],[230,34,44],[330,22,50],[430,32,46],[530,20,52],[630,32,46],[730,24,52],[800,34,40]],T('#9aa6bf'))}</g>`;
     let d='';const r=rnd(5);for(let i=0;i<70;i++){const x=(r()*820)|0,y=(r()*480)|0;d+=`M${x} ${y} l-6 18`}
-    over+=`<g class="fall"><path d="${d}" stroke="#5a9fe0" stroke-width="4" stroke-linecap="round" opacity=".8"/><path d="${d}" transform="translate(0 480)" stroke="#5a9fe0" stroke-width="4" stroke-linecap="round" opacity=".8"/></g>`;
+    over+=`<g class="wx" data-wx="rain"><g class="fall"><path d="${d}" stroke="#5a9fe0" stroke-width="4" stroke-linecap="round" opacity=".8"/><path d="${d}" transform="translate(0 480)" stroke="#5a9fe0" stroke-width="4" stroke-linecap="round" opacity=".8"/></g></g>`;
   }
-  if(p==='snow'){let d='';const r=rnd(11);for(let i=0;i<50;i++)d+=C((r()*800)|0,(r()*480)|0,(3+r()*4).toFixed(1),'#ffffff',0);over+=`<g class="snowfall" opacity=".9">${d}<g transform="translate(0 480)">${d}</g></g>`}
+  if(p==='snow'){let d='';const r=rnd(11);for(let i=0;i<50;i++)d+=C((r()*800)|0,(r()*480)|0,(3+r()*4).toFixed(1),'#ffffff',0);over+=`<g class="wx" data-wx="snow"><g class="snowfall" opacity=".9">${d}<g transform="translate(0 480)">${d}</g></g></g>`}
   return{back:s,top,over};
 }
 
 function placeOne(r,inst,x,by,s,mirror,anchor,mood,action){
   const[t,b]=r.h;const ty=anchor==='center'?by-(t+b)/2*s:by-b*s;const tx=mirror?x+100*s:x-100*s;
-  const own=r.kind==='person'||r.kind==='animal'||r.id==='sun'||r.id==='moon'||r.id==='star'||r.id==='cloud'||r.id==='heart'||r.id==='cookie'||r.id==='flower'||r.id==='snowman';
+  const living=r.kind==='person'||r.kind==='animal';
+  const own=living||['sun','moon','star','cloud','heart','cookie','flower','snowman'].includes(r.id);
   const m=own?mood:'happy';
+  const actable=living&&r.zone==='ground';
   let a='idle';
   if(r.zone==='sky')a='float';else if(r.zone==='water')a='swim';
-  if(action&&(r.kind==='person'||r.kind==='animal')&&r.zone==='ground')a=action;
-  if(r.kind!=='person'&&r.kind!=='animal'&&r.zone!=='sky'&&r.zone!=='water')a=r.id==='ball'?'hop':'idle';
+  if(actable&&action)a=action;
+  if(!living&&r.zone==='ground')a=r.id==='ball'?'hop':'idle';
   if(r.zone==='back')a='none';
-  const z=mood==='sleepy'&&(r.kind==='person'||r.kind==='animal')?`<text class="zzz" x="150" y="40" font-size="34" style="animation-delay:${(inst%3)*.8}s">z</text><text class="zzz" x="168" y="18" font-size="24" style="animation-delay:${(inst%3)*.8+1.2}s">z</text>`:'';
-  return `<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${(mirror?-s:s).toFixed(3)} ${s.toFixed(3)})"><g class="stk" data-key="${esc(r.key)}" data-say="${esc(r.say||r.label)}" data-label="${esc(r.name||r.label)}"><g class="anim a-${a}" style="animation-delay:-${((inst*0.37)%2).toFixed(2)}s">${r.draw(r.color||r.c,m,action)}</g>${z}</g></g>`;
+  // how it arrives when its word is signed: walk in from the nearest side, drop from the sky, grow, or pop
+  let enter='pop',inv=0;
+  if(actable){const dx=x<400?-(x+120*s):(800-x+120*s);enter='walk';inv=dx/s*(mirror?-1:1)}
+  else if(r.zone==='sky'){enter='drop';inv=-(by+150)/s}
+  else if(r.zone==='back')enter='grow';
+  const z=mood==='sleepy'&&living?`<text class="zzz" x="150" y="40" font-size="34" style="animation-delay:${(inst%3)*.8}s">z</text><text class="zzz" x="168" y="18" font-size="24" style="animation-delay:${(inst%3)*.8+1.2}s">z</text>`:'';
+  return `<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${(mirror?-s:s).toFixed(3)} ${s.toFixed(3)})"><g class="stk" data-key="${esc(r.key)}" data-say="${esc(r.say||r.label)}" data-label="${esc(r.name||r.label)}" data-enter="${enter}" style="--in:${inv.toFixed(0)}px"><g class="anim a-${a}" data-base="${a}"${actable?' data-actable="1"':''} style="animation-delay:-${((inst*0.37)%2).toFixed(2)}s">${r.draw(r.color||r.c,m,action)}</g>${z}</g></g>`;
 }
 function rowLayout(list,x0,x1,maxS){
   // list:[{r,s}] -> centers; shrink if crowded
@@ -816,37 +920,71 @@ function renderScene(model,opt={}){
 }
 function stickerIcon(key,color){const r=resolve(key);if(!r)return'';return `<svg viewBox="-10 -10 220 220" aria-hidden="true" class="still">${r.draw(color||r.c,'happy')}</svg>`}
 
-/* ================= book state ================= */
-const KEY='storytime-studio.v1';
-const SAMPLE={title:'Pip and the Red Balloon',author:'Grown-up Name',split:'sentence',example:true,
-  text:'This is Pip the bunny.\nPip loves to hop in the sun with her friend Mo the duck.\nOne day, a red balloon floats up into the sky!\nPip and Mo run to the beach to find it.\nThey see three fish and a little boat in the sea.\nThen it starts to rain, so Pip opens her umbrella.\nWow, a rainbow!\nThe red balloon is stuck in a tree.\nMo flies up and brings it back!\nAt night, Pip and Mo look at the moon and the stars.\nGood night, Pip. Good night, Mo.',
-  pages:[],video:null};
-let book=load();
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&typeof s.text==='string')return Object.assign({title:'',author:'',split:'sentence',pages:[],video:null},s)}catch(e){}return JSON.parse(JSON.stringify(SAMPLE))}
-let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(book))}catch(e){}},250)}
-let prefs={sound:true,auto:false};try{Object.assign(prefs,JSON.parse(localStorage.getItem(KEY+'.prefs')||'{}'))}catch(e){}
-const savePrefs=()=>{try{localStorage.setItem(KEY+'.prefs',JSON.stringify(prefs))}catch(e){}};
 
-function splitText(text,mode){
-  const lines=text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-  if(mode==='line')return lines;
-  const out=[];lines.forEach(l=>{const parts=l.match(/[^.!?]+(?:[.!?]+["'”’)]*|$)/g)||[l];
-    let buf='';parts.forEach(p=>{p=p.trim();if(!p)return;buf=buf?buf+' '+p:p;if(buf.replace(/[^A-Za-z]/g,'').length>2||/[.!?]$/.test(buf)){out.push(buf);buf=''}});if(buf)out.push(buf)});
-  return out;
+/* ================= icons ================= */
+const IC={
+  play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg>',
+  hand:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V5.5a1.5 1.5 0 013 0V10m0-5.5a1.5 1.5 0 013 0V10m0-4a1.5 1.5 0 013 0v5m0-2a1.5 1.5 0 013 0v5.5A7.5 7.5 0 0111.5 22h-.3a6 6 0 01-4.6-2.2l-3.2-4.2a1.6 1.6 0 012.4-2.1L7 14.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  up:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  down:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+/* ================= book state ================= */
+const KEY='sign-story-studio.v2';
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const blankPage=(text='')=>({id:newId(),text,clip:null,times:null,timesText:null,scene:'auto',add:[],remove:[]});
+const SAMPLE=['This is Pip the bunny.','Pip loves to hop in the sun with her friend Mo the duck.','One day, a red balloon floats up into the sky!','Pip and Mo run to the beach to find it.','Then it starts to rain, so Pip opens her umbrella.','Wow, a rainbow!','At night, Pip and Mo look at the moon and the stars.','Good night, Pip. Good night, Mo.'];
+const sampleBook=()=>({v:2,title:'Pip and the Red Balloon',author:'',example:true,cover:{clip:null,times:null,timesText:null},pages:SAMPLE.map(t=>blankPage(t))});
+function normBook(d){return{v:2,title:String(d.title||''),author:String(d.author||''),example:!!d.example,
+  cover:Object.assign({clip:null,times:null,timesText:null},d.cover||{}),
+  pages:(Array.isArray(d.pages)?d.pages:[]).map(p=>Object.assign(blankPage(),p,{id:p.id||newId(),text:String(p.text||''),add:Array.isArray(p.add)?p.add:[],remove:Array.isArray(p.remove)?p.remove:[]}))}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===2)return normBook(s)}catch(e){}return sampleBook()}
+let book=load();
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(book))}catch(e){}},250)}
+let prefs={sound:true,auto:false,speed:1,dspeed:.5,big:false};
+try{Object.assign(prefs,JSON.parse(localStorage.getItem(KEY+'.prefs')||'{}'))}catch(e){}
+const savePrefs=()=>{try{localStorage.setItem(KEY+'.prefs',JSON.stringify(prefs))}catch(e){}};
+const textOf=o=>o===book.cover?book.title:(o?o.text:'');
+const wordsOf=t=>String(t||'').match(/\S+/g)||[];
+
+/* ================= clip store (IndexedDB, this browser only) ================= */
+function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('sign-story-studio',1);r.onupgradeneeded=()=>r.result.createObjectStore('files');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function idbDo(mode,fn){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction('files',mode);const rq=fn(tx.objectStore('files'));tx.oncomplete=()=>res(rq&&rq.result);tx.onerror=()=>rej(tx.error)})}
+const URLS=new Map();
+async function clipURL(clip){
+  if(!clip)return null;if(URLS.has(clip.id))return URLS.get(clip.id);
+  try{const f=await idbDo('readonly',st=>st.get('clip:'+clip.id));if(!f)return null;const u=URL.createObjectURL(f);URLS.set(clip.id,u);return u}catch(e){return null}
 }
-function rebuildPages(){
-  const texts=splitText(book.text,book.split);
-  const old=book.pages||[];const used=new Set();
-  book.pages=texts.map((t,i)=>{
-    let j=old.findIndex((p,k)=>!used.has(k)&&p.text===t);
-    if(j<0&&old[i]&&!used.has(i)&&!texts.includes(old[i].text))j=i;
-    if(j>=0){used.add(j);return{...old[j],text:t}}
-    return{text:t,scene:'auto',add:[],remove:[],time:''};
-  });
-  buildInfo(texts);
+let storeFailed=false;
+function probeDur(file){return new Promise(res=>{const v=document.createElement('video');const u=URL.createObjectURL(file);let done=false;
+  const fin=d=>{if(done)return;done=true;URL.revokeObjectURL(u);res(d&&isFinite(d)?d:null)};
+  v.preload='metadata';v.muted=true;v.onloadedmetadata=()=>fin(v.duration);v.onerror=()=>fin(null);setTimeout(()=>fin(null),6000);v.src=u})}
+async function putClip(file){
+  const id=newId();const dur=await probeDur(file);
+  try{await idbDo('readwrite',st=>st.put(file,'clip:'+id))}catch(e){storeFailed=true}
+  URLS.set(id,URL.createObjectURL(file));return{id,name:file.name,dur};
 }
+function dropClip(clip){if(!clip)return;const u=URLS.get(clip.id);if(u){URL.revokeObjectURL(u);URLS.delete(clip.id)}idbDo('readwrite',st=>st.delete('clip:'+clip.id)).catch(()=>{})}
+const isVideo=f=>/^video\//.test(f.type)||/\.(mp4|m4v|mov|webm|ogv|3gp)$/i.test(f.name);
+const natural=(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'});
+
+/* ================= word timing ================= */
+function recorded(o){const ws=wordsOf(textOf(o));return o&&o.times&&o.timesText===textOf(o)&&o.times.length===ws.length&&o.times.some(t=>t!==null)?o.times:null}
+function estTimes(ws,dur){
+  if(!dur||!isFinite(dur))dur=ws.length*.8+.8;
+  const lead=Math.min(.4,dur*.08),span=Math.max(.2,dur-lead*2);
+  const wts=ws.map(w=>w.replace(/[^A-Za-z0-9]/g,'').length+2);const tot=wts.reduce((a,b)=>a+b,0)||1;
+  let acc=0;return wts.map(w=>{const t=lead+span*acc/tot;acc+=w;return +t.toFixed(2)});
+}
+function timesFor(o,dur){const r=recorded(o);return r?{times:r,rec:true}:{times:estTimes(wordsOf(textOf(o)),dur),rec:false}}
+function fmtT(t){t=Math.max(0,t||0);const m=Math.floor(t/60);return m+':'+(t%60).toFixed(1).padStart(4,'0')}
+
+/* ================= models ================= */
 let MODELS=[];
 function computeModels(){
+  buildInfo([book.title].concat(book.pages.map(p=>p.text)));
   let prevChars=null;
   MODELS=book.pages.map(pg=>{
     const a=analyze(pg.text,prevChars);
@@ -860,12 +998,15 @@ function computeModels(){
     return{items,scene,autoScene:auto,mood:a.mood,action:a.action,alt,carried:a.carried};
   });
 }
-function parseTime(s){s=String(s||'').trim();if(!s)return null;const m=s.match(/^(?:(\d+):)?(\d{1,2})(?::(\d{1,2}))?(?:\.(\d+))?$/);if(!m)return NaN;
-  let h=0,mi=0,se=0;if(m[3]!==undefined){h=+m[1];mi=+m[2];se=+m[3]}else if(m[1]!==undefined){mi=+m[1];se=+m[2]}else se=+m[2];
-  return h*3600+mi*60+se+(m[4]?+('0.'+m[4]):0)}
-function fmtTime(t){t=Math.max(0,Math.floor(t));const m=Math.floor(t/60),s=t%60;return m+':'+String(s).padStart(2,'0')}
 
 /* ================= MAKE view ================= */
+function flash(el,txt,bad){el.textContent=txt;el.classList.toggle('bad',!!bad);clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent=''},6000)}
+function askIn(box,text,yes,fn){
+  box.innerHTML=`${esc(text)} <button class="btn small go" data-yes>${esc(yes)}</button><button class="btn small" data-no>Cancel</button>`;
+  box.querySelector('[data-yes]').onclick=()=>{box.innerHTML='';fn()};box.querySelector('[data-no]').onclick=()=>{box.innerHTML=''};
+  box.querySelector('[data-no]').focus();
+}
+let ADDOPTS='';
 function addOptions(){
   let o='<option value="">+ Add a picture</option>';
   const nm=[...INFO.names.values()];
@@ -877,193 +1018,373 @@ function addOptions(){
 function sceneOptions(sel,auto){
   return `<option value="auto"${sel==='auto'?' selected':''}>Auto: ${esc(sceneName(auto))}</option>`+Object.entries(SCENES).map(([k,v])=>`<option value="${k}"${sel===k?' selected':''}>${esc(v.label)}</option>`).join('');
 }
+function chipsHTML(i){
+  const md=MODELS[i];
+  return md.items.map(it=>{const r=resolve(it.key);if(!r)return'';const lab=(it.n>1?it.n+' ':'')+(r.name||r.label);
+    return `<span class="chip${it.added?' added':''}">${stickerIcon(it.key,it.color)}${esc(lab)}<button class="x" data-act="rm" data-i="${i}" data-key="${esc(it.key)}" aria-label="Remove ${esc(lab)}">×</button></span>`}).join('')
+    +`<select class="addpic" data-act="add" data-i="${i}" aria-label="Add a picture to page ${i+1}" id="add-${book.pages[i].id}">${ADDOPTS}</select>`
+    +(md.carried?'<span class="hint">Characters stay from the page before. Remove them with ×.</span>':'');
+}
+function timingHTML(o,i){
+  const ws=wordsOf(textOf(o));const rec=recorded(o);
+  let msg;
+  if(!o.clip)msg='Add a sign clip, and the words will light up while it plays.';
+  else if(!ws.length)msg='Type what is signed, then match words to signs.';
+  else if(rec)msg=`Matched: ${rec.filter(t=>t!==null).length} of ${ws.length} words have a sign. Children can tap these words to see their sign.`;
+  else msg=(o.times&&o.timesText!==textOf(o)?'The words changed, so the old matches were cleared. ':'')+'Words light up at an even pace for now. Match words to signs so they light up with each sign, and children can tap a word to see its sign.';
+  return `<p>${esc(msg)}</p><button class="btn small grape" data-act="time" data-i="${i}" ${o.clip&&ws.length?'':'disabled'}>Match words to signs</button>`;
+}
 function cardHTML(i){
-  const pg=book.pages[i],md=MODELS[i];
-  const chips=md.items.map(it=>{const r=resolve(it.key);if(!r)return'';const lab=(it.n>1?it.n+' ':'')+(r.name||r.label);
-    return `<span class="chip${it.added?' added':''}">${stickerIcon(it.key,it.color)}${esc(lab)}<button class="x" data-act="rm" data-i="${i}" data-key="${esc(it.key)}" aria-label="Remove ${esc(lab)}">×</button></span>`}).join('');
-  const t=parseTime(pg.time);
-  return `<div class="thumb">${renderScene(md,{still:true})}</div>
+  const p=book.pages[i],md=MODELS[i],n=book.pages.length;
+  return `<div class="media">
+    <div class="clipbox" data-clip="${p.clip?esc(p.clip.id):''}">${p.clip?`<video controls playsinline preload="metadata" aria-label="Sign clip for page ${i+1}"></video>`:addClipHTML(i,'Add sign clip')}</div>
+    <div class="thumb">${renderScene(md,{still:true})}</div>
+  </div>
   <div class="pbody">
-    <div class="pnum">Page ${i+1}</div>
-    <p class="ptext">${esc(pg.text)}</p>
-    <div class="chips">${chips}<select class="addpic" data-act="add" data-i="${i}" aria-label="Add a picture to page ${i+1}" id="add-${i}">${ADDOPTS}</select></div>
-    ${md.carried?'<p class="hint" style="margin:0">Characters carried over from the page before. Remove them with ×.</p>':''}
+    <div class="phead"><span class="pnum">Page ${i+1}</span><span class="tools">
+      <button class="iconbtn" data-act="up" data-i="${i}" ${i===0?'disabled':''} aria-label="Move page ${i+1} up">${IC.up}</button>
+      <button class="iconbtn" data-act="down" data-i="${i}" ${i===n-1?'disabled':''} aria-label="Move page ${i+1} down">${IC.down}</button>
+      <button class="iconbtn del" data-act="del" data-i="${i}" aria-label="Delete page ${i+1}">${IC.trash}</button></span></div>
+    <div class="confirm" id="ask-${p.id}"></div>
+    <label class="field"><span>What is signed (in English)</span><textarea class="ptext" data-act="text" data-i="${i}" id="text-${p.id}" rows="2" placeholder="Type the sentence this clip signs">${esc(p.text)}</textarea></label>
+    <div class="chips" id="chips-${p.id}">${chipsHTML(i)}</div>
     <div class="prow">
-      <label class="field"><span>Place</span><select data-act="scene" data-i="${i}" id="scene-${i}">${sceneOptions(pg.scene,md.autoScene)}</select></label>
-      <label class="field"><span>Video starts at</span><input type="text" class="vtime${Number.isNaN(t)?' bad':''}" data-act="time" data-i="${i}" id="time-${i}" value="${esc(pg.time)}" placeholder="0:00" inputmode="numeric" autocomplete="off"></label>
-      <button class="btn small" data-act="usetime" data-i="${i}" ${hasLocalVideo()?'':'hidden'}>Use video time</button>
+      <label class="field"><span>Place</span><select data-act="scene" data-i="${i}" id="scene-${p.id}">${sceneOptions(p.scene,md.autoScene)}</select></label>
+      ${p.clip?`<span class="btn small filebtn">Replace clip<input type="file" accept="video/*" data-act="clip" data-i="${i}" aria-label="Replace the clip on page ${i+1}"></span><button class="btn small" data-act="noclip" data-i="${i}">Remove clip</button>`:''}
     </div>
+    <div class="timing${recorded(p)?' done':''}" id="timing-${p.id}">${timingHTML(p,i)}</div>
   </div>`;
 }
-let ADDOPTS='';
+const addClipHTML=(i,label)=>`<label class="addclip"><input type="file" accept="video/*" data-act="clip" data-i="${i}" aria-label="${esc(label)} for page ${i+1}">${IC.hand}<span>${esc(label)}</span></label>`;
+function hookVideos(root){
+  root.querySelectorAll('.clipbox[data-clip]').forEach(box=>{const id=box.dataset.clip;if(!id)return;const v=box.querySelector('video');
+    const i=+box.closest('.pcard').dataset.i;const p=book.pages[i];
+    clipURL(p.clip).then(u=>{if(u){v.src=u;return}box.innerHTML=addClipHTML(i,`The clip “${p.clip.name}” is not on this device. Add it again`)})});
+}
 function renderMake(){
   computeModels();ADDOPTS=addOptions();
-  const list=$('#pagelist');
-  $('#exampleNote').hidden=!book.example;
   $('#pageCount').textContent=book.pages.length?`(${book.pages.length})`:'';
-  if(!book.pages.length){list.innerHTML='<div class="empty"><h3>No pages yet</h3><p class="hint">Type a sentence in the story box. Each sentence becomes a page.</p></div>';return}
-  list.innerHTML=book.pages.map((p,i)=>`<article class="pcard" id="card-${i}">${cardHTML(i)}</article>`).join('');
-  $('#exampleNote').hidden=!book.example;
+  $('#banner').innerHTML=book.example?'<div class="banner">This is an example story with no clips yet. Drop your ASL clips in step 1 to start your own book.</div>':'';
+  const list=$('#pagelist');
+  if(!book.pages.length)list.innerHTML='<div class="empty"><h3>No pages yet</h3><p class="hint">Drop your sign clips in step 1. Each clip becomes a page.</p></div>';
+  else{list.innerHTML=book.pages.map((p,i)=>`<article class="pcard" id="card-${p.id}" data-i="${i}">${cardHTML(i)}</article>`).join('');hookVideos(list)}
+  renderCover();
 }
-function rerenderCard(i){computeModels();ADDOPTS=addOptions();
-  // later pages can change too (characters carry forward), so refresh all thumbnails cheaply
-  book.pages.forEach((p,k)=>{const el=$('#card-'+k);if(el)el.innerHTML=cardHTML(k)});
+// lighter refresh while typing: keeps the textarea and video in place
+function refreshCards(){
+  computeModels();ADDOPTS=addOptions();
+  book.pages.forEach((p,i)=>{const c=$('#card-'+p.id);if(!c)return;
+    c.querySelector('.thumb').innerHTML=renderScene(MODELS[i],{still:true});
+    $('#chips-'+p.id).innerHTML=chipsHTML(i);
+    $('#scene-'+p.id).innerHTML=sceneOptions(p.scene,MODELS[i].autoScene);
+    const t=$('#timing-'+p.id);t.innerHTML=timingHTML(p,i);t.classList.toggle('done',!!recorded(p));
+  });
 }
-$('#title').value=book.title;$('#author').value=book.author;$('#story').value=book.text;
-$('#split-'+(book.split==='line'?'line':'sentence')).checked=true;
-const markEdited=()=>{if(book.example){book.example=false;$('#exampleNote').hidden=true}};
-$('#title').addEventListener('input',e=>{book.title=e.target.value;markEdited();save()});
-$('#author').addEventListener('input',e=>{book.author=e.target.value;markEdited();save()});
-let storyT;$('#story').addEventListener('input',e=>{book.text=e.target.value;markEdited();clearTimeout(storyT);storyT=setTimeout(()=>{rebuildPages();renderMake();save()},350)});
-$$('input[name=split]').forEach(r=>r.addEventListener('change',e=>{book.split=e.target.value;rebuildPages();renderMake();save()}));
-$('#pagelist').addEventListener('click',e=>{
-  const b=e.target.closest('[data-act]');if(!b)return;const i=+b.dataset.i,pg=book.pages[i];
-  if(b.dataset.act==='rm'){const k=b.dataset.key;if(pg.add.includes(k))pg.add=pg.add.filter(x=>x!==k);else if(!pg.remove.includes(k))pg.remove.push(k);rerenderCard(i);save();const nb=$('#add-'+i);nb&&nb.focus()}
-  if(b.dataset.act==='usetime'){const v=$('#vprev');if(v&&!isNaN(v.currentTime)){pg.time=fmtTime(v.currentTime);rerenderCard(i);save()}}
+function renderCover(){
+  const c=book.cover,box=$('#coverBox');
+  if(c.clip){
+    box.innerHTML=`<span class="field" style="gap:6px"><span style="font-weight:700;font-size:.95rem">Title sign clip</span></span><video controls playsinline preload="metadata" aria-label="Title sign clip"></video>
+      <div class="row"><button class="btn small grape" data-cover="time" ${wordsOf(book.title).length?'':'disabled'}>Match words to signs</button><span class="btn small filebtn">Replace<input type="file" accept="video/*" data-cover="clip" aria-label="Replace the title clip"></span><button class="btn small" data-cover="remove">Remove</button></div>
+      <p class="hint">${recorded(c)?'Title words are matched to signs.':'Optional: match the title words to signs.'}</p>`;
+    clipURL(c.clip).then(u=>{const v=box.querySelector('video');if(v&&u)v.src=u;else if(v)box.querySelector('.hint').textContent='This clip is not on this device. Replace it to add it again.'});
+  }else box.innerHTML=`<span class="btn small filebtn">${IC.hand}Add a title sign clip (optional)<input type="file" accept="video/*" data-cover="clip" aria-label="Add a title sign clip"></span>`;
+}
+
+/* inputs */
+$('#title').value=book.title;$('#author').value=book.author;
+const leaveExample=()=>{if(book.example){book.example=false;$('#banner').innerHTML=''}};
+let titleT;$('#title').addEventListener('input',e=>{book.title=e.target.value;leaveExample();save();clearTimeout(titleT);titleT=setTimeout(()=>{refreshCards();renderCover()},400)});
+$('#author').addEventListener('input',e=>{book.author=e.target.value;leaveExample();save()});
+
+async function addClips(files){
+  files=[...files].filter(isVideo).sort(natural);
+  if(!files.length){flash($('#clipMsg'),'Those files are not videos. Choose video clips such as .mp4 or .mov.',true);return}
+  let note='';
+  if(book.example){book.pages=[];book.title='';book.example=false;$('#title').value='';note=' The example story was removed.'}
+  flash($('#clipMsg'),`Adding ${files.length} clip${files.length>1?'s':''}…`);
+  storeFailed=false;
+  for(const f of files){const clip=await putClip(f);let p=book.pages.find(p=>!p.clip);if(!p){p=blankPage();book.pages.push(p)}p.clip=clip;p.times=null;p.timesText=null}
+  save();renderMake();
+  flash($('#clipMsg'),storeFailed?'Clips added for now, but this browser would not save them. Keep this tab open, or add them again next time.':`Added ${files.length} clip${files.length>1?'s':''}.${note} Now type what is signed under each one.`,storeFailed);
+}
+$('#clipsIn').addEventListener('change',e=>{addClips(e.target.files);e.target.value=''});
+const drop=$('#drop');
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,()=>drop.classList.remove('over')));
+drop.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer&&e.dataTransfer.files)addClips(e.dataTransfer.files)});
+$('#addPage').onclick=()=>{leaveExample();book.pages.push(blankPage());save();renderMake();const p=book.pages[book.pages.length-1];const t=$('#text-'+p.id);t&&t.focus()};
+
+const PL=$('#pagelist');
+let textT;
+PL.addEventListener('input',e=>{const t=e.target.closest('[data-act=text]');if(!t)return;const p=book.pages[+t.dataset.i];p.text=t.value;leaveExample();save();clearTimeout(textT);textT=setTimeout(refreshCards,350)});
+PL.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]');if(!b)return;const i=+b.dataset.i,p=book.pages[i],act=b.dataset.act;
+  if(act==='rm'){const k=b.dataset.key;if(p.add.includes(k))p.add=p.add.filter(x=>x!==k);else if(!p.remove.includes(k))p.remove.push(k);save();refreshCards();const s=$('#add-'+p.id);s&&s.focus()}
+  if(act==='up'||act==='down'){const j=act==='up'?i-1:i+1;if(j<0||j>=book.pages.length)return;[book.pages[i],book.pages[j]]=[book.pages[j],book.pages[i]];save();renderMake();
+    const nb=$(`#card-${p.id} [data-act=${act}]`);(nb&&!nb.disabled?nb:$(`#card-${p.id} [data-act=del]`)).focus()}
+  if(act==='del')askIn($('#ask-'+p.id),p.clip?'Delete this page and its clip?':'Delete this page?','Delete',()=>{dropClip(p.clip);book.pages.splice(i,1);save();renderMake()});
+  if(act==='noclip')askIn($('#ask-'+p.id),'Remove the clip from this page?','Remove',()=>{dropClip(p.clip);p.clip=null;p.times=null;p.timesText=null;save();renderMake()});
+  if(act==='time')openTiming(p,'Page '+(i+1),b);
 });
-$('#pagelist').addEventListener('change',e=>{
-  const b=e.target.closest('[data-act]');if(!b)return;const i=+b.dataset.i,pg=book.pages[i];
-  if(b.dataset.act==='add'&&b.value){const k=b.value;if(pg.remove.includes(k))pg.remove=pg.remove.filter(x=>x!==k);else if(!pg.add.includes(k))pg.add.push(k);rerenderCard(i);save()}
-  if(b.dataset.act==='scene'){pg.scene=b.value;rerenderCard(i);save()}
-  if(b.dataset.act==='time'){const t=parseTime(b.value);pg.time=b.value.trim();if(t!==null&&!Number.isNaN(t))pg.time=fmtTime(t);b.value=pg.time;b.classList.toggle('bad',Number.isNaN(t));save()}
+PL.addEventListener('change',async e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const i=+b.dataset.i,p=book.pages[i];
+  if(b.dataset.act==='add'&&b.value){const k=b.value;if(p.remove.includes(k))p.remove=p.remove.filter(x=>x!==k);else if(!p.add.includes(k))p.add.push(k);save();refreshCards()}
+  if(b.dataset.act==='scene'){p.scene=b.value;save();refreshCards()}
+  if(b.dataset.act==='clip'&&b.files&&b.files[0]){const f=b.files[0];if(!isVideo(f)){flash($('#clipMsg'),'That file is not a video.',true);return}
+    leaveExample();storeFailed=false;const old=p.clip;p.clip=await putClip(f);dropClip(old);p.times=null;p.timesText=null;save();renderMake();
+    flash($('#clipMsg'),storeFailed?'Clip added for now, but this browser would not save it.':`Clip added to page ${i+1}.`,storeFailed)}
 });
+$('#coverBox').addEventListener('click',e=>{const b=e.target.closest('button[data-cover]');if(!b)return;
+  if(b.dataset.cover==='remove'){dropClip(book.cover.clip);book.cover={clip:null,times:null,timesText:null};save();renderCover()}
+  if(b.dataset.cover==='time')openTiming(book.cover,'Title',b)});
+$('#coverBox').addEventListener('change',async e=>{const b=e.target.closest('input[data-cover]');if(!b||!b.files||!b.files[0])return;const f=b.files[0];if(!isVideo(f))return;
+  const old=book.cover.clip;book.cover={clip:await putClip(f),times:null,timesText:null};dropClip(old);save();renderCover()});
+
+/* type all sentences at once */
+$('#bulkBtn').onclick=()=>{
+  const lines=$('#bulkText').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){flash($('#bulkMsg'),'Type at least one sentence, one per line.',true);return}
+  const doit=()=>{if(book.example){book.pages=[];book.example=false}
+    lines.forEach((l,i)=>{if(!book.pages[i])book.pages.push(blankPage());book.pages[i].text=l});save();renderMake();
+    flash($('#bulkMsg'),`Put ${lines.length} sentence${lines.length>1?'s':''} on the pages.`)};
+  const over=!book.example&&lines.some((l,i)=>book.pages[i]&&book.pages[i].text.trim()&&book.pages[i].text!==l);
+  if(over)askIn($('#bulkAsk'),'Some pages already have words. Replace them?','Replace',doit);else doit();
+};
 
 /* share */
-function flash(el,txt,bad){el.textContent=txt;el.classList.toggle('bad',!!bad);clearTimeout(el._t);el._t=setTimeout(()=>el.textContent='',4000)}
-$('#copyCode').addEventListener('click',()=>{
-  const code=JSON.stringify({title:book.title,author:book.author,split:book.split,text:book.text,pages:book.pages,video:book.video&&book.video.kind!=='file'?book.video:null});
-  const done=()=>flash($('#shareMsg'),'Book code copied. Paste it into Storytime Studio on another device.');
+$('#copyCode').onclick=()=>{
+  const code=JSON.stringify({v:2,title:book.title,author:book.author,cover:{clip:book.cover.clip,times:book.cover.times,timesText:book.cover.timesText},pages:book.pages});
+  const done=()=>flash($('#shareMsg'),'Book code copied. Paste it into Sign Story Studio on the other device, then add the clips there.');
   const fallback=()=>{const t=$('#pasteCode');t.value=code;t.focus();t.select();flash($('#shareMsg'),'Copying is blocked here. The code is selected in the box above, so copy it yourself.',true)};
   try{navigator.clipboard.writeText(code).then(done,fallback)}catch(e){fallback()}
-});
-function askConfirm(text,yes,fn){
-  $('#confirmBox').innerHTML=`<div class="confirm">${esc(text)} <button class="btn small go" id="cfYes">${esc(yes)}</button><button class="btn small" id="cfNo">Keep my book</button></div>`;
-  $('#cfYes').onclick=()=>{$('#confirmBox').innerHTML='';fn()};$('#cfNo').onclick=()=>$('#confirmBox').innerHTML='';
-}
-$('#loadCode').addEventListener('click',()=>{
+};
+$('#loadCode').onclick=()=>{
   let d;try{d=JSON.parse($('#pasteCode').value)}catch(e){flash($('#shareMsg'),'That code could not be read. Paste the whole code, starting with {',true);return}
-  if(!d||typeof d.text!=='string'){flash($('#shareMsg'),'That code has no story in it.',true);return}
-  askConfirm('This replaces the book you have now.','Load it',()=>{
-    book={title:d.title||'',author:d.author||'',split:d.split==='line'?'line':'sentence',text:d.text,pages:Array.isArray(d.pages)?d.pages.map(p=>({text:String(p.text||''),scene:p.scene||'auto',add:p.add||[],remove:p.remove||[],time:p.time||''})):[],video:d.video||null};
-    applyBook();flash($('#shareMsg'),'Book loaded.');
+  if(!d||d.v!==2||!Array.isArray(d.pages)){flash($('#shareMsg'),'That is not a Sign Story Studio book code.',true);return}
+  askIn($('#shareAsk'),'This replaces the book you have now.','Load it',()=>{
+    book=normBook(d);
+    // the clips themselves are not in the code: keep the names so they can be added again
+    applyBook();flash($('#shareMsg'),'Book loaded. Add the clips again on pages that need them.');
   });
-});
-$('#newBook').addEventListener('click',()=>askConfirm('Clear the story and start a blank book?','Start over',()=>{book={title:'',author:'',split:'sentence',text:'',pages:[],video:null};clearVideo();applyBook()}));
-function applyBook(){$('#title').value=book.title;$('#author').value=book.author;$('#story').value=book.text;$('#split-'+(book.split==='line'?'line':'sentence')).checked=true;rebuildPages();renderMake();renderVideoBox();save()}
+};
+$('#newBook').onclick=()=>askIn($('#shareAsk'),'Delete this book and all its clips?','Start over',()=>{
+  book.pages.forEach(p=>dropClip(p.clip));dropClip(book.cover.clip);idbDo('readwrite',st=>st.clear()).catch(()=>{});
+  book={v:2,title:'',author:'',example:false,cover:{clip:null,times:null,timesText:null},pages:[]};applyBook();flash($('#shareMsg'),'New book started.')});
+function applyBook(){$('#title').value=book.title;$('#author').value=book.author;save();renderMake()}
 
-/* ================= video ================= */
-let VURL=null; // object URL for an uploaded file
-function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('storytime-studio',1);r.onupgradeneeded=()=>r.result.createObjectStore('files');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
-async function idbDo(mode,fn){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction('files',mode);const st=tx.objectStore('files');const rq=fn(st);tx.oncomplete=()=>res(rq&&rq.result);tx.onerror=()=>rej(tx.error)})}
-function ytId(u){const m=String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);return m?m[1]:null}
-function hasLocalVideo(){return !!(book.video&&(book.video.kind==='file'&&VURL||book.video.kind==='url'))}
-function videoSrc(){if(!book.video)return null;if(book.video.kind==='file')return VURL;if(book.video.kind==='url')return book.video.url;return null}
-function clearVideo(){if(VURL){URL.revokeObjectURL(VURL);VURL=null}idbDo('readwrite',st=>st.delete('video')).catch(()=>{});book.video=null}
-$('#vfile').addEventListener('change',async e=>{
-  const f=e.target.files&&e.target.files[0];if(!f)return;
-  if(VURL)URL.revokeObjectURL(VURL);VURL=URL.createObjectURL(f);book.video={kind:'file',name:f.name};save();renderVideoBox();renderMake();
-  try{await idbDo('readwrite',st=>st.put(f,'video'));flash($('#vmsg'),'Video added. It is saved in this browser.')}
-  catch(err){flash($('#vmsg'),'Video added for now. This browser would not save it, so add it again next time.',true)}
-  e.target.value='';
-});
-$('#vurlBtn').addEventListener('click',()=>{
-  const u=$('#vurl').value.trim();if(!u){flash($('#vmsg'),'Paste a link first.',true);return}
-  if(!/^https?:\/\//i.test(u)){flash($('#vmsg'),'The link should start with https://',true);return}
-  if(VURL){URL.revokeObjectURL(VURL);VURL=null}
-  const id=ytId(u);book.video=id?{kind:'youtube',id,url:u}:{kind:'url',url:u};save();renderVideoBox();renderMake();$('#vurl').value='';
-  flash($('#vmsg'),id?'YouTube link added.':'Video link added.');
-});
-function renderVideoBox(){
-  const box=$('#vbox');const v=book.video;
-  if(!v){box.innerHTML='<p class="hint" style="margin:0">No video yet.</p>';updateWatch();return}
-  let h='';
-  if(v.kind==='file'&&!VURL)h=`<p class="hint" style="margin:0">Your video <b>${esc(v.name)}</b> is not on this device. Choose the file again.</p>`;
-  else if(v.kind==='youtube')h=`<iframe src="https://www.youtube-nocookie.com/embed/${esc(v.id)}?rel=0" title="Companion video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="hint" style="margin:0">If the video does not show, <a href="${esc(v.url)}" target="_blank" rel="noopener">open it on YouTube</a>. Type page start times by hand for YouTube videos.</p>`;
-  else h=`<video id="vprev" src="${esc(videoSrc())}" controls playsinline preload="metadata"></video>`;
-  box.innerHTML=`<div class="vname">${esc(v.kind==='file'?v.name:v.url)}</div>${h}<div class="row"><button class="btn small" id="vRemove">Remove video</button></div>`;
-  $('#vRemove').onclick=()=>{clearVideo();save();renderVideoBox();renderMake();flash($('#vmsg'),'Video removed.')};
-  const pv=$('#vprev');if(pv)pv.onerror=()=>flash($('#vmsg'),'This video will not play here. Try an .mp4 file.',true);
-  updateWatch();
+/* ================= match words to signs dialog ================= */
+let DLG=null;
+function openTiming(o,label,opener){
+  const ws=wordsOf(textOf(o));if(!o.clip||!ws.length)return;
+  const prev=recorded(o);
+  DLG={o,ws,draft:prev?prev.slice():ws.map(()=>null),hist:[],opener,raf:0};
+  $('#dlgTitle').textContent='Match words to signs: '+label;
+  dlgWords();$('#dlg').hidden=false;document.body.style.overflow='hidden';
+  const v=$('#dlgVid');v.removeAttribute('src');v.load();
+  clipURL(o.clip).then(u=>{if(!u||!DLG)return;v.src=u;v.addEventListener('loadedmetadata',()=>{v.playbackRate=prefs.dspeed},{once:true})});
+  dlgSpeedUI();
+  const tick=()=>{if(!DLG)return;const t=v.currentTime||0;let best=-1,bt=-1;DLG.draft.forEach((x,i)=>{if(x!==null&&x<=t&&x>=bt){bt=x;best=i}});
+    $$('#dlgWords .tword').forEach((b,i)=>b.classList.toggle('now',i===best));$('#dlgClock').textContent=fmtT(t);DLG.raf=requestAnimationFrame(tick)};
+  tick();setTimeout(()=>$('#dlgPlay').focus(),60);
 }
+function dlgWords(){
+  $('#dlgWords').innerHTML=DLG.ws.map((w,i)=>{const x=DLG.draft[i];return `<span class="twrap"><button class="tword${x!==null?' set':''}" data-i="${i}"><b>${esc(w)}</b><small>${x!==null?fmtT(x):'no sign'}</small></button>${x!==null?`<button class="tx" data-x="${i}" aria-label="Clear the time for ${esc(w)}">×</button>`:''}</span>`}).join('');
+}
+function dlgSpeedUI(){$$('[data-dspeed]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.dspeed===prefs.dspeed)))}
+$('#dlgWords').addEventListener('click',e=>{if(!DLG)return;const v=$('#dlgVid');
+  const x=e.target.closest('[data-x]');if(x){const i=+x.dataset.x;DLG.hist.push([i,DLG.draft[i]]);DLG.draft[i]=null;dlgWords();const b=$(`#dlgWords .tword[data-i="${i}"]`);b&&b.focus();return}
+  const b=e.target.closest('.tword');if(!b)return;const i=+b.dataset.i;DLG.hist.push([i,DLG.draft[i]]);DLG.draft[i]=+(v.currentTime||0).toFixed(2);dlgWords();
+  const nb=$(`#dlgWords .tword[data-i="${i}"]`);nb&&nb.focus()});
+$('#dlgPlay').onclick=()=>{const v=$('#dlgVid');try{v.currentTime=0}catch(e){}v.playbackRate=prefs.dspeed;v.play().catch(()=>{})};
+$$('[data-dspeed]').forEach(b=>b.onclick=()=>{prefs.dspeed=+b.dataset.dspeed;savePrefs();$('#dlgVid').playbackRate=prefs.dspeed;dlgSpeedUI()});
+$('#dlgUndo').onclick=()=>{if(!DLG||!DLG.hist.length)return;const[i,t]=DLG.hist.pop();DLG.draft[i]=t;dlgWords()};
+$('#dlgClear').onclick=()=>{if(!DLG)return;DLG.draft.forEach((t,i)=>{if(t!==null)DLG.hist.push([i,t])});DLG.draft=DLG.ws.map(()=>null);dlgWords()};
+function closeDlg(){if(!DLG)return;cancelAnimationFrame(DLG.raf);const v=$('#dlgVid');v.pause();const op=DLG.opener;DLG=null;$('#dlg').hidden=true;document.body.style.overflow='';
+  if(op&&document.body.contains(op))op.focus()}
+$('#dlgCancel').onclick=closeDlg;
+$('#dlgSave').onclick=()=>{if(!DLG)return;const o=DLG.o;const any=DLG.draft.some(t=>t!==null);o.times=any?DLG.draft.slice():null;o.timesText=any?textOf(o):null;
+  const isCover=o===book.cover;const id=isCover?null:o.id;save();closeDlg();refreshCards();renderCover();
+  const b=id?$(`#timing-${id} [data-act=time]`):$('#coverBox [data-cover=time]');b&&b.focus()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&DLG){closeDlg();e.preventDefault()}});
 
 /* ================= READ view ================= */
 let cur=0;
 const total=()=>book.pages.length+2; // cover + pages + end
-function topChars(){const c=new Map();MODELS.forEach(m=>m.items.forEach(it=>{const r=resolve(it.key);if(r&&(r.kind==='person'||r.kind==='animal')&&r.zone==='ground')c.set(it.key,(c.get(it.key)||0)+(it.carried?0:1)+1)}));
+const anyClips=()=>!!book.cover.clip||book.pages.some(p=>p.clip);
+function pageObj(i){if(i===0)return book.cover;if(i>=total()-1)return null;return book.pages[i-1]}
+function topChars(){const c=new Map();MODELS.forEach(m=>m.items.forEach(it=>{const r=resolve(it.key);if(r&&(r.kind==='person'||r.kind==='animal')&&r.zone==='ground')c.set(it.key,(c.get(it.key)||0)+1)}));
   return[...c.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([key])=>({key,n:1}))}
 function readModel(i){
-  if(i===0){const first=MODELS[0];const ch=topChars();return{items:ch.length?ch:[{key:'star',n:3}],scene:first?{...first.scene,weather:first.scene.weather==='rain'?null:first.scene.weather}:SCENES.meadow,mood:'excited',action:null,alt:'Cover picture'}}
-  if(i===total()-1){const last=MODELS[MODELS.length-1];const ch=topChars();return{items:ch.concat([{key:'star',n:3}]),scene:last?{...last.scene,weather:null}:SCENES.night,mood:'excited',action:'dance',alt:'The end picture'}}
+  const ch=topChars();
+  if(i===0){const first=MODELS[0];const titleItems=analyze(book.title,null).items.filter(it=>resolve(it.key));
+    const items=titleItems.concat(ch.filter(c=>!titleItems.some(t=>t.key===c.key))).slice(0,5);
+    return{items:items.length?items:[{key:'star',n:3}],scene:first?{...first.scene,weather:null}:SCENES.meadow,mood:'excited',action:null,alt:'Cover picture'}}
+  if(i===total()-1){const last=MODELS[MODELS.length-1];return{items:ch.concat([{key:'star',n:3}]),scene:last?{...last.scene,weather:null}:SCENES.night,mood:'excited',action:'dance',alt:'The end picture'}}
   return MODELS[i-1];
 }
-function wordsHTML(text){
-  let h='';const re=/\S+/g;let m;
-  while((m=re.exec(text))){const w=m[0];const lw=w.replace(/[^A-Za-z'’]/g,'').toLowerCase().replace(/[’']s$/,'').replace(/[’']/g,'');
-    let key=null;const cap=/^[^A-Za-z]*[A-Z]/.test(w);
-    const nm=INFO.names.get(lw);if(nm&&cap)key=nm.key;else if(w.replace(/[^A-Za-z]/g,'')==='I')key='me';else{const k=wordKey(lw);if(k)key=k.id}
-    h+=`<button class="word${key?' magic':''}" data-s="${m.index}" data-w="${esc(w.replace(/[^A-Za-z0-9'’-]/g,''))}"${key?` data-key="${esc(key)}"`:''}>${esc(w)}</button>`;
-  }
+function wordInfo(w){
+  const lw=w.replace(/[^A-Za-z'’]/g,'').toLowerCase().replace(/[’']s$/,'').replace(/[’']/g,'');const cap=/^[^A-Za-z]*[A-Z]/.test(w);
+  let key=null;const nm=INFO.names.get(lw);
+  if(nm&&cap)key=nm.key;else if(w.replace(/[^A-Za-z]/g,'')==='I')key='me';else{const k=wordKey(lw);if(k)key=k.id}
+  const act=ACTION_W[lw]?ACTION_W[lw][0]:null;
+  const wx=WEATHER_W[lw]?WEATHER_W[lw][0]:(/^snow(y|ing|flakes?)?$/.test(lw)?'snow':null);
+  return{key,act,wx};
+}
+function wordsHTML(text,o,offset=0){
+  const rec=o?recorded(o):null;let h='',i=0;
+  for(const w of wordsOf(text)){const f=wordInfo(w);const k=offset+i;const signed=rec&&rec[k]!==null&&rec[k]!==undefined;
+    h+=`<button class="word${f.key?' magic':''}${signed?' signed':''}" data-i="${k}" data-w="${esc(w.replace(/[^A-Za-z0-9'’-]/g,''))}"${f.key?` data-key="${esc(f.key)}"`:''}${f.act?` data-act="${f.act}"`:''}${f.wx?` data-wx="${f.wx}"`:''}>${esc(w)}</button>`;i++}
   return h;
 }
-function curText(){
-  if(cur===0)return (book.title||'My Story')+'.'+(book.author?' By '+book.author+'.':'');
-  if(cur===total()-1)return 'The End.';
-  return book.pages[cur-1].text;
-}
 function renderRead(dir){
-  stopSpeech();
+  stopAll();
   if(cur>=total())cur=total()-1;if(cur<0)cur=0;
-  const md=readModel(cur);
+  const md=readModel(cur),o=pageObj(cur),last=cur===total()-1;
   $('#pic').innerHTML=renderScene(md)+'<div class="fx" id="fx"></div>';
   const W=$('#words'),cta=$('#cta');cta.hidden=true;cta.innerHTML='';
   if(cur===0){
-    W.innerHTML=`<div class="cover-title">${wordsHTML(book.title||'My Story')}</div>${book.author?`<div class="cover-by">${wordsHTML('by '+book.author)}</div>`:''}`;
-    cta.hidden=false;cta.innerHTML=book.pages.length?`<button class="btn go" data-go="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Start reading</button>`:`<button class="btn" data-go="make">Write some sentences first</button>`;
-  }else if(cur===total()-1){
-    W.innerHTML=`<div class="end-title">${wordsHTML('The End')}</div>`;
-    cta.hidden=false;cta.innerHTML=`<button class="btn go" data-go="0">Read it again</button>`+(book.video?`<button class="btn grape" data-go="video">Watch the whole video</button>`:'');
+    W.innerHTML=`<div class="cover-title">${wordsHTML(book.title||'My Story',book.title?book.cover:null)}</div>${book.author?`<div class="cover-by">by ${esc(book.author)}</div>`:''}`;
+    cta.hidden=false;cta.innerHTML=book.pages.length?`<button class="btn go" data-go="1">${IC.play}Start the story</button>`:`<button class="btn" data-go="make">Add some pages first</button>`;
+  }else if(last){
+    W.innerHTML=`<div class="end-title">The End</div>`;
+    cta.hidden=false;cta.innerHTML=`<button class="btn go" data-go="0">Read it again</button><button class="btn grape" data-go="all">${IC.play}Play the whole book</button>`;
     confetti();sfx('chime');
-  }else W.innerHTML=wordsHTML(book.pages[cur-1].text);
-  $('#prevBtn').disabled=cur===0;$('#nextBtn').disabled=cur===total()-1;
+  }else W.innerHTML=wordsHTML(o.text,o);
+  const hasMagic=!!$('#words .word.magic'),hasSigned=!!$('#words .word.signed');
+  $('#legend').innerHTML=last?'':[hasSigned?'<span><b></b> tap to see the sign</span>':'',hasMagic?'<span><i>wavy line</i> = in the picture</span>':''].filter(Boolean).join(' · ');
+  renderSigner(o);
+  $('#playBtn').disabled=last;$('#hearBtn').disabled=last;
+  $('#prevBtn').disabled=cur===0;$('#nextBtn').disabled=last;
   const n=total();$('#dots').innerHTML=Array.from({length:n},(_,k)=>`<button data-go="${k}" aria-label="${k===0?'Cover':k===n-1?'The end':'Page '+k}"${k===cur?' aria-current="true"':''}></button>`).join('');
   const b=$('#book');if(dir){b.classList.remove('turn-next','turn-prev');void b.offsetWidth;b.classList.add(dir>0?'turn-next':'turn-prev')}
-  updateWatch();
+}
+function renderSigner(o){
+  const st=$('#stage'),box=$('#signer');st.classList.toggle('big',!!prefs.big);
+  const show=o&&(o.clip||(o!==book.cover&&anyClips()));
+  st.classList.toggle('nosign',!show);box.classList.remove('ring');
+  if(!show){box.innerHTML='';return}
+  if(!o.clip){box.innerHTML=`<div class="noclip">${IC.hand}<span>No sign clip on this page</span></div>`;return}
+  box.innerHTML=`<video id="sv" playsinline preload="auto" aria-label="Signer"></video><button class="bigplay" id="bigPlay" aria-label="Play the sign">${IC.play}</button>`;
+  const v=$('#sv'),want=cur;
+  clipURL(o.clip).then(u=>{if(want!==cur||!document.body.contains(v))return;
+    if(!u){box.innerHTML=`<div class="noclip">${IC.hand}<span>This clip is not on this device. Add it again in Make.</span></div>`;return}
+    v.src=u;v.playbackRate=prefs.speed;v.addEventListener('loadedmetadata',()=>{try{if(v.paused&&v.currentTime===0)v.currentTime=.01}catch(e){}},{once:true})});
+  v.onclick=togglePlay;$('#bigPlay').onclick=togglePlay;
+}
+
+/* stage: pictures arrive as their words are signed */
+let STAGE=null;
+const wordEls=()=>$$('#words .word');
+function stageBegin(){
+  const ws=wordEls();const keys=new Set(ws.map(w=>w.dataset.key).filter(Boolean)),wx=new Set(ws.map(w=>w.dataset.wx).filter(Boolean));
+  $$('#pic .stk').forEach(el=>{el.classList.remove('boing','enter-walk','enter-drop','enter-pop','enter-grow');el.classList.toggle('off',keys.has(el.dataset.key))});
+  $$('#pic .wx').forEach(g=>g.classList.toggle('off',wx.has(g.dataset.wx)));
+  $$('#pic .anim[data-actable]').forEach(a=>a.setAttribute('class','anim a-idle'));
+  STAGE={reached:new Set(),act:'idle'};
+}
+function reveal(key,quiet){
+  let n=0;
+  $$('#pic .stk.off').forEach(el=>{if(key&&el.dataset.key!==key)return;el.classList.remove('off');
+    const kind=el.dataset.enter;const a=el.querySelector('.anim');
+    if(quiet)return;
+    el.style.animationDelay=(n++*.18)+'s';el.classList.add('enter-'+kind);
+    if(kind==='walk'&&a){a._walk=true;a.setAttribute('class','anim a-run')}
+    const done=e=>{if(e&&e.target!==el)return;el.removeEventListener('animationend',done);el.classList.remove('enter-'+kind);el.style.animationDelay='';
+      if(a&&a._walk){a._walk=false;a.setAttribute('class','anim a-'+(STAGE?STAGE.act:a.dataset.base))}};
+    el.addEventListener('animationend',done);setTimeout(()=>done(),2200);
+  });
+  if(n)sfx('pop');
+}
+function reach(i){
+  if(!STAGE||STAGE.reached.has(i))return;STAGE.reached.add(i);const w=wordEls()[i];if(!w)return;
+  if(w.dataset.act){STAGE.act=w.dataset.act;$$('#pic .anim[data-actable]').forEach(a=>{if(!a._walk)a.setAttribute('class','anim a-'+STAGE.act)})}
+  if(w.dataset.key)reveal(w.dataset.key);
+  if(w.dataset.wx)$$(`#pic .wx[data-wx="${w.dataset.wx}"]`).forEach(g=>g.classList.remove('off'));
+}
+function stageEnd(){
+  if(!STAGE)return;reveal(null,true);$$('#pic .wx.off').forEach(g=>g.classList.remove('off'));
+  $$('#pic .anim[data-actable]').forEach(a=>{if(!a._walk)a.setAttribute('class','anim a-'+(STAGE.act!=='idle'?STAGE.act:a.dataset.base))});
+  STAGE=null;
+}
+function lit(k){wordEls().forEach((w,j)=>w.classList.toggle('on',j===k))}
+function progressTime(times,t){let best=-1,bt=-1;times.forEach((x,i)=>{if(x!==null&&x<=t){reach(i);if(x>=bt){bt=x;best=i}}});lit(best)}
+
+/* playing */
+let PLAY=null,SEQ=0,autoT=null;
+const sv=()=>$('#sv');
+function setPlayUI(on){const b=$('#playBtn');b.setAttribute('aria-pressed',String(on));b.querySelector('.ic').innerHTML=on?IC.pause:IC.play;b.querySelector('.lbl').textContent=on?'Pause':'Play';const bp=$('#bigPlay');if(bp)bp.hidden=on}
+function stopPlay(){if(!PLAY)return;cancelAnimationFrame(PLAY.raf);const v=sv();if(v&&!v.paused)v.pause();PLAY=null;setPlayUI(false);$('#signer').classList.remove('ring')}
+function stopAll(){SEQ++;clearTimeout(autoT);stopPlay();stopSpeech();lit(-1);stageEnd()}
+function playPage(){
+  stopSpeech();stopPlay();actx();
+  const o=pageObj(cur);if(!o)return;
+  const ws=wordsOf(cur===0?(book.title||'My Story'):o.text);const v=sv();
+  if(v){
+    if(!v.src||v.readyState<1){setPlayUI(true);v.addEventListener('loadedmetadata',()=>{if(sv()===v)playPage()},{once:true});return}
+    const{times}=timesFor(o,v.duration);stageBegin();try{v.currentTime=0}catch(e){}v.playbackRate=prefs.speed;v.play().catch(()=>{});
+    PLAY={kind:'video',raf:0};setPlayUI(true);
+    const tick=()=>{if(!PLAY||PLAY.kind!=='video')return;progressTime(times,v.currentTime);if(v.ended){finishPlay();return}PLAY.raf=requestAnimationFrame(tick)};tick();
+  }else{
+    // no clip: the words and pictures still play along at a gentle pace
+    const dur=Math.max(1.4,ws.length*.7+.6),times=estTimes(ws,dur);stageBegin();
+    PLAY={kind:'clock',raf:0,paused:false,acc:0,t0:performance.now()};setPlayUI(true);
+    const tick=()=>{if(!PLAY||PLAY.kind!=='clock')return;const t=PLAY.paused?PLAY.acc:PLAY.acc+(performance.now()-PLAY.t0)/1000*prefs.speed;
+      progressTime(times,t);if(t>=dur+.3){finishPlay();return}PLAY.raf=requestAnimationFrame(tick)};tick();
+  }
+}
+function togglePlay(){
+  if(!PLAY||PLAY.kind==='seg'){playPage();return}
+  if(PLAY.kind==='video'){const v=sv();if(!v)return;if(v.paused){v.play().catch(()=>{});setPlayUI(true)}else{v.pause();setPlayUI(false)}}
+  else if(PLAY.paused){PLAY.paused=false;PLAY.t0=performance.now();setPlayUI(true)}
+  else{PLAY.acc+=(performance.now()-PLAY.t0)/1000*prefs.speed;PLAY.paused=true;setPlayUI(false)}
+}
+function finishPlay(){
+  if(PLAY)cancelAnimationFrame(PLAY.raf);PLAY=null;setPlayUI(false);setTimeout(()=>lit(-1),700);stageEnd();
+  if(prefs.auto&&cur<total()-1){const s=++SEQ;autoT=setTimeout(()=>{if(s!==SEQ||!prefs.auto||$('#read').hidden)return;go(cur+1,{autoplay:true})},1500)}
+}
+function playSegment(i){
+  const o=pageObj(cur),v=sv();if(!o||!v||!v.src)return false;const rt=recorded(o);if(!rt||rt[i]===null||rt[i]===undefined)return false;
+  const st=rt[i];let en=isFinite(v.duration)?v.duration:st+2;rt.forEach(x=>{if(x!==null&&x>st&&x<en)en=x});en=Math.max(en,st+.5);
+  stopPlay();try{v.currentTime=st}catch(e){}v.playbackRate=prefs.speed;v.play().catch(()=>{});$('#signer').classList.add('ring');
+  PLAY={kind:'seg',raf:0};const bp=$('#bigPlay');if(bp)bp.hidden=true;
+  const tick=()=>{if(!PLAY||PLAY.kind!=='seg')return;if(v.currentTime>=en-.03||v.ended){v.pause();PLAY=null;$('#signer').classList.remove('ring');setPlayUI(false);return}PLAY.raf=requestAnimationFrame(tick)};tick();
+  return true;
 }
 function go(i,o={}){
   i=Math.max(0,Math.min(total()-1,i));if(i===cur&&!o.force)return;
   const dir=i>cur?1:-1;cur=i;if(!o.quiet)sfx('swish');renderRead(dir);
-  if(!o.fromVideo)seekVideoToPage();
-  if(prefs.auto&&!o.fromVideo&&!videoPlaying())setTimeout(()=>readAloud(true),450);
+  if(o.autoplay&&cur<total()-1)setTimeout(()=>{if(cur===i)playPage()},500);
 }
 $('#prevBtn').onclick=()=>go(cur-1);$('#nextBtn').onclick=()=>go(cur+1);
-document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g||!$('#make').hidden&&g.closest('#read')===null)return;
-  const v=g.dataset.go;if(v==='make'){show('make');return}if(v==='video'){openVideo(0);return}go(+v)});
-document.addEventListener('keydown',e=>{if($('#read').hidden||e.target.closest('input,textarea,select'))return;
-  if(e.key==='ArrowRight'){go(cur+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault()}});
-// swipe
+$('#playBtn').onclick=togglePlay;
+$('#read').addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;const v=g.dataset.go;
+  if(v==='make'){show('make');return}
+  if(v==='all'){prefs.auto=true;savePrefs();syncPrefsUI();go(book.pages.length?1:0,{autoplay:true,force:true});return}
+  go(+v)});
+document.addEventListener('keydown',e=>{if($('#read').hidden||DLG||e.target.closest('input,textarea,select'))return;
+  if(e.key==='ArrowRight'){go(cur+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault()}
+  else if(e.key===' '&&!e.target.closest('button')){togglePlay();e.preventDefault()}});
 let sx=null,sy=null;$('#pic').addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});
 $('#pic').addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){go(cur+(dx<0?1:-1));e.preventDefault()}});
 
 /* taps on pictures and words */
 function boingKey(key){$$('#pic .stk').forEach(el=>{if(el.dataset.key===key){el.classList.remove('boing');void el.getBoundingClientRect();el.classList.add('boing')}})}
+function bubbleAt(el,text){const fx=$('#fx'),box=$('#pic').getBoundingClientRect(),rb=el.getBoundingClientRect();const b=document.createElement('div');b.className='bubble';b.textContent=text;
+  b.style.left=Math.max(70,Math.min(box.width-70,rb.left-box.left+rb.width/2))+'px';b.style.top=Math.max(52,rb.top-box.top+6)+'px';fx.appendChild(b);setTimeout(()=>b.remove(),1800)}
 $('#pic').addEventListener('click',e=>{
-  const st=e.target.closest('.stk');const fx=$('#fx');const box=$('#pic').getBoundingClientRect();
-  if(st){
-    st.classList.remove('boing');void st.getBoundingClientRect();st.classList.add('boing');sfx('boing');
-    const rb=st.getBoundingClientRect();const b=document.createElement('div');b.className='bubble';b.textContent=st.dataset.say;
-    b.style.left=Math.max(70,Math.min(box.width-70,rb.left-box.left+rb.width/2))+'px';b.style.top=Math.max(52,rb.top-box.top+6)+'px';
-    fx.appendChild(b);setTimeout(()=>b.remove(),1800);
-    speak(st.dataset.say,{pitch:1.35,rate:.95});
-  }else{
-    const sp=document.createElement('div');sp.className='spark';sp.innerHTML=`<svg viewBox="0 0 40 40"><path d="${starPath(20,20,18,8)}" fill="${['#ffd23f','#ff7eb6','#8fd3ff','#9ee07a'][Math.random()*4|0]}" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
-    sp.style.left=(e.clientX-box.left)+'px';sp.style.top=(e.clientY-box.top)+'px';fx.appendChild(sp);setTimeout(()=>sp.remove(),950);sfx('pop');
-  }
+  const st=e.target.closest('.stk');const box=$('#pic').getBoundingClientRect();
+  if(st){st.classList.remove('boing');void st.getBoundingClientRect();st.classList.add('boing');sfx('boing');bubbleAt(st,st.dataset.say);if(prefs.sound)speak(st.dataset.say,{pitch:1.35,rate:.95})}
+  else{const sp=document.createElement('div');sp.className='spark';sp.innerHTML=`<svg viewBox="0 0 40 40"><path d="${starPath(20,20,18,8)}" fill="${['#ffd23f','#ff7eb6','#8fd3ff','#9ee07a'][Math.random()*4|0]}" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+    sp.style.left=(e.clientX-box.left)+'px';sp.style.top=(e.clientY-box.top)+'px';$('#fx').appendChild(sp);setTimeout(()=>sp.remove(),950);sfx('pop')}
 });
 $('#words').addEventListener('click',e=>{const w=e.target.closest('.word');if(!w)return;
-  stopSpeech();$$('.word.on').forEach(x=>x.classList.remove('on'));w.classList.add('on');setTimeout(()=>w.classList.remove('on'),700);
-  speak(w.dataset.w||w.textContent,{rate:.8});if(w.dataset.key){boingKey(w.dataset.key);sfx('boing')}else sfx('pop')});
+  SEQ++;clearTimeout(autoT);stopSpeech();stageEnd();lit(+w.dataset.i);
+  const showed=playSegment(+w.dataset.i);
+  setTimeout(()=>{if(!PLAY)w.classList.remove('on')},showed?2500:900);
+  if(prefs.sound)speak(w.dataset.w||w.textContent,{rate:.8});
+  if(w.dataset.key){boingKey(w.dataset.key);const el=$(`#pic .stk[data-key="${CSS.escape(w.dataset.key)}"]`);if(el)bubbleAt(el,el.dataset.label);sfx('boing')}else if(!showed)sfx('pop')});
 
-/* speech */
+/* voice */
 const synth=window.speechSynthesis||null;let VOICE=null;
 function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^en/i.test(v.lang));
   VOICE=vs.find(v=>/Samantha|Google US English|Aria|Jenny|Karen|Moira|Tessa|Zira|Libby|Sonia/i.test(v.name))||vs.find(v=>/en-US/i.test(v.lang))||vs[0]||null}
@@ -1075,24 +1396,29 @@ function speak(text,o={}){
     if(o.onword)u.onboundary=ev=>{if(ev.name&&ev.name!=='word')return;o.onword(ev.charIndex)};
     u.onend=()=>o.onend&&o.onend();u.onerror=()=>o.onend&&o.onend();synth.speak(u);return true}catch(e){o.onend&&o.onend();return false}
 }
-function stopSpeech(){readTok++;clearInterval(hlTimer);try{synth&&synth.cancel()}catch(e){}$$('.word.on').forEach(x=>x.classList.remove('on'));$('#sayBtn').setAttribute('aria-pressed','false')}
-function readAloud(chain){
-  const tok=++readTok;const text=curText();const words=$$('#words .word');
-  // cover text is assembled; map highlights by word order instead of char offsets
-  const offs=[];{const re=/\S+/g;let m;while((m=re.exec(text)))offs.push(m.index)}
-  const light=k=>{words.forEach((w,j)=>w.classList.toggle('on',j===k))};
-  let gotBoundary=false,k=-1;
-  clearInterval(hlTimer);
-  $('#sayBtn').setAttribute('aria-pressed','true');
-  const finish=()=>{if(tok!==readTok)return;clearInterval(hlTimer);light(-1);$('#sayBtn').setAttribute('aria-pressed','false');
-    if(chain&&prefs.auto&&cur<total()-1)setTimeout(()=>{if(tok===readTok&&prefs.auto&&!$('#read').hidden)go(cur+1)},1300)};
-  speak(text,{rate:.85,onword:ci=>{if(tok!==readTok)return;gotBoundary=true;clearInterval(hlTimer);let j=0;while(j+1<offs.length&&offs[j+1]<=ci)j++;light(Math.min(j,words.length-1))},onend:finish});
-  // fallback timing when the voice gives no word events
-  setTimeout(()=>{if(tok!==readTok||gotBoundary)return;k=0;light(0);hlTimer=setInterval(()=>{if(tok!==readTok){clearInterval(hlTimer);return}k++;if(k>=words.length){clearInterval(hlTimer);if(!synth)finish();return}light(k)},420)},500);
+function stopSpeech(){readTok++;clearInterval(hlTimer);try{synth&&synth.cancel()}catch(e){}$('#hearBtn').setAttribute('aria-pressed','false')}
+function hearIt(){
+  stopPlay();stopSpeech();const tok=++readTok;
+  const words=wordEls();const text=words.map(w=>w.textContent).join(' ');
+  const offs=[];{let p=0;words.forEach(w=>{offs.push(p);p+=w.textContent.length+1})}
+  stageBegin();$('#hearBtn').setAttribute('aria-pressed','true');
+  let got=false;const upto=k=>{for(let j=0;j<=k;j++)reach(j);lit(k)};
+  const finish=()=>{if(tok!==readTok)return;clearInterval(hlTimer);setTimeout(()=>{if(tok===readTok)lit(-1)},500);stageEnd();$('#hearBtn').setAttribute('aria-pressed','false')};
+  speak(text,{rate:.6+.3*prefs.speed,onword:ci=>{if(tok!==readTok)return;got=true;clearInterval(hlTimer);let j=0;while(j+1<offs.length&&offs[j+1]<=ci)j++;upto(j)},onend:finish});
+  let k=-1;setTimeout(()=>{if(tok!==readTok||got)return;hlTimer=setInterval(()=>{if(tok!==readTok){clearInterval(hlTimer);return}k++;if(k>=words.length){clearInterval(hlTimer);if(!synth)finish();return}upto(k)},Math.round(420/prefs.speed))},500);
 }
-$('#sayBtn').onclick=()=>{actx();if($('#sayBtn').getAttribute('aria-pressed')==='true'){stopSpeech();return}readAloud(true)};
-$('#autoBtn').onclick=()=>{prefs.auto=!prefs.auto;savePrefs();$('#autoBtn').setAttribute('aria-pressed',String(prefs.auto));if(prefs.auto)readAloud(true);else stopSpeech()};
-$('#soundBtn').onclick=()=>{prefs.sound=!prefs.sound;savePrefs();$('#soundBtn').setAttribute('aria-pressed',String(prefs.sound))};
+$('#hearBtn').onclick=()=>{actx();if($('#hearBtn').getAttribute('aria-pressed')==='true'){stopSpeech();lit(-1);stageEnd();return}hearIt()};
+
+/* settings */
+function syncPrefsUI(){
+  $$('[data-speed]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.speed===prefs.speed)));
+  $('#autoBtn').setAttribute('aria-pressed',String(prefs.auto));$('#soundBtn').setAttribute('aria-pressed',String(prefs.sound));
+  $('#sizeBtn').setAttribute('aria-pressed',String(!!prefs.big));$('#stage').classList.toggle('big',!!prefs.big);
+}
+$$('[data-speed]').forEach(b=>b.onclick=()=>{prefs.speed=+b.dataset.speed;savePrefs();syncPrefsUI();const v=sv();if(v)v.playbackRate=prefs.speed});
+$('#autoBtn').onclick=()=>{prefs.auto=!prefs.auto;savePrefs();syncPrefsUI();if(prefs.auto&&!PLAY&&cur<total()-1)playPage()};
+$('#soundBtn').onclick=()=>{prefs.sound=!prefs.sound;savePrefs();syncPrefsUI()};
+$('#sizeBtn').onclick=()=>{prefs.big=!prefs.big;savePrefs();syncPrefsUI()};
 $('#fullBtn').onclick=()=>{const el=$('#reader');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>{})}catch(e){}};
 
 /* little sounds made in the browser */
@@ -1100,51 +1426,21 @@ let AC=null;function actx(){try{if(!AC)AC=new(window.AudioContext||window.webkit
 function sfx(kind){
   if(!prefs.sound)return;const ac=actx();if(!ac)return;const t=ac.currentTime;const g=ac.createGain();g.connect(ac.destination);
   const tone=(type,f0,f1,dur,vol,at=0)=>{const o=ac.createOscillator();const gg=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,t+at);o.frequency.exponentialRampToValueAtTime(f1,t+at+dur);gg.gain.setValueAtTime(0.0001,t+at);gg.gain.exponentialRampToValueAtTime(vol,t+at+.02);gg.gain.exponentialRampToValueAtTime(0.0001,t+at+dur);o.connect(gg);gg.connect(g);o.start(t+at);o.stop(t+at+dur+.05)};
-  if(kind==='boing'){tone('sine',220,640,.14,.25);tone('sine',640,300,.3,.18,.13)}
-  else if(kind==='pop')tone('triangle',700,1100,.08,.14);
-  else if(kind==='chime'){[660,880,1320].forEach((f,i)=>tone('sine',f,f*1.01,.5,.13,i*.13))}
+  if(kind==='boing'){tone('sine',220,640,.14,.22);tone('sine',640,300,.3,.16,.13)}
+  else if(kind==='pop')tone('triangle',700,1100,.08,.12);
+  else if(kind==='chime'){[660,880,1320].forEach((f,i)=>tone('sine',f,f*1.01,.5,.12,i*.13))}
   else if(kind==='swish'){const n=ac.createBufferSource();const b=ac.createBuffer(1,ac.sampleRate*.3,ac.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
-    const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(1600,t);f.frequency.exponentialRampToValueAtTime(400,t+.3);g.gain.value=.12;n.buffer=b;n.connect(f);f.connect(g);n.start(t)}
+    const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(1600,t);f.frequency.exponentialRampToValueAtTime(400,t+.3);g.gain.value=.1;n.buffer=b;n.connect(f);f.connect(g);n.start(t)}
 }
 function confetti(){const fx=$('#fx');if(!fx)return;const cs=['#ff8a3d','#7b5cd6','#2fbf71','#ffd23f','#e8467f','#4d9cff'];
   for(let i=0;i<40;i++){const c=document.createElement('i');c.className='conf';c.style.left=(Math.random()*100)+'%';c.style.background=cs[i%6];c.style.animationDelay=(Math.random()*.8)+'s';c.style.animationDuration=(2+Math.random()*1.5)+'s';fx.appendChild(c);setTimeout(()=>c.remove(),4200)}}
-
-/* video in the reader */
-function pageTimes(){return book.pages.map(p=>parseTime(p.time)).map(t=>t===null||Number.isNaN(t)?null:t)}
-function updateWatch(){const w=$('#watchBtn');if(w)w.hidden=!book.video||(book.video.kind==='file'&&!VURL)}
-function videoPlaying(){const v=$('#rvid');return !!(v&&!v.paused&&!$('#vidpanel').hidden)}
-function openVideo(from){
-  const v=book.video;if(!v)return;stopSpeech();
-  const panel=$('#vidpanel');panel.hidden=false;$('#reader').classList.add('with-video');
-  const times=pageTimes();const pageT=cur>0&&cur<total()-1?times[cur-1]:null;const start=from!==undefined?from:(pageT||0);
-  const box=$('#rvbox');
-  if(v.kind==='youtube'){
-    box.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${esc(v.id)}?rel=0&autoplay=1&start=${Math.floor(start)}" title="Companion video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
-    $('#syncWrap').hidden=true;$('#rvHint').innerHTML=`If the video does not show, <a href="${esc(v.url)}${v.url.includes('?')?'&':'?'}t=${Math.floor(start)}" target="_blank" rel="noopener">open it on YouTube</a>.`;
-  }else{
-    let el=$('#rvid');if(!el||el.getAttribute('src')!==videoSrc()){box.innerHTML=`<video id="rvid" src="${esc(videoSrc())}" controls playsinline></video>`;el=$('#rvid');el.ontimeupdate=onVideoTime;el.onerror=()=>{$('#rvHint').textContent='This video will not play here. Try an .mp4 file.'}}
-    const hasTimes=times.some(t=>t!==null);$('#syncWrap').hidden=!hasTimes;
-    $('#rvHint').textContent=hasTimes?'The pages follow the video while it plays.':'Tip: in Make, give pages a start time so the book follows the video.';
-    const seek=()=>{try{el.currentTime=start}catch(e){}el.play().catch(()=>{})};
-    if(el.readyState>=1)seek();else el.addEventListener('loadedmetadata',seek,{once:true});
-  }
-  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function onVideoTime(){
-  const v=$('#rvid');if(!v||v.paused||!$('#syncOn').checked)return;
-  const times=pageTimes();let best=-1,bt=-1;times.forEach((t,i)=>{if(t!==null&&t<=v.currentTime+.2&&t>=bt){bt=t;best=i}});
-  const target=best<0?cur:best+1;if(target!==cur)go(target,{fromVideo:true,quiet:true});
-}
-function seekVideoToPage(){const v=$('#rvid');if(!v||$('#vidpanel').hidden||!$('#syncOn').checked)return;const t=cur>0&&cur<total()-1?pageTimes()[cur-1]:null;if(t!==null){try{v.currentTime=t}catch(e){}}}
-$('#watchBtn').onclick=()=>{actx();openVideo()};
-$('#closeVid').onclick=()=>{const v=$('#rvid');if(v)v.pause();$('#rvbox').innerHTML='';$('#vidpanel').hidden=true;$('#reader').classList.remove('with-video')};
 
 /* ================= rooms ================= */
 function show(v){
   const read=v==='read';$('#make').hidden=read;$('#read').hidden=!read;
   $('#tab-make').setAttribute('aria-selected',String(!read));$('#tab-read').setAttribute('aria-selected',String(read));
-  if(read){computeModels();renderRead();$('#autoBtn').setAttribute('aria-pressed',String(prefs.auto));$('#soundBtn').setAttribute('aria-pressed',String(prefs.sound))}
-  else{stopSpeech();const rv=$('#rvid');if(rv)rv.pause();renderMake()}
+  if(read){computeModels();syncPrefsUI();renderRead()}
+  else{stopAll();renderMake()}
   try{if(location.hash!=='#'+v)history.replaceState(null,'','#'+v)}catch(e){}
   window.scrollTo({top:0});
 }
@@ -1152,9 +1448,10 @@ $('#tab-make').onclick=()=>show('make');$('#tab-read').onclick=()=>show('read');
 $('#readBtn').onclick=()=>{cur=0;show('read')};
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h==='read'||h==='make')show(h)});
 
-/* start */
-rebuildPages();renderMake();renderVideoBox();
-idbDo('readonly',st=>st.get('video')).then(f=>{if(f&&book.video&&book.video.kind==='file'){VURL=URL.createObjectURL(f);renderVideoBox();renderMake()}}).catch(()=>{});
+setPlayUI(false);renderMake();
 if(location.hash==='#read')show('read');
 })();
 </script>
+
+</body>
+</html>
