@@ -98,6 +98,37 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .media a b{color:var(--accent)}
 .kind{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted)}
 
+/* animated demos */
+.demo{display:grid;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:inherit;font-size:15px;font-weight:700;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.demo-body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.demo-body.wide{grid-template-columns:minmax(0,1fr)}
+@media (max-width:680px){.demo-body{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:12px;max-width:100%}
+.stage img{display:block;width:100%;height:auto}
+.stage .ov{position:absolute;pointer-events:none}
+.glow{border-radius:50%;transform:translate(-50%,-50%);background:var(--c);box-shadow:0 0 10px 4px var(--c),0 0 22px 8px color-mix(in srgb,var(--c) 55%,transparent)}
+.glow.pill{border-radius:999px;background:transparent;border:3px solid var(--c);box-shadow:0 0 12px 3px var(--c)}
+.scr{border-radius:6px;background:radial-gradient(circle at 50% 40%,#2c8f97 0,#14454c 55%,#0b2226 100%);display:grid;place-items:center;color:#d9f4f5;font:700 12px var(--body);letter-spacing:.06em}
+.badge{transform:translate(-50%,-50%);background:#13232a;color:#fff;font:700 13px var(--body);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.badge.good{background:#1d7a3e}
+.ring{transform:translate(-50%,-50%);width:54px;height:54px}
+.ring circle{fill:none;stroke-width:5}
+.ring .bg{stroke:rgba(14,102,112,.25)}
+.ring .fg{stroke:#0e6670;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.hold{transform:translate(-50%,0);background:#0e6670;color:#fff;font:700 13px var(--body);padding:3px 9px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.finger{position:absolute;top:0;left:0;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))}
+.demo-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:s}
+.demo-steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:8px 10px;border-radius:10px;color:var(--muted);transition:background .25s,color .25s}
+.demo-steps li::before{content:counter(s);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:var(--line);color:var(--ink)}
+.demo-steps li.on{background:var(--accent-soft);color:var(--ink)}
+.demo-steps li.on::before{background:var(--accent);color:var(--accent-ink)}
+.demo-ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.demo-ctl button{font:inherit;font-size:14px;font-weight:700;padding:6px 12px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer}
+.demo-ctl span{font-size:13px;color:var(--muted)}
+
 footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14px;display:grid;gap:8px}
 </style>
 
@@ -144,6 +175,11 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
         <figure><img src="images/roger-touchscreen.png" alt="Roger Touchscreen Mic front view, with an arrow to the On/Off button on the right side and the mute button below the screen."><figcaption>On/Off is on the right side. The button under the screen is Mute.</figcaption></figure>
         <figure><img src="images/roger-connect.png" alt="Roger Touchscreen home screen showing SubNet, Network and the Connect button, with an arrow to Connect."><figcaption>Connect is on the home screen.</figcaption></figure>
       </div>
+    </div>
+
+    <div class="block">
+      <h3>Watch how</h3>
+      <div class="demo" data-demos="roger-on,roger-mute,roger-connect"></div>
     </div>
 
     <div class="block">
@@ -223,6 +259,11 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
     </div>
 
     <div class="block">
+      <h3>Watch how</h3>
+      <div class="demo" data-demos="edumic-on,edumic-mute"></div>
+    </div>
+
+    <div class="block">
       <h3>Reading the Status light</h3>
       <div class="legend-wrap"><table class="legend">
         <thead><tr><th>Status light</th><th>It means</th><th></th></tr></thead>
@@ -294,6 +335,11 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
         </ol>
       </div>
       <figure><img src="images/minimic-diagram.png" alt="Cochlear Mini Microphone 2+ diagram: LED status indicator and ON/OFF button on top; volume up, mute and volume down on the side; mute LED indicator near the clip; charging connector at the bottom."><figcaption>Volume and Mute are on the side. The Mute LED lights when the mic is muted.</figcaption></figure>
+    </div>
+
+    <div class="block">
+      <h3>Watch how</h3>
+      <div class="demo" data-demos="minimic-on,minimic-mute,minimic-vol"></div>
     </div>
 
     <div class="block">
@@ -377,5 +423,120 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
     try{localStorage.setItem("dev",h)}catch(e){}
   }
   window.addEventListener("hashchange",show);show();
+})();
+</script>
+<script>
+(function(){
+  var G={green:"#1fae4b",white:"#ffffff",red:"#d93a2f",amber:"#ffd36b"};
+  // x,y are fractions of the photo. Times in ms within one loop.
+  var DEMOS={
+    "roger-on":{label:"Turn on",img:"images/roger-touchscreen.png",alt:"Roger Touchscreen Mic",fw:.13,angle:-90,x:.548,y:.25,dur:6000,
+      presses:[{t:800,hold:2000}],
+      fx:[{k:"scr",t0:2600,t1:6000,x:.155,y:.25,w:.305,h:.41,text:"ROGER"}],
+      steps:[{t:0,s:"Find the On/Off button on the right side."},{t:800,s:"Press and hold it."},{t:2600,s:"Let go when the screen turns on."}]},
+    "roger-mute":{label:"Mute / unmute",img:"images/roger-touchscreen.png",alt:"Roger Touchscreen Mic",fw:.13,angle:-15,x:.304,y:.817,dur:6200,
+      presses:[{t:900,hold:250},{t:3800,hold:250}],
+      fx:[{k:"scr",t0:0,t1:6200,x:.155,y:.25,w:.305,h:.41,text:"ROGER"},
+          {k:"pill",t0:1150,t1:4050,x:.304,y:.817,w:.22,h:.11,c:G.red},
+          {k:"badge",t0:1150,t1:4050,x:.304,y:.13,text:"Muted"}],
+      steps:[{t:0,s:"Tap the button under the screen once."},{t:1150,s:"It lights up: the mic is muted."},{t:3800,s:"Tap again to unmute."}]},
+    "roger-connect":{label:"Connect a student",img:"images/roger-connect.png",alt:"Roger Touchscreen home screen with Connect button",fw:.13,angle:-30,x:.325,y:.82,dur:6500,
+      presses:[{t:1800,hold:300}],
+      fx:[{k:"badge",t0:0,t1:1800,x:.33,y:.12,text:"Student's device within 4 in"},
+          {k:"badge",t0:2400,t1:6500,x:.33,y:.12,text:"✓ Connected",cls:"good"}],
+      steps:[{t:0,s:"Hold the student's device (receiver on) within 4 inches."},{t:1800,s:"Tap Connect on the home screen."},{t:2400,s:"Wait for the confirmation, then tap the mic to test."}]},
+    "edumic-on":{label:"Turn on",img:"images/edumic-diagram.png",alt:"EduMic diagram",fw:.065,angle:60,x:.19,y:.555,dur:7200,wide:true,
+      presses:[{t:800,hold:2000}],
+      fx:[{k:"led",t0:2800,t1:4400,x:.675,y:.14,c:G.white},{k:"led",t0:2800,t1:4400,x:.695,y:.14,c:G.white},
+          {k:"led",t0:4400,t1:7200,x:.695,y:.14,c:G.green},
+          {k:"badge",t0:4400,t1:7200,x:.695,y:.32,text:"about 10 s later"}],
+      steps:[{t:0,s:"Press and hold the side button for 2 seconds."},{t:2800,s:"Both lights turn white. Let go."},{t:4400,s:"Wait about 10 seconds for the Status light to turn green."}]},
+    "edumic-mute":{label:"Mute / unmute",img:"images/edumic-diagram.png",alt:"EduMic diagram",fw:.065,angle:60,x:.19,y:.555,dur:6200,wide:true,
+      presses:[{t:900,hold:250},{t:3800,hold:250}],
+      fx:[{k:"led",t0:0,t1:1150,x:.695,y:.14,c:G.green},{k:"led",t0:1150,t1:4050,x:.695,y:.14,c:G.green,blink:true},
+          {k:"led",t0:4050,t1:6200,x:.695,y:.14,c:G.green},
+          {k:"badge",t0:1150,t1:4050,x:.695,y:.32,text:"Flashing green = muted"}],
+      steps:[{t:0,s:"Briefly press the side button."},{t:1150,s:"Status light flashes green: muted."},{t:3800,s:"Briefly press again. Steady green: unmuted."}]},
+    "minimic-on":{label:"Turn on",img:"images/minimic-diagram.png",alt:"Cochlear Mini Microphone 2+ diagram",fw:.13,angle:205,x:.644,y:.33,dur:6200,
+      presses:[{t:800,hold:1500}],
+      fx:[{k:"led",t0:1900,t1:2300,x:.449,y:.082,c:G.green},{k:"led",t0:2300,t1:6200,x:.449,y:.082,c:G.green,blink:true}],
+      steps:[{t:0,s:"Press and hold ON/OFF on top (about 1.5 s)."},{t:1900,s:"The LED turns green. Let go."},{t:2300,s:"Blinking green: on and ready."}]},
+    "minimic-mute":{label:"Mute / unmute",img:"images/minimic-diagram.png",alt:"Cochlear Mini Microphone 2+ diagram",fw:.13,angle:-90,x:.322,y:.535,dur:6000,
+      presses:[{t:900,hold:250},{t:3700,hold:250}],
+      fx:[{k:"led",t0:0,t1:6000,x:.449,y:.082,c:G.green,blink:true},{k:"led",t0:1150,t1:3950,x:.661,y:.539,c:G.amber},
+          {k:"badge",t0:1150,t1:3950,x:.8,y:.62,text:"Mute LED on"}],
+      steps:[{t:0,s:"Press MUTE on the side once."},{t:1150,s:"The Mute LED lights: muted."},{t:3700,s:"Press MUTE again to unmute."}]},
+    "minimic-vol":{label:"Volume",img:"images/minimic-diagram.png",alt:"Cochlear Mini Microphone 2+ diagram",fw:.13,angle:-90,x:.322,y:.421,dur:5000,
+      presses:[{t:900,hold:250},{t:1900,hold:250}],
+      fx:[{k:"led",t0:0,t1:5000,x:.449,y:.082,c:G.green,blink:true},{k:"badge",t0:1150,t1:1900,x:.12,y:.30,text:"Louder +"},{k:"badge",t0:2150,t1:3600,x:.12,y:.30,text:"Louder + +"}],
+      steps:[{t:0,s:"Press volume UP to make it louder for the student."},{t:1900,s:"Each press steps it up. Volume DOWN makes it softer."}]}
+  };
+  var FINGER='<svg viewBox="0 0 120 220" width="100%" aria-hidden="true"><path d="M8 122 Q8 94 32 94 L104 94 Q118 94 118 114 L118 188 Q118 220 86 220 L38 220 Q8 220 8 190 Z" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/>'+
+    '<rect x="46" y="88" width="24" height="40" rx="12" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/><rect x="70" y="90" width="24" height="38" rx="12" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/><rect x="94" y="94" width="22" height="34" rx="11" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/>'+
+    '<rect x="14" y="2" width="32" height="128" rx="16" fill="#efbd97" stroke="#8a5a3c" stroke-width="3"/><rect x="19" y="8" width="22" height="26" rx="10" fill="#f8dccb" stroke="#c99476" stroke-width="2"/>'+
+    '<path d="M20 56 Q30 60 40 56 M20 92 Q30 96 40 92" stroke="#b67e5d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function build(host){
+    var ids=host.dataset.demos.split(","), cur=null, t0=performance.now(), paused=false, pauseAt=0, els={};
+    host.innerHTML='<div class="chips" role="group" aria-label="Choose an action"></div><div class="demo-body"><div class="stage"><img alt=""><div class="finger"></div></div><div style="display:grid;gap:10px"><ol class="demo-steps" aria-live="polite"></ol><div class="demo-ctl"><button type="button" class="pp">Pause</button><button type="button" class="rp">Replay</button><span>Drawn hand shows which button to press.</span></div></div></div>';
+    var chips=host.querySelector(".chips"),stage=host.querySelector(".stage"),img=stage.querySelector("img"),finger=stage.querySelector(".finger"),stepsEl=host.querySelector(".demo-steps"),body=host.querySelector(".demo-body");
+    finger.innerHTML=FINGER;
+    ids.forEach(function(id){var b=document.createElement("button");b.type="button";b.textContent=DEMOS[id].label;b.onclick=function(){load(id)};b.dataset.id=id;chips.appendChild(b)});
+    host.querySelector(".pp").onclick=function(){paused=!paused;if(paused){pauseAt=performance.now()}else{t0+=performance.now()-pauseAt}this.textContent=paused?"Play":"Pause"};
+    host.querySelector(".rp").onclick=function(){t0=performance.now();if(paused){pauseAt=t0}};
+    var ring,hold;
+    function load(id){
+      cur=DEMOS[id];t0=performance.now();if(paused)pauseAt=t0;
+      chips.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.id===id?"true":"false")});
+      body.classList.toggle("wide",!!cur.wide);
+      img.src=cur.img;img.alt=cur.alt+": "+cur.label.toLowerCase();
+      stage.querySelectorAll(".ov").forEach(function(e){e.remove()});
+      cur.fx.forEach(function(f){var e=document.createElement("div");e.className="ov";
+        if(f.k==="led"||f.k==="pill"){e.className+=" glow"+(f.k==="pill"?" pill":"");e.style.setProperty("--c",f.c);
+          if(f.k==="led"){e.style.width=e.style.height="12px"}else{e.style.width=f.w*100+"%";e.style.height=f.h*100+"%"}
+          e.style.left=f.x*100+"%";e.style.top=f.y*100+"%"}
+        else if(f.k==="scr"){e.className+=" scr";e.style.left=f.x*100+"%";e.style.top=f.y*100+"%";e.style.width=f.w*100+"%";e.style.height=f.h*100+"%";e.textContent=f.text}
+        else{e.className+=" badge"+(f.cls?" "+f.cls:"");e.style.left=f.x*100+"%";e.style.top=f.y*100+"%";e.textContent=f.text}
+        f.el=e;stage.insertBefore(e,finger)});
+      ring=document.createElement("div");ring.className="ov ring";ring.innerHTML='<svg viewBox="0 0 54 54" width="54" height="54"><circle class="bg" cx="27" cy="27" r="22"/><circle class="fg" cx="27" cy="27" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2"/></svg>';
+      ring.style.left=cur.x*100+"%";ring.style.top=cur.y*100+"%";stage.insertBefore(ring,finger);
+      hold=document.createElement("div");hold.className="ov hold";hold.style.left=cur.x*100+"%";hold.style.top="calc("+cur.y*100+"% + 30px)";stage.insertBefore(hold,finger);
+      if(cur.y>.7){hold.style.top="calc("+cur.y*100+"% - 58px)"}
+      stepsEl.innerHTML=cur.steps.map(function(s){return "<li>"+s.s+"</li>"}).join("");
+      finger.style.width=(cur.fw*100)+"%";
+      if(reduce)frame(lastT());
+    }
+    function lastT(){var p=cur.presses[cur.presses.length-1];return p.t+Math.max(p.hold,250)+50}
+    function frame(t){
+      if(!cur)return;
+      var W=stage.clientWidth,H=stage.clientHeight,fwpx=W*cur.fw,tipx=fwpx*30/120,tipy=fwpx*2/120;
+      // finger distance along its axis
+      var first=cur.presses[0].t,last=cur.presses[cur.presses.length-1],end=last.t+last.hold,d=0,press=null,op=1,far=fwpx*2.2;
+      if(!reduce){
+        if(t<first-700){d=far;op=0}else if(t<first){var k=(t-(first-700))/700;k=1-Math.pow(1-k,3);d=far*(1-k)+8*k;op=Math.min(1,k*2)}
+        else if(t>end+900){var k2=Math.min(1,(t-end-900)/600);d=8+far*k2;op=1-k2}else d=8;
+      }else{d=8}
+      cur.presses.forEach(function(p){if(t>=p.t&&t<p.t+p.hold)press=p});
+      if(press)d=-3;
+      finger.style.opacity=op;finger.style.transformOrigin=tipx+"px "+tipy+"px";
+      finger.style.transform="translate("+(cur.x*W-tipx)+"px,"+(cur.y*H-tipy)+"px) rotate("+cur.angle+"deg) translate(0,"+d+"px) scale("+(press?.96:1)+")";
+      var fg=ring.querySelector(".fg");
+      if(press&&press.hold>400){var pr=Math.min(1,(t-press.t)/press.hold);ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",138.2*(1-pr));hold.style.opacity=1;hold.textContent="Hold "+((t-press.t)/1000).toFixed(1)+" s"}
+      else if(press){ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",0);hold.style.opacity=1;hold.textContent="Tap"}
+      else{ring.style.opacity=0;hold.style.opacity=0}
+      cur.fx.forEach(function(f){var on=t>=f.t0&&t<f.t1;if(on&&f.blink&&!reduce)on=Math.floor(t/450)%2===0;f.el.style.opacity=on?1:0});
+      var li=stepsEl.children,idx=0;cur.steps.forEach(function(s,i){if(t>=s.t)idx=i});
+      for(var i=0;i<li.length;i++)li[i].classList.toggle("on",reduce?false:i===idx);
+    }
+    function tick(now){
+      if(cur&&!reduce&&host.offsetParent!==null){frame(((paused?pauseAt:now)-t0)%cur.dur)}
+      requestAnimationFrame(tick);
+    }
+    img.addEventListener("load",function(){if(reduce)frame(lastT())});
+    window.addEventListener("resize",function(){if(reduce)frame(lastT())});
+    load(ids[0]);requestAnimationFrame(tick);
+  }
+  document.querySelectorAll(".demo").forEach(build);
 })();
 </script>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Classroom Mic Quick Fix Sheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap">
+<style>
+@page{size:Letter landscape;margin:.32in}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Atkinson Hyperlegible","Segoe UI",sans-serif;font-size:9.6pt;line-height:1.32;color:#13232a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+h1,h2{font-family:"Bricolage Grotesque","Segoe UI",sans-serif;margin:0;line-height:1.05}
+h1{font-size:19pt}
+h2{font-size:13pt;color:#0e6670}
+h3{font-size:8.6pt;margin:0 0 2px;text-transform:uppercase;letter-spacing:.06em;color:#52646b}
+p,ol,ul{margin:0}
+ol,ul{padding-left:1.25em}
+li{margin-bottom:1.5px}
+.top{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;border-bottom:2px solid #0e6670;padding-bottom:6px}
+.top small{display:block;color:#52646b;font-size:8pt}
+.check{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;list-style:none;padding:0;counter-reset:c}
+.check li{counter-increment:c;background:#dcefee;border-radius:6px;padding:4px 6px 4px 22px;position:relative;margin:0}
+.check li::before{content:counter(c);position:absolute;left:5px;top:4px;width:13px;height:13px;border-radius:50%;background:#0e6670;color:#fff;font-weight:700;font-size:7.5pt;display:grid;place-items:center}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
+.col{border:1px solid #d5dfdd;border-radius:8px;padding:8px;display:grid;gap:6px;align-content:start}
+.pic{position:relative;width:fit-content;max-width:100%;margin:0 auto;border:1px solid #e3e9e8;border-radius:6px;overflow:hidden;background:#fff}
+.pic img{display:block;max-height:1.95in;max-width:100%;width:auto;height:auto}
+.pin{position:absolute;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;border:2.5px solid #d93a2f;background:rgba(255,255,255,.6)}
+.tag{position:absolute;background:#d93a2f;color:#fff;font-weight:700;font-size:7.5pt;padding:1px 5px;border-radius:9px;white-space:nowrap;transform:translate(-50%,0)}
+.f{position:absolute;width:30px}
+.lt{width:100%;border-collapse:collapse}
+.lt td{padding:1.5px 3px;border-bottom:1px solid #eef2f1;vertical-align:top}
+.lt td:first-child{white-space:nowrap;font-weight:700}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.25)}
+.warn{background:#fff3d6;color:#6b4a00;border-radius:6px;padding:4px 6px}
+.foot{margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-top:1px solid #d5dfdd;padding-top:5px;font-size:7.8pt;color:#52646b}
+.foot b{color:#13232a}
+.contact{border:1.5px dashed #0e6670;border-radius:6px;padding:4px 8px;color:#13232a}
+</style></head><body>
+<div class="top">
+  <div><h1>Classroom Mic Quick Fix</h1><small>DHH Services · keep by the charger</small></div>
+  <ol class="check">
+    <li><b>On &amp; charged?</b> Check the light or screen.</li>
+    <li><b>Muted?</b> Mute is one tap away.</li>
+    <li><b>Program 1?</b> Student's aid, CI or BAHA on the mic program.</li>
+    <li><b>6–10 inches</b> below your mouth, facing up.</li>
+    <li><b>Tap test.</b> Tap the mic; student gives a thumbs-up.</li>
+  </ol>
+</div>
+
+<div class="cols">
+  <section class="col">
+    <h2>Roger Touchscreen Mic</h2>
+    <div class="pic"><img src="images/roger-touchscreen.png" alt="">
+      <span class="pin" style="left:54.8%;top:25%"></span>
+      <span class="pin" style="left:30.4%;top:81.7%"></span><span class="tag" style="left:30.4%;top:58%">Mute</span>
+    </div>
+    <div><h3>Turn on</h3><p>Hold <b>On/Off</b> on the side until the screen turns on. Tap <b>Connect</b> to check the link.</p></div>
+    <div><h3>Mute</h3><p>Tap the button under the screen. Tap again to unmute.</p></div>
+    <div><h3>No sound?</h3><ol>
+      <li>Screen on? Battery charged? Not muted?</li>
+      <li>Student on program 1; receiver attached and on.</li>
+      <li>Hold student's device within <b>4 in</b> and tap <b>Connect</b>.</li>
+      <li>Restart: hold <b>On/Off + Mute 10 s</b>. Connections are kept.</li>
+      <li>Faint? Shorten lanyard; don't lay it flat on a desk.</li>
+    </ol></div>
+    <p class="warn"><b>Never tap NewNet.</b> It disconnects every student.</p>
+  </section>
+
+  <section class="col">
+    <h2>Oticon EduMic</h2>
+    <div class="pic"><img src="images/edumic-diagram.png" alt=""><span class="pin" style="left:19%;top:55.5%"></span></div>
+    <div><h3>Turn on</h3><p>Hold the button <b>2 s</b> until both lights are <b>white</b>. Let go. Wait ~10 s for <b>green</b>.</p></div>
+    <div><h3>Mute</h3><p>Briefly press the button (status flashes green). Press again to unmute.</p></div>
+    <div><h3>Status light</h3><table class="lt">
+      <tr><td><span class="dot" style="background:#1fae4b"></span>Green</td><td>On, sending your voice</td></tr>
+      <tr><td><span class="dot" style="background:#1fae4b"></span>Flashing green</td><td>Muted</td></tr>
+      <tr><td><span class="dot" style="background:#2f6fe0"></span>Flashing blue</td><td>Pairing</td></tr>
+      <tr><td><span class="dot" style="background:#e7b416"></span>Yellow / <span class="dot" style="background:#c4359b"></span>Magenta</td><td>Wrong mode: call DHH</td></tr>
+      <tr><td><span class="dot" style="background:#d93a2f"></span>Red</td><td>Pairings cleared: call DHH</td></tr>
+      <tr><td>Power flashing red</td><td>Low battery: charge</td></tr></table></div>
+    <div><h3>No sound?</h3><ol>
+      <li>Green light? Not flashing (muted)?</li>
+      <li>Student's aids on the EduMic program.</li>
+      <li>Student turns aids off and on (or opens/closes battery doors).</li>
+    </ol></div>
+    <p class="warn"><b>Don't hold the button 12 s.</b> It clears all pairings.</p>
+  </section>
+
+  <section class="col">
+    <h2>Cochlear Mini Mic 2+</h2>
+    <div class="pic"><img src="images/minimic-diagram.png" alt=""><span class="pin" style="left:64.4%;top:33%"></span><span class="pin" style="left:32.2%;top:53.5%"></span></div>
+    <div><h3>Turn on</h3><p>Hold <b>ON/OFF</b> (top) ~1.5 s until green. Let go: <b>blinking green</b> = on. Student starts streaming (program 1, or hold processor button ~3 s).</p></div>
+    <div><h3>Mute &amp; volume</h3><p>Press <b>MUTE</b> on the side; Mute LED lights. Press again to unmute. <b>Volume UP/DOWN</b> are on the same side.</p></div>
+    <div><h3>Lights</h3><table class="lt">
+      <tr><td><span class="dot" style="background:#1fae4b"></span>Blinking green</td><td>On and ready</td></tr>
+      <tr><td><span class="dot" style="background:#e7b416"></span>Flashing yellow</td><td>Under 30 min battery (or pairing)</td></tr>
+      <tr><td><span class="dot" style="background:#d93a2f"></span>Red on charger</td><td>Charging</td></tr></table></div>
+    <div><h3>No sound?</h3><ol>
+      <li>Blinking green? Mute LED off?</li>
+      <li>Student restarts streaming on the processor.</li>
+      <li>Turn volume UP; processor off and on, then stream again.</li>
+    </ol></div>
+    <p class="warn"><b>Pairing</b> (pen tip in pairing button, 20 s window) is done by DHH staff.</p>
+  </section>
+</div>
+
+<div class="foot">
+  <p><b>Still not working?</b> Stop and call. Don't change settings on the student's own device beyond switching programs. Steps from Phonak, Oticon and Cochlear user guides; program 1 per district DHH in-service. Follow the student's plan if it differs.</p>
+  <div class="contact">DHH teacher: ______________________ &nbsp; Ext: ________</div>
+</div>
+</body></html>
