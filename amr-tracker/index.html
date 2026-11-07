@@ -61,7 +61,7 @@ h2{font-size:17px;margin:0 0 10px}
 .btn.small{padding:4px 9px;font-size:13px}
 .btn.danger{color:var(--bad)}
 .btn:disabled{opacity:.5;cursor:default}
-input[type=text],input[type=email],input[type=date],input[type=number],input[type=time],input[type=search],select,textarea{border:1px solid #c9d0db;border-radius:8px;padding:7px 9px;background:#fff;min-width:0}
+input:not([type]),input[type=text],input[type=email],input[type=date],input[type=number],input[type=time],input[type=search],select,textarea{border:1px solid #c9d0db;border-radius:8px;padding:7px 9px;background:#fff;min-width:0}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
 label.f{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
 label.f > span.hint{font-weight:400}
@@ -326,8 +326,57 @@ const DEFAULT_ALD_STATUS = ['In use','Not in use','Declined','Refused','Not work
 const REASONS = ['Dead battery','Left at home','Not working','Refused','Lost/damaged','Out for repair'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+/* District academic calendars, 2026-2027 (student instructional days only).
+   Holidays, breaks, and days with no students (teacher workdays, staff development) are listed as no-school days. */
+const DISTRICTS = {
+  fbisd: {
+    name: 'Fort Bend ISD', schoolYear: '2026-2027', firstDay: '2026-08-11', lastDay: '2027-05-27', days: 173,
+    source: 'https://www.fortbendisd.gov/calendar',
+    note: 'Based on the board-approved 2026-27 instructional calendar. Please compare with the official PDF at fortbendisd.gov/calendar.',
+    noSchool: [
+      '2026-09-07 Labor Day',
+      '2026-09-25 Teacher workday (no students)',
+      '2026-10-09 Teacher workday (no students)',
+      '2026-10-12 to 2026-10-16 Fall break',
+      '2026-11-23 to 2026-11-27 Thanksgiving break',
+      '2026-12-21 to 2027-01-01 Winter break',
+      '2027-01-04 to 2027-01-05 Teacher workdays (no students)',
+      '2027-01-18 Martin Luther King Jr. Day',
+      '2027-02-12 Teacher workday (no students)',
+      '2027-02-15 Inclement weather make-up day (holiday unless needed)',
+      '2027-03-05 Teacher workday (no students)',
+      '2027-03-08 to 2027-03-12 Spring break',
+      '2027-04-30 Inclement weather make-up day (holiday unless needed)'
+    ].join('\n')
+  },
+  alief: {
+    name: 'Alief ISD', schoolYear: '2026-2027', firstDay: '2026-08-12', lastDay: '2027-05-27', days: 176,
+    source: 'https://www.aliefisd.net/page/calendars/',
+    note: 'From the Alief ISD board-approved 2026-2027 monthly calendar (grading periods: 39 + 44 + 42 + 51 = 176 days).',
+    noSchool: [
+      '2026-09-07 Labor Day (student/staff holiday)',
+      '2026-10-07 to 2026-10-09 Fall break',
+      '2026-10-12 Student holiday',
+      '2026-11-23 to 2026-11-27 Thanksgiving break',
+      '2026-12-21 to 2027-01-01 Winter break',
+      '2027-01-04 Student holiday',
+      '2027-01-18 Martin Luther King Jr. Day (student/staff holiday)',
+      '2027-02-15 Student/staff holiday',
+      '2027-03-08 to 2027-03-12 Spring break',
+      '2027-03-15 Student holiday',
+      '2027-03-26 Student/staff holiday',
+      '2027-05-03 Student/staff holiday'
+    ].join('\n')
+  }
+};
+function districtSettings(id){
+  const d = DISTRICTS[id];
+  return d ? { district:id, schoolYear:d.schoolYear, firstDay:d.firstDay, lastDay:d.lastDay, noSchool:d.noSchool } : { district:'custom' };
+}
+const districtName = () => (DISTRICTS[S.settings.district] || {}).name || (S.settings.district === 'custom' ? 'Custom calendar' : 'No district selected');
+
 const DEFAULT_SETTINGS = {
-  schoolYear:'2026-2027', firstDay:'2026-08-03', lastDay:'2027-05-28', noSchool:'',
+  district:'', schoolYear:'2026-2027', firstDay:'2026-08-03', lastDay:'2027-05-28', noSchool:'',
   dhhEmails:'', missThreshold:2, nonUseThreshold:2, cutoff:'10:00',
   aldStatuses: DEFAULT_ALD_STATUS.join(', '),
   emailDigest:true, emailCmReminder:false, reminderHour:13
@@ -504,8 +553,7 @@ const Demo = {
   setAs(v){ this._as = v; try { localStorage.setItem(this.KEY + '.as', v); } catch(e){} },
   db(){ let db = this.read(); if (!db) { db = this.seed(); this.write(db); } return db; },
   seed(){
-    const settings = { ...DEFAULT_SETTINGS, dhhEmails:'dhh.teacher@district.org',
-      noSchool: '2026-09-07 Labor Day\n2026-10-12 Fair day\n2026-11-23 to 2026-11-27 Thanksgiving break\n2026-12-21 to 2027-01-01 Winter break\n2027-01-18 MLK Day\n2027-03-15 to 2027-03-19 Spring break' };
+    const settings = { ...DEFAULT_SETTINGS, dhhEmails:'dhh.teacher@district.org', ...districtSettings('fbisd') };
     const cmA = 'r.lopez@district.org', cmB = 'k.nguyen@district.org';
     const mk = (i, initials, schoolId, campus, grade, r, l, ald, sf, cmName, cmEmail) =>
       ({ id:'s'+i, initials, schoolId, campus, grade, rightDevice:r, leftDevice:l, ald, soundfield:sf, cmName, cmEmail, start:'2026-10-01', active:'Y', notes:'', updated:'' });
@@ -647,7 +695,7 @@ function setLive(ok){
   $('#liveTxt').textContent = ok ? 'Live · updated ' + lastSync.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Offline – retrying';
 }
 async function load(){
-  try { const r = await api('bootstrap'); applyData(r, true); _cal = null; setLive(true); render(); }
+  try { const r = await api('bootstrap'); applyData(r, true); _cal = null; setLive(true); render(); if (S.me.role === 'dhh' && !S.settings.district) districtPrompt(); }
   catch(e){ $('#loading').textContent = 'Could not load: ' + e.message; setLive(false); }
 }
 async function poll(){
@@ -841,9 +889,10 @@ function renderDash(){
   const docToday = rows.filter(r => isComplete(r.s.todayEntry, r.st)).length;
   const red = rows.filter(r => r.s.level === 'bad').length, amber = rows.filter(r => r.s.level === 'warn').length;
   const mD = rows.reduce((a,r) => a + r.s.mDoc, 0), mT = rows.reduce((a,r) => a + r.s.mDays, 0);
-  $('#dashSub').textContent = `${fmtLong(today)} · ${S.settings.schoolYear} school year` + (todayIsSchool ? '' : ' · no school today');
+  $('#dashSub').textContent = `${fmtLong(today)} · ${districtName()} · ${S.settings.schoolYear} school year` + (todayIsSchool ? '' : ' · no school today');
   const n = [];
-  if (!String(S.settings.noSchool||'').trim()) n.push(`<div class="notice">Add holidays and breaks in <b>Settings</b> so those days are not counted as missed documentation.</div>`);
+  if (!S.settings.district) n.push(`<div class="notice"><b>Choose your school district</b> in <a href="#" data-goto="settings">Settings</a> so holidays and breaks are not counted as missed documentation.</div>`);
+  else if (S.settings.district === 'custom' && !String(S.settings.noSchool||'').trim()) n.push(`<div class="notice">Add holidays and breaks in <a href="#" data-goto="settings">Settings</a> so those days are not counted as missed documentation.</div>`);
   if (todayIsSchool && nowMins() < cutoffMins()) n.push(`<div class="notice info">Today's entries are due by ${h(S.settings.cutoff)}. Until then, students not yet documented today are not counted as missed.</div>`);
   $('#dashNotices').innerHTML = n.join('');
   $('#tiles').innerHTML = [
@@ -934,7 +983,7 @@ function devSelect(name, val){
   return `<select name="${name}">${DEVICE_TYPES.map(d => `<option ${d===(val||'None')?'selected':''}>${d}</option>`).join('')}${known?'':`<option selected>${h(val)}</option>`}</select>`;
 }
 function openModal(html){ $('#modalBox').innerHTML = html; $('#modal').hidden = false; const f = $('#modalBox').querySelector('input,select,textarea'); if (f) f.focus(); }
-function closeModal(){ $('#modal').hidden = true; $('#modalBox').innerHTML = ''; }
+function closeModal(){ $('#modal').hidden = true; $('#modalBox').innerHTML = ''; $('#modalBox').onclick = null; }
 $('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
 
@@ -1061,7 +1110,7 @@ function amrReport(st, period){
     <div class="rhead">
       <span><b>Period:</b> ${h(title)}</span><span><b>School year:</b> ${h(S.settings.schoolYear)}</span><span><b>Student:</b> ${h(st.initials)}</span><span><b>School ID:</b> ${h(st.schoolId)}</span>
       <span><b>Campus:</b> ${h(st.campus||'')}</span><span><b>Right:</b> ${h(st.rightDevice||'None')}</span><span><b>Left:</b> ${h(st.leftDevice||'None')}</span><span><b>ALD:</b> ${h(st.ald||'None')}</span>
-      <span><b>Staff responsible:</b> ${h(st.cmName||st.cmEmail)}</span>
+      <span><b>Staff responsible:</b> ${h(st.cmName||st.cmEmail)}</span><span><b>District calendar:</b> ${h(districtName())}</span>
     </div>
     <table class="amr"><thead><tr><th>Date</th><th>Absent</th><th>Right</th><th>Left</th>${needA(st)?'<th>ALD</th>':''}<th>Ling</th><th>Problem / comment</th><th>Entered by</th></tr></thead>
     <tbody>${rows || `<tr><td colspan="8" class="muted">No school days in this period yet.</td></tr>`}</tbody></table>
@@ -1098,12 +1147,21 @@ $('#rCsv').onclick = () => {
 function renderSettings(){
   const s = S.settings;
   $('#setForm').innerHTML = `
-    <label class="f">School year <input name="schoolYear" value="${h(s.schoolYear)}"></label><span></span>
-    <label class="f">First day of school <input type="date" name="firstDay" value="${h(s.firstDay)}" required></label>
-    <label class="f">Last day of school <input type="date" name="lastDay" value="${h(s.lastDay)}" required></label>
-    <label class="f full">No-school days (holidays, breaks, teacher work days)
-      <textarea name="noSchool" rows="8" placeholder="2026-11-23 to 2026-11-27 Thanksgiving break&#10;1/18/2027 MLK Day">${h(s.noSchool)}</textarea>
-      <span class="hint">One date or range per line. Words after the date are ignored. Weekends are skipped automatically.</span></label>
+    <label class="f full">School district (academic calendar)
+      <select name="district" id="setDistrict">
+        <option value="" ${!s.district?'selected':''} disabled>— Choose your district —</option>
+        ${Object.entries(DISTRICTS).map(([id,d]) => `<option value="${id}" ${s.district===id?'selected':''}>${h(d.name)} – ${h(d.schoolYear)}</option>`).join('')}
+        <option value="custom" ${s.district==='custom'?'selected':''}>Other / custom calendar</option>
+      </select>
+      <span class="hint" id="districtNote"></span></label>
+    <label class="f">School year <input name="schoolYear" value="${h(s.schoolYear)}"></label>
+    <div class="f" style="align-self:end"><span id="dayCount" class="pill blue"></span></div>
+    <label class="f">First day of school (students) <input type="date" name="firstDay" value="${h(s.firstDay)}" required></label>
+    <label class="f">Last day of school (students) <input type="date" name="lastDay" value="${h(s.lastDay)}" required></label>
+    <label class="f full">No-school days (holidays, breaks, teacher workdays)
+      <textarea name="noSchool" rows="10" placeholder="2026-11-23 to 2026-11-27 Thanksgiving break&#10;1/18/2027 MLK Day">${h(s.noSchool)}</textarea>
+      <span class="hint">Filled in from your district's calendar. You can edit it, for example if a weather make-up day is used or school closes for weather. One date or range per line; words after the date are ignored; weekends are skipped automatically.
+      <button type="button" class="btn small" id="resetCal" style="margin-left:6px">Reset to district calendar</button></span></label>
     <label class="f">Flag "follow up" after this many school days in a row not documented <input type="number" min="1" max="20" name="missThreshold" value="${h(s.missThreshold)}"></label>
     <label class="f">Flag "watch" when a device is not in use on this many of the last 5 days <input type="number" min="1" max="5" name="nonUseThreshold" value="${h(s.nonUseThreshold)}"></label>
     <label class="f">Daily entry is due by <input type="time" name="cutoff" value="${h(s.cutoff)}"><span class="hint">Before this time, today is not counted as missed.</span></label>
@@ -1115,7 +1173,43 @@ function renderSettings(){
       <span class="hint">Reminder hour (24h): <input type="number" min="8" max="17" name="reminderHour" value="${h(s.reminderHour)}" style="width:70px"></span></label>
     ` : `<p class="full muted">Email alerts and DHH teacher accounts are set up when you install the app on Google (see README).</p>`}
     <div class="full row"><span class="spacer"></span><button class="btn primary">Save settings</button></div>`;
+  const f = $('#setForm');
+  const refresh = () => {
+    const d = DISTRICTS[f.district.value];
+    $('#districtNote').innerHTML = d ? `${h(d.note)} <a href="${h(d.source)}" target="_blank" rel="noopener">District calendars</a>` : 'Enter your own first day, last day and no-school days.';
+    $('#resetCal').hidden = !d;
+    // count student days with the dates currently in the form
+    const saved = S.settings; S.settings = { ...saved, firstDay:f.firstDay.value, lastDay:f.lastDay.value, noSchool:f.noSchool.value }; _cal = null;
+    const n = f.firstDay.value && f.lastDay.value ? schoolDays(f.firstDay.value, f.lastDay.value).length : 0;
+    S.settings = saved; _cal = null;
+    $('#dayCount').textContent = `${n} student school days` + (d && n !== d.days ? ` (district calendar: ${d.days})` : '');
+  };
+  const fill = id => { const v = districtSettings(id); ['schoolYear','firstDay','lastDay','noSchool'].forEach(k => { if (k in v) f[k].value = v[k]; }); refresh(); };
+  f.district.onchange = () => fill(f.district.value);
+  $('#resetCal').onclick = () => fill(f.district.value);
+  ['firstDay','lastDay','noSchool'].forEach(k => f[k].addEventListener('input', refresh));
+  refresh();
 }
+
+/* First run: ask the DHH teacher which district calendar to use. */
+function districtPrompt(){
+  openModal(`<h2>Choose your school district</h2>
+    <p class="muted" style="margin-top:0">AMR Tracker uses your district's 2026-2027 academic calendar, so holidays, breaks and teacher workdays are not counted as missed documentation. You can change this later in Settings.</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      ${Object.entries(DISTRICTS).map(([id,d]) => `<button class="btn" data-district="${id}" style="padding:16px;text-align:left"><b style="font-size:16px">${h(d.name)}</b><br><span class="muted" style="font-weight:400">${h(d.schoolYear)} · ${fmtShort(d.firstDay)} – ${fmtShort(d.lastDay)} · ${d.days} school days</span></button>`).join('')}
+    </div>
+    <p style="margin-bottom:0"><button class="btn small" data-district="custom">Other district (enter my own calendar)</button></p>`);
+  $('#modalBox').onclick = async e => {
+    const b = e.target.closest('[data-district]'); if (!b) return;
+    try {
+      const r = await api('saveSettings', { settings: districtSettings(b.dataset.district) });
+      S.settings = { ...DEFAULT_SETTINGS, ...r.settings }; _cal = null; closeModal();
+      if (b.dataset.district === 'custom'){ S.tab = 'settings'; }
+      toast(`Calendar set: ${districtName()}`); render();
+    } catch(err){ toast(err.message, true); }
+  };
+}
+document.addEventListener('click', e => { const a = e.target.closest('[data-goto]'); if (a){ e.preventDefault(); S.tab = a.dataset.goto; render(); } });
 $('#setForm').onsubmit = async ev => {
   ev.preventDefault();
   const f = ev.target, fd = Object.fromEntries(new FormData(f));

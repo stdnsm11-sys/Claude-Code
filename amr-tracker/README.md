@@ -40,7 +40,15 @@ Everything saves automatically. The **Missed days** panel lists past school days
 - **Students**: add or edit initials, school ID, campus, right/left device, ALD, soundfield access, case manager email(s), and the date tracking starts. Set a student to *Inactive* to keep their records.
 - **AMR reports**: a printable AMR for each month or the whole year. It shows the same fields as the spreadsheet: device and ALD for each day, absences, problems/comments, who entered each day, soundfield access, the required IEP/504 statements, your follow-up contacts, and a signature line. **Download all data (CSV)** exports everything.
 - **Follow-ups**: a dated log of your contacts with case managers.
-- **Settings**: first and last day of school, **no-school days** (holidays and breaks are not counted as missed), alert thresholds, the time entries are due each day, and the ALD wording (from the spreadsheet: *In use, Not in use, Declined, Refused, Not working*).
+- **School district calendar**: the first time a DHH teacher opens the app, it asks which district to use: **Fort Bend ISD** or **Alief ISD** (2026-2027), or *Other* to enter your own. This sets the first and last day of school and every holiday, break, and teacher workday, so those days are never counted as missed. You can change the district or edit individual days in Settings, for example when a weather make-up day is used.
+
+  | District | Student days | First day | Last day | Source |
+  |---|---|---|---|---|
+  | Fort Bend ISD | 173 | Aug 11, 2026 | May 27, 2027 | [fortbendisd.gov/calendar](https://www.fortbendisd.gov/calendar) |
+  | Alief ISD | 176 | Aug 12, 2026 | May 27, 2027 | [aliefisd.net calendars](https://www.aliefisd.net/page/calendars/) |
+
+  The two weather make-up days in Fort Bend's calendar (Feb 15 and Apr 30) are counted as holidays. If the district uses one, delete that line in Settings.
+- **Settings**: district, first and last day of school, **no-school days**, alert thresholds, the time entries are due each day, and the ALD wording (from the spreadsheet: *In use, Not in use, Declined, Refused, Not working*).
 
 ## Installing it for your district (Google Workspace, about 10 minutes)
 
@@ -56,7 +64,7 @@ The data lives in a Google Sheet in **your district Google Drive**. Case manager
    - *Execute as:* **Me**
    - *Who has access:* **Anyone within [your district]**
 8. Copy the web app URL. That one link is used by everyone: you get the DHH view, and case managers get their daily check.
-9. Open the link, go to **Settings**, and enter the first and last day of school and the holidays. Add other DHH teachers' emails if you share the caseload.
+9. Open the link and choose your district (Fort Bend ISD or Alief ISD). This loads the 2026-2027 calendar. Add other DHH teachers' emails if you share the caseload.
 10. Optional: to turn on email alerts, run **`installTriggers`** once in Apps Script. This sends:
     - a 7 AM summary to DHH teachers listing students who need follow-up
     - an afternoon reminder to case managers who haven't documented today (turn this on in Settings)

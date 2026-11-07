@@ -21,7 +21,7 @@ var SHEETS = {
 };
 
 var DEFAULT_SETTINGS = {
-  schoolYear: '2026-2027', firstDay: '2026-08-03', lastDay: '2027-05-28', noSchool: '',
+  district: '', schoolYear: '2026-2027', firstDay: '2026-08-03', lastDay: '2027-05-28', noSchool: '',
   dhhEmails: '', missThreshold: 2, nonUseThreshold: 2, cutoff: '10:00',
   aldStatuses: 'In use, Not in use, Declined, Refused, Not working',
   emailDigest: true, emailCmReminder: false, reminderHour: 13
