@@ -201,11 +201,15 @@ details[open] summary:hover{border-radius:14px 14px 0 0}
 .hold{background:#1b63c6}
 footer{border-top:2px dashed var(--line)}
 [hidden]{display:none!important}
+header.hero .lang{position:absolute;top:16px;right:16px;z-index:2;max-width:none;display:flex;background:#fff;border-radius:999px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+header.hero .lang button{font:700 14px var(--body);border:0;background:transparent;color:#152238;padding:7px 14px;border-radius:999px;cursor:pointer}
+header.hero .lang button[aria-pressed="true"]{background:#1b63c6;color:#fff}
+@media (max-width:640px){header.hero{padding-top:66px}}
 .checks b{display:inline}
 .checks div > b:first-child{display:block}
 @media (max-width:560px){
   nav.switch{gap:6px}
-  nav.switch a{flex:1 1 0;min-width:0;padding:10px 8px 10px 30px;font-size:14px;line-height:1.25;border-radius:12px}
+  nav.switch a{flex:1 1 0;min-width:0;padding:10px 6px 10px 28px;font-size:13px;overflow-wrap:anywhere;hyphens:auto;line-height:1.25;border-radius:12px}
   nav.switch a::before{left:9px;width:14px;height:14px;margin-top:-7px;box-shadow:0 0 0 3px var(--dev-soft)}
   nav.switch a small{display:none}
 }
@@ -213,6 +217,7 @@ footer{border-top:2px dashed var(--line)}
 
 <div class="wrap">
   <header class="hero">
+    <div class="lang" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" lang="en">English</button><button type="button" data-lang="es" lang="es">Español</button></div>
     <span class="eyebrow">DHH Services · Teacher quick reference</span>
     <h1>Classroom Mic Troubleshooting</h1>
     <p class="lede">Your student can't hear the mic? Pick the device you're wearing, run the 60-second check, then find the symptom. Each fix comes from the manufacturer's user guide.</p>
@@ -554,35 +559,36 @@ footer{border-top:2px dashed var(--line)}
     '<rect x="46" y="88" width="24" height="40" rx="12" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/><rect x="70" y="90" width="24" height="38" rx="12" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/><rect x="94" y="94" width="22" height="34" rx="11" fill="#e5ad86" stroke="#8a5a3c" stroke-width="3"/>'+
     '<rect x="14" y="2" width="32" height="128" rx="16" fill="#efbd97" stroke="#8a5a3c" stroke-width="3"/><rect x="19" y="8" width="22" height="26" rx="10" fill="#f8dccb" stroke="#c99476" stroke-width="2"/>'+
     '<path d="M20 56 Q30 60 40 56 M20 92 Q30 96 40 92" stroke="#b67e5d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
+  function T(x){return window.T?window.T(x):x}
   var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function build(host){
-    var ids=host.dataset.demos.split(","), cur=null, t0=performance.now(), paused=false, pauseAt=0, els={};
-    host.innerHTML='<div class="chips" role="group" aria-label="Choose an action"></div><div class="demo-body"><div class="stage"><img alt=""><div class="finger"></div></div><div style="display:grid;gap:10px"><ol class="demo-steps" aria-live="polite"></ol><div class="demo-ctl"><button type="button" class="pp">Pause</button><button type="button" class="rp">Replay</button><span>Drawn hand shows which button to press.</span></div></div></div>';
+    var ids=host.dataset.demos.split(","), cur=null, curId=null, t0=performance.now(), paused=false, pauseAt=0, els={};
+    host.innerHTML='<div class="chips" role="group" aria-label="Choose an action"></div><div class="demo-body"><div class="stage"><img alt=""><div class="finger"></div></div><div style="display:grid;gap:10px"><ol class="demo-steps" aria-live="polite"></ol><div class="demo-ctl"><button type="button" class="pp"></button><button type="button" class="rp"></button><span class="note"></span></div></div></div>';
     var chips=host.querySelector(".chips"),stage=host.querySelector(".stage"),img=stage.querySelector("img"),finger=stage.querySelector(".finger"),stepsEl=host.querySelector(".demo-steps"),body=host.querySelector(".demo-body");
     finger.innerHTML=FINGER;
-    ids.forEach(function(id){var b=document.createElement("button");b.type="button";b.textContent=DEMOS[id].label;b.onclick=function(){load(id)};b.dataset.id=id;chips.appendChild(b)});
-    host.querySelector(".pp").onclick=function(){paused=!paused;if(paused){pauseAt=performance.now()}else{t0+=performance.now()-pauseAt}this.textContent=paused?"Play":"Pause"};
+    ids.forEach(function(id){var b=document.createElement("button");b.type="button";b.textContent=T(DEMOS[id].label);b.onclick=function(){load(id)};b.dataset.id=id;chips.appendChild(b)});
+    host.querySelector(".pp").onclick=function(){paused=!paused;if(paused){pauseAt=performance.now()}else{t0+=performance.now()-pauseAt}this.textContent=T(paused?"Play":"Pause")};
     host.querySelector(".rp").onclick=function(){t0=performance.now();if(paused){pauseAt=t0}};
     var ring,hold;
     function load(id){
-      cur=DEMOS[id];t0=performance.now();if(paused)pauseAt=t0;
+      cur=DEMOS[id];curId=id;t0=performance.now();if(paused)pauseAt=t0;
       chips.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.id===id?"true":"false")});
       body.classList.toggle("wide",!!cur.wide);
-      img.src=cur.img;img.alt=cur.alt+": "+cur.label.toLowerCase();
+      img.src=cur.img;img.alt=cur.alt+": "+T(cur.label).toLowerCase();
       stage.querySelectorAll(".ov").forEach(function(e){e.remove()});
       cur.fx.forEach(function(f){var e=document.createElement("div");e.className="ov";
         if(f.k==="led"||f.k==="pill"){e.className+=" glow"+(f.k==="pill"?" pill":"");e.style.setProperty("--c",f.c);
           if(f.k==="led"){e.style.width=e.style.height="12px"}else{e.style.width=f.w*100+"%";e.style.height=f.h*100+"%"}
           e.style.left=f.x*100+"%";e.style.top=f.y*100+"%"}
         else if(f.k==="scr"){e.className+=" scr";e.style.left=f.x*100+"%";e.style.top=f.y*100+"%";e.style.width=f.w*100+"%";e.style.height=f.h*100+"%";e.textContent=f.text}
-        else{e.className+=" badge"+(f.cls?" "+f.cls:"");e.style.left=f.x*100+"%";e.style.top=f.y*100+"%";e.textContent=f.text}
+        else{e.className+=" badge"+(f.cls?" "+f.cls:"");e.style.left=f.x*100+"%";e.style.top=f.y*100+"%";e.textContent=T(f.text)}
         f.el=e;stage.insertBefore(e,finger)});
       ring=document.createElement("div");ring.className="ov ring";ring.innerHTML='<svg viewBox="0 0 54 54" width="54" height="54"><circle class="bg" cx="27" cy="27" r="22"/><circle class="fg" cx="27" cy="27" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2"/></svg>';
       ring.style.left=cur.x*100+"%";ring.style.top=cur.y*100+"%";stage.insertBefore(ring,finger);
       hold=document.createElement("div");hold.className="ov hold";hold.style.left=cur.x*100+"%";hold.style.top="calc("+cur.y*100+"% + 30px)";stage.insertBefore(hold,finger);
       if(cur.y>.7){hold.style.top="calc("+cur.y*100+"% - 58px)"}
-      stepsEl.innerHTML=cur.steps.map(function(s){return "<li>"+s.s+"</li>"}).join("");
+      stepsEl.innerHTML=cur.steps.map(function(s){return "<li>"+T(s.s)+"</li>"}).join("");
       finger.style.width=(cur.fw*100)+"%";
       if(reduce)frame(lastT());
     }
@@ -601,8 +607,8 @@ footer{border-top:2px dashed var(--line)}
       finger.style.opacity=op;finger.style.transformOrigin=tipx+"px "+tipy+"px";
       finger.style.transform="translate("+(cur.x*W-tipx)+"px,"+(cur.y*H-tipy)+"px) rotate("+cur.angle+"deg) translate(0,"+d+"px) scale("+(press?.96:1)+")";
       var fg=ring.querySelector(".fg");
-      if(press&&press.hold>400){var pr=Math.min(1,(t-press.t)/press.hold);ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",138.2*(1-pr));hold.style.opacity=1;hold.textContent="Hold "+((t-press.t)/1000).toFixed(1)+" s"}
-      else if(press){ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",0);hold.style.opacity=1;hold.textContent="Tap"}
+      if(press&&press.hold>400){var pr=Math.min(1,(t-press.t)/press.hold);ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",138.2*(1-pr));hold.style.opacity=1;hold.textContent=T("Hold")+" "+((t-press.t)/1000).toFixed(1)+" s"}
+      else if(press){ring.style.opacity=1;fg.setAttribute("stroke-dashoffset",0);hold.style.opacity=1;hold.textContent=T("Tap")}
       else{ring.style.opacity=0;hold.style.opacity=0}
       cur.fx.forEach(function(f){var on=t>=f.t0&&t<f.t1;if(on&&f.blink&&!reduce)on=Math.floor(t/450)%2===0;f.el.style.opacity=on?1:0});
       var li=stepsEl.children,idx=0;cur.steps.forEach(function(s,i){if(t>=s.t)idx=i});
@@ -614,8 +620,269 @@ footer{border-top:2px dashed var(--line)}
     }
     img.addEventListener("load",function(){if(reduce)frame(lastT())});
     window.addEventListener("resize",function(){if(reduce)frame(lastT())});
-    load(ids[0]);requestAnimationFrame(tick);
+    function texts(){
+      chips.setAttribute("aria-label",T("Choose an action"));
+      chips.querySelectorAll("button").forEach(function(b){b.textContent=T(DEMOS[b.dataset.id].label)});
+      host.querySelector(".pp").textContent=T(paused?"Play":"Pause");host.querySelector(".rp").textContent=T("Replay");
+      host.querySelector(".note").textContent=T("Drawn hand shows which button to press.");
+    }
+    document.addEventListener("langchange",function(){texts();load(curId)});
+    texts();load(ids[0]);requestAnimationFrame(tick);
   }
   document.querySelectorAll(".demo").forEach(build);
+})();
+</script>
+<script>
+// Spanish translations, keyed by the English text exactly as it appears in the page.
+// Button names printed on the devices (On/Off, Connect, MUTE, ON/OFF) stay in English,
+// with a Spanish explanation, because that is what staff will see on the hardware.
+window.I18N_ES = {
+"Classroom Mic Troubleshooting":"Solución de problemas del micrófono del salón",
+"DHH Services · Teacher quick reference":"Servicios DHH · Guía rápida para maestros",
+"Your student can't hear the mic? Pick the device you're wearing, run the 60-second check, then find the symptom. Each fix comes from the manufacturer's user guide.":"¿Su estudiante no escucha el micrófono? Elija el dispositivo que usa, haga la revisión de 60 segundos y luego busque el problema. Cada solución viene de la guía del fabricante.",
+"Roger Touchscreen Mic<small>Phonak · screen + lanyard</small>":"Roger Touchscreen Mic<small>Phonak · pantalla + cordón</small>",
+"EduMic<small>Oticon · white clip-on</small>":"EduMic<small>Oticon · blanco con clip</small>",
+"Mini Mic 2+<small>Cochlear · black clip-on</small>":"Mini Mic 2+<small>Cochlear · negro con clip</small>",
+"60-second check (any device)":"Revisión de 60 segundos (cualquier dispositivo)",
+"<div><b>Is the mic on and charged?</b>Look for the light or screen. A dead battery is the most common cause.</div>":"<div><b>¿El micrófono está encendido y cargado?</b>Busque la luz o la pantalla. La batería descargada es la causa más común.</div>",
+"<div><b>Is the mic muted?</b>Mute is one tap away on all three devices and easy to hit by accident.</div>":"<div><b>¿El micrófono está silenciado?</b>En los tres dispositivos el silencio se activa con un solo toque y es fácil presionarlo sin querer.</div>",
+"<div><b>Is the student's device on the right program?</b>The hearing aid, cochlear implant or BAHA has to be on its mic/streaming program. The district setup is <b>program 1</b> unless the student's plan says otherwise.</div>":"<div><b>¿El dispositivo del estudiante está en el programa correcto?</b>El audífono, implante coclear o BAHA debe estar en su programa de micrófono/transmisión. En el distrito es el <b>programa 1</b>, a menos que el plan del estudiante indique otro.</div>",
+"<div><b>Is the mic close to your mouth?</b>Wear it 6–10 inches below your mouth, pointing up. Too far away sounds faint; too close sounds muffled.</div>":"<div><b>¿El micrófono está cerca de su boca?</b>Úselo de 6 a 10 pulgadas (15–25 cm) debajo de la boca, apuntando hacia arriba. Muy lejos se oye débil; muy cerca se oye apagado.</div>",
+"<div><b>Can the student hear you tap the mic?</b>Tap it gently and watch for a thumbs-up. That confirms the connection.</div>":"<div><b>¿El estudiante escucha cuando usted toca el micrófono?</b>Tóquelo suavemente y espere un pulgar arriba. Eso confirma la conexión.</div>",
+"Start of class":"Al comenzar la clase",
+"Press and hold the <b>On/Off button on the side</b> until the screen turns on.":"Mantenga presionado el <b>botón On/Off (encendido) del costado</b> hasta que se encienda la pantalla.",
+"Student switches their hearing aid, CI or BAHA to <b>program 1</b> (their Roger program).":"El estudiante cambia su audífono, implante coclear o BAHA al <b>programa 1</b> (su programa Roger).",
+"Tap <b>Connect</b> on the screen to check the link, and tap the mic to confirm the student can hear you.":"Toque <b>Connect</b> (conectar) en la pantalla para revisar la conexión y toque el micrófono para confirmar que el estudiante lo escucha.",
+"Put on the lanyard and cinch it so the mic hangs <b>6–10 inches</b> from your mouth.":"Póngase el cordón y ajústelo para que el micrófono quede a <b>6–10 pulgadas</b> de su boca.",
+"At lunch and end of day, the student switches back to their everyday program. Charge the mic overnight.":"En el almuerzo y al final del día, el estudiante vuelve a su programa de uso diario. Cargue el micrófono durante la noche.",
+"On/Off is on the right side. The button under the screen is Mute.":"On/Off está en el lado derecho. El botón debajo de la pantalla es el de silencio (Mute).",
+"Connect is on the home screen.":"Connect (conectar) está en la pantalla de inicio.",
+"Watch how":"Vea cómo se hace",
+"Reading the screen":"Cómo leer la pantalla",
+"You see":"Usted ve",
+"It means":"Significa",
+"<b>Blank screen</b>":"<b>Pantalla en blanco</b>",
+"Off, or the battery is empty. Hold On/Off; if nothing happens, plug in the charger.":"Apagado o sin batería. Mantenga presionado On/Off; si no pasa nada, conecte el cargador.",
+"<b>Mute button lit / mic shown muted</b>":"<b>Botón de silencio iluminado / micrófono en silencio</b>",
+"The mic is muted. Press the mute button below the screen once.":"El micrófono está silenciado. Presione una vez el botón de silencio debajo de la pantalla.",
+"<b>Lanyard icon</b> in the status bar":"<b>Ícono de cordón</b> en la barra de estado",
+"Normal teaching mode. It picks up the wearer's voice.":"Modo normal de enseñanza. Capta la voz de quien lo lleva puesto.",
+"<b>Battery icon low</b>":"<b>Ícono de batería bajo</b>",
+"Charge soon. Plan to charge every night.":"Cárguelo pronto. Cárguelo todas las noches.",
+"Find the problem":"Encuentre el problema",
+"Student hears nothing":"El estudiante no escucha nada",
+"Check the screen is on and the battery isn't empty.":"Revise que la pantalla esté encendida y que tenga batería.",
+"Make sure the mic isn't muted.":"Asegúrese de que el micrófono no esté silenciado.",
+"Ask the student to confirm their device is on program 1 (the Roger/FM/DAI program).":"Pida al estudiante que confirme que su dispositivo está en el programa 1 (programa Roger/FM/DAI).",
+"Check the Roger receiver is attached to the hearing aid or processor and switched on.":"Revise que el receptor Roger esté conectado al audífono o procesador y encendido.",
+"Move closer. If you're far away or around a corner, the signal can drop.":"Acérquese. Si está lejos o detrás de una esquina, la señal puede cortarse.",
+"Hold the student's device within <b>4 inches (10 cm)</b> of the mic and tap <b>Connect</b>.":"Coloque el dispositivo del estudiante a menos de <b>4 pulgadas (10 cm)</b> del micrófono y toque <b>Connect</b>.",
+"Still nothing: restart the mic by holding <b>On/Off + Mute together for 10 seconds</b>. Restarting does not erase connections.":"Si sigue sin funcionar: reinicie el micrófono manteniendo presionados <b>On/Off + Mute al mismo tiempo por 10 segundos</b>. Reiniciar no borra las conexiones.",
+"Sound is faint or muffled":"El sonido se oye débil o apagado",
+"Shorten the lanyard so the mic is 6–10 inches from your mouth.":"Acorte el cordón para que el micrófono quede a 6–10 pulgadas de su boca.",
+"Make sure it's hanging upright and facing you, not flipped or under a jacket or scarf.":"Asegúrese de que cuelgue derecho y hacia usted, no volteado ni debajo de una chaqueta o bufanda.",
+"Don't lay it flat on a desk while teaching. Flat on a table it listens to the whole group, not just you.":"No lo deje acostado sobre el escritorio mientras enseña. Acostado sobre una mesa capta a todo el grupo, no solo a usted.",
+"Sound cuts in and out":"El sonido se corta",
+"Stay in the same room as the student. Walls, doors and distance weaken the signal.":"Permanezca en el mismo salón que el estudiante. Las paredes, puertas y la distancia debilitan la señal.",
+"Check the mic and the student's receiver are both charged.":"Revise que el micrófono y el receptor del estudiante estén cargados.",
+"Tap Connect with the student's device close to the mic to refresh the link.":"Toque Connect con el dispositivo del estudiante cerca del micrófono para renovar la conexión.",
+"Screen frozen or not responding":"La pantalla está congelada o no responde",
+"Hold <b>On/Off + Mute together for 10 seconds</b> until it restarts. Connections are kept.":"Mantenga presionados <b>On/Off + Mute al mismo tiempo por 10 segundos</b> hasta que se reinicie. Las conexiones se conservan.",
+"If it still won't respond, charge it for at least 30 minutes and try again.":"Si aún no responde, cárguelo por lo menos 30 minutos e intente de nuevo.",
+"A new student, or a new receiver, needs to be added":"Hay que agregar un estudiante o receptor nuevo",
+"Turn on the student's device with the Roger receiver attached.":"Encienda el dispositivo del estudiante con el receptor Roger conectado.",
+"Hold it within 4 inches of the mic and tap <b>Connect</b>. Keep other Roger devices away while you do this.":"Colóquelo a menos de 4 pulgadas del micrófono y toque <b>Connect</b>. Mantenga alejados otros dispositivos Roger mientras lo hace.",
+"Connect one device at a time. Once connected, it stays connected.":"Conecte un dispositivo a la vez. Una vez conectado, queda conectado.",
+"<b>Do not use “NewNet.”</b> It erases the mic's network, and every student's receiver and any extra mics then have to be reconnected. Ask your DHH teacher first.":"<b>No use “NewNet.”</b> Borra la red del micrófono y luego hay que volver a conectar el receptor de cada estudiante y cualquier micrófono adicional. Consulte primero con su maestro(a) de DHH.",
+"Videos and manuals":"Videos y manuales",
+"Video · Phonak":"Video · Phonak",
+"Roger how-to videos":"Videos instructivos de Roger",
+"Setup, connecting, charging":"Configuración, conexión, carga",
+"Video · YouTube":"Video · YouTube",
+"Roger Touchscreen: Connect":"Roger Touchscreen: Connect",
+"Search results for walkthroughs":"Resultados de búsqueda de tutoriales",
+"Pair EduMic to Roger Touchscreen":"Vincular EduMic con Roger Touchscreen",
+"For rooms that use both":"Para salones que usan ambos",
+"Manual · PDF":"Manual · PDF (inglés)",
+"Roger Touchscreen Mic user guide":"Guía del usuario de Roger Touchscreen Mic",
+"FAQ · PDF":"Preguntas frecuentes · PDF (inglés)",
+"Roger Touchscreen troubleshooting FAQ":"Preguntas frecuentes de Roger Touchscreen",
+"Causes and solutions table":"Tabla de causas y soluciones",
+"One button does everything. Two lights on top: <b>Power</b> (battery icon) and <b>Status</b> (mic icon).":"Un solo botón hace todo. Dos luces arriba: <b>Power</b> (encendido, ícono de batería) y <b>Status</b> (estado, ícono de micrófono).",
+"Press and hold the button for <b>2 seconds</b>, until both lights turn <b>white</b>. Let go.":"Mantenga presionado el botón <b>2 segundos</b>, hasta que ambas luces se pongan <b>blancas</b>. Suéltelo.",
+"Wait about <b>10 seconds</b> until the Status light turns <b>green</b>. EduMic is on.":"Espere unos <b>10 segundos</b> hasta que la luz de estado se ponga <b>verde</b>. EduMic está encendido.",
+"Student's hearing aids switch to the EduMic stream (program 1). Tap the mic to confirm they hear you.":"Los audífonos del estudiante cambian a la transmisión de EduMic (programa 1). Toque el micrófono para confirmar que lo escucha.",
+"Clip it to the lanyard or your collar, <b>6–10 inches</b> from your mouth.":"Engánchelo al cordón o al cuello de su camisa, a <b>6–10 pulgadas</b> de su boca.",
+"To mute, press the button briefly. Press briefly again to unmute.":"Para silenciar, presione el botón brevemente. Presiónelo brevemente otra vez para quitar el silencio.",
+"Reading the Status light":"Cómo leer la luz de estado",
+"Status light":"Luz de estado",
+"<span class=\"led\" style=\"--c:var(--led-white)\"><i></i>White</span>":"<span class=\"led\" style=\"--c:var(--led-white)\"><i></i>Blanca</span>",
+"Starting up. Wait for green.":"Encendiendo. Espere la luz verde.",
+"<span class=\"led\" style=\"--c:var(--led-green)\"><i></i>Green</span>":"<span class=\"led\" style=\"--c:var(--led-green)\"><i></i>Verde</span>",
+"Mic is on and sending your voice.":"El micrófono está encendido y transmite su voz.",
+"Normal":"Normal",
+"<span class=\"led blink\" style=\"--c:var(--led-green)\"><i></i>Flashing green</span>":"<span class=\"led blink\" style=\"--c:var(--led-green)\"><i></i>Verde parpadeante</span>",
+"Muted. Press the button briefly to unmute.":"Silenciado. Presione el botón brevemente para quitar el silencio.",
+"<span class=\"led blink\" style=\"--c:var(--led-blue)\"><i></i>Flashing blue</span>":"<span class=\"led blink\" style=\"--c:var(--led-blue)\"><i></i>Azul parpadeante</span>",
+"Pairing in progress.":"Vinculación en curso.",
+"<span class=\"led\" style=\"--c:var(--led-yellow)\"><i></i>Yellow</span> / <span class=\"led blink\" style=\"--c:var(--led-yellow)\"><i></i>flashing</span>":"<span class=\"led\" style=\"--c:var(--led-yellow)\"><i></i>Amarilla</span> / <span class=\"led blink\" style=\"--c:var(--led-yellow)\"><i></i>parpadeante</span>",
+"Jack/FM mode (muted if flashing). The built-in mic isn't the source.":"Modo de entrada jack/FM (silenciado si parpadea). El micrófono integrado no es la fuente.",
+"<span class=\"tag\">Call DHH</span>":"<span class=\"tag\">Llame a DHH</span>",
+"<span class=\"led\" style=\"--c:var(--led-magenta)\"><i></i>Magenta</span> / <span class=\"led blink\" style=\"--c:var(--led-magenta)\"><i></i>flashing</span>":"<span class=\"led\" style=\"--c:var(--led-magenta)\"><i></i>Magenta</span> / <span class=\"led blink\" style=\"--c:var(--led-magenta)\"><i></i>parpadeante</span>",
+"Telecoil mode (muted if flashing). Not the normal classroom setting.":"Modo telebobina (silenciado si parpadea). No es el modo normal del salón.",
+"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Red</span>":"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Roja</span>",
+"All hearing aid pairings were cleared. Students must be re-paired.":"Se borraron todas las vinculaciones de audífonos. Hay que volver a vincular a los estudiantes.",
+"Power light <span class=\"led blink\" style=\"--c:var(--led-red)\"><i></i>flashing red</span> = low battery. Charge with the micro USB cable.":"Luz de encendido <span class=\"led blink\" style=\"--c:var(--led-red)\"><i></i>roja parpadeante</span> = batería baja. Cárguelo con el cable micro USB.",
+"Status light green? If no lights, hold the button 2 seconds; if still nothing, charge it.":"¿La luz de estado está verde? Si no hay luces, mantenga presionado el botón 2 segundos; si sigue sin encender, cárguelo.",
+"Flashing green means muted. Press the button briefly once.":"Verde parpadeante significa silenciado. Presione el botón brevemente una vez.",
+"Yellow or magenta means it's in the wrong mode. Contact your DHH teacher.":"Amarilla o magenta significa que está en el modo incorrecto. Comuníquese con su maestro(a) de DHH.",
+"Ask the student to check their hearing aids are on the EduMic program (program 1).":"Pida al estudiante que revise que sus audífonos estén en el programa de EduMic (programa 1).",
+"Have the student turn their hearing aids off and back on (or open and close the battery doors). They reconnect when they restart.":"Pida al estudiante que apague y vuelva a encender sus audífonos (o abra y cierre la tapa de la batería). Se reconectan al reiniciarse.",
+"Still nothing: the hearing aids may need pairing again (see below).":"Si sigue sin funcionar: puede que haya que volver a vincular los audífonos (vea abajo).",
+"Move EduMic up to 6–10 inches from your mouth.":"Suba el EduMic a 6–10 pulgadas de su boca.",
+"Make sure the microphone slot on top isn't covered by clothing, a badge or hair.":"Asegúrese de que la ranura del micrófono, arriba, no esté tapada por ropa, un gafete o el cabello.",
+"Light turned red":"La luz se puso roja",
+"The button was held for about 12 seconds, which clears every pairing. Students won't get sound until their hearing aids are paired again.":"Se mantuvo presionado el botón unos 12 segundos, lo que borra todas las vinculaciones. Los estudiantes no recibirán sonido hasta que se vuelvan a vincular sus audífonos.",
+"<b>To turn EduMic off,</b> hold the button only until the lights go out, then let go. Holding longer clears pairings.":"<b>Para apagar el EduMic,</b> mantenga presionado el botón solo hasta que se apaguen las luces y suéltelo. Si lo mantiene más tiempo, se borran las vinculaciones.",
+"A student's hearing aids need pairing":"Hay que vincular los audífonos de un estudiante",
+"Turn EduMic on (green Status light). Put the student's hearing aids close to it.":"Encienda el EduMic (luz de estado verde). Coloque los audífonos del estudiante cerca.",
+"Restart the hearing aids. <b>Rechargeable:</b> hold the lower part of the hearing aid button 3 seconds (off), then 2 seconds (on). <b>Battery:</b> open and close the battery doors.":"Reinicie los audífonos. <b>Recargables:</b> mantenga presionada la parte inferior del botón del audífono 3 segundos (apagar) y luego 2 segundos (encender). <b>Con pila:</b> abra y cierre la tapa de la pila.",
+"Pairing must happen within 3 minutes. The Status light flashes <b>blue</b>, then turns <b>green</b> when done.":"La vinculación debe hacerse dentro de 3 minutos. La luz de estado parpadea en <b>azul</b> y luego se pone <b>verde</b> al terminar.",
+"Pair one student at a time. EduMic remembers up to 10 sets of hearing aids, so this is usually a one-time step.":"Vincule a un estudiante a la vez. EduMic recuerda hasta 10 pares de audífonos, así que normalmente se hace una sola vez.",
+"Guide · Oticon":"Guía · Oticon",
+"How to pair hearing aids with EduMic":"Cómo vincular audífonos con EduMic",
+"Step-by-step with pictures":"Paso a paso con imágenes",
+"Oticon EduMic how-to videos":"Videos instructivos de Oticon EduMic",
+"Turn on, mute, pairing":"Encender, silenciar, vincular",
+"EduMic quick guide for teachers":"Guía rápida de EduMic para maestros",
+"Oticon US":"Oticon EE. UU.",
+"EduMic instructions for use":"Instrucciones de uso de EduMic",
+"Full manual with light table":"Manual completo con tabla de luces",
+"Mini Microphone 2+":"Mini Microphone 2+",
+"Press and hold the <b>ON/OFF button</b> (top) about 1.5 seconds until the LED turns green. Let go; it then <b>blinks green</b>.":"Mantenga presionado el <b>botón ON/OFF</b> (arriba) unos 1.5 segundos hasta que la luz se ponga verde. Suéltelo; luego <b>parpadea en verde</b>.",
+"Student starts streaming on their CI or BAHA processor: <b>program 1</b>, or press and hold the processor button about 3 seconds (or use their Cochlear app or remote).":"El estudiante inicia la transmisión en su procesador de implante coclear o BAHA: <b>programa 1</b>, o mantiene presionado el botón del procesador unos 3 segundos (o usa su app o control remoto de Cochlear).",
+"Tap the mic to confirm the student hears you.":"Toque el micrófono para confirmar que el estudiante lo escucha.",
+"Clip it or use the lanyard, <b>6–10 inches</b> from your mouth.":"Engánchelo o use el cordón, a <b>6–10 pulgadas</b> de su boca.",
+"At lunch and end of day, student stops streaming with a short press of the processor button. Charge the mic overnight.":"En el almuerzo y al final del día, el estudiante detiene la transmisión con una presión corta del botón del procesador. Cargue el micrófono durante la noche.",
+"Volume and Mute are on the side. The Mute LED lights when the mic is muted.":"El volumen y el silencio (MUTE) están en el costado. La luz de silencio se enciende cuando el micrófono está silenciado.",
+"Reading the lights":"Cómo leer las luces",
+"Light":"Luz",
+"<span class=\"led blink\" style=\"--c:var(--led-green)\"><i></i>Blinking green</span>":"<span class=\"led blink\" style=\"--c:var(--led-green)\"><i></i>Verde parpadeante</span>",
+"On and ready.":"Encendido y listo.",
+"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Red while holding</span>":"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Roja al mantener presionado</span>",
+"Turning off.":"Apagándose.",
+"<span class=\"led blink\" style=\"--c:var(--led-yellow)\"><i></i>Flashing yellow</span>":"<span class=\"led blink\" style=\"--c:var(--led-yellow)\"><i></i>Amarilla parpadeante</span>",
+"Less than 30 minutes of battery left. Charge it. (Also shows during the 20-second pairing window.)":"Quedan menos de 30 minutos de batería. Cárguelo. (También aparece durante los 20 segundos de vinculación.)",
+"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Red on charger</span>":"<span class=\"led\" style=\"--c:var(--led-red)\"><i></i>Roja en el cargador</span>",
+"Charging.":"Cargando.",
+"<span class=\"led half\" style=\"--c:var(--led-green)\"><i></i>Green + red blink</span>":"<span class=\"led half\" style=\"--c:var(--led-green)\"><i></i>Verde + destello rojo</span>",
+"Fully charged (red flash every 2 seconds while still plugged in).":"Carga completa (destello rojo cada 2 segundos mientras sigue conectado).",
+"<b>Mute LED on</b>":"<b>Luz de silencio encendida</b>",
+"Muted. Press MUTE once to unmute.":"Silenciado. Presione MUTE una vez para quitar el silencio.",
+"A full charge lasts about 10 hours. A new mic needs at least 3 hours of charging before first use.":"Una carga completa dura unas 10 horas. Un micrófono nuevo necesita por lo menos 3 horas de carga antes del primer uso.",
+"Status LED blinking green? If not, hold ON/OFF; if nothing happens, charge it.":"¿La luz de estado parpadea en verde? Si no, mantenga presionado ON/OFF; si no pasa nada, cárguelo.",
+"Mute LED lit? Press MUTE once.":"¿La luz de silencio está encendida? Presione MUTE una vez.",
+"Ask the student to start streaming again on their processor (program 1, or hold the processor button about 3 seconds).":"Pida al estudiante que vuelva a iniciar la transmisión en su procesador (programa 1, o mantener presionado el botón del procesador unos 3 segundos).",
+"Turn the volume up with the volume UP button on the mic.":"Suba el volumen con el botón de volumen UP (subir) del micrófono.",
+"Have the student turn the processor off and on, then start streaming again.":"Pida al estudiante que apague y encienda el procesador y luego vuelva a iniciar la transmisión.",
+"Still nothing: the processor may need pairing again (see below).":"Si sigue sin funcionar: puede que haya que volver a vincular el procesador (vea abajo).",
+"Too soft or too loud":"Muy bajo o muy alto",
+"Use the volume UP / DOWN buttons on the side of the mic.":"Use los botones de volumen UP / DOWN (subir / bajar) del costado del micrófono.",
+"Check the mic is 6–10 inches from your mouth and not covered by clothing.":"Revise que el micrófono esté a 6–10 pulgadas de su boca y no esté tapado por la ropa.",
+"Stay in the same room with a clear path to the student.":"Permanezca en el mismo salón, sin obstáculos entre usted y el estudiante.",
+"Check the battery. Flashing yellow means less than 30 minutes left.":"Revise la batería. Amarilla parpadeante significa que quedan menos de 30 minutos.",
+"Processor needs pairing":"Hay que vincular el procesador",
+"Turn the Mini Mic on. Keep the processor close by.":"Encienda el Mini Mic. Mantenga el procesador cerca.",
+"Press the small <b>pairing button</b> once with a pen tip (channel 1). The LED flashes <b>yellow</b> for 20 seconds.":"Presione una vez el pequeño <b>botón de vinculación</b> con la punta de un bolígrafo (canal 1). La luz parpadea en <b>amarillo</b> por 20 segundos.",
+"Within those 20 seconds, restart the processor (turn it on, or close the battery door). A melody or flashing light on the processor confirms pairing.":"Dentro de esos 20 segundos, reinicie el procesador (enciéndalo o cierre la tapa de la batería). Una melodía o una luz parpadeante en el procesador confirma la vinculación.",
+"If the 20 seconds run out, repeat. Pairing is normally done once by your DHH teacher or audiologist.":"Si se acaban los 20 segundos, repita. Normalmente la vinculación la hace una sola vez su maestro(a) de DHH o el audiólogo.",
+"Mini Microphone 2+ pairing and use":"Vinculación y uso del Mini Microphone 2+",
+"Support · Cochlear":"Soporte · Cochlear",
+"No pairing melody? Timeout fix":"¿No suena la melodía de vinculación? Solución",
+"Cochlear support article":"Artículo de soporte de Cochlear",
+"Mini Microphone 2+ user manual":"Manual del usuario del Mini Microphone 2+",
+"True Wireless accessories guide":"Guía de accesorios True Wireless",
+"Streaming and pairing by processor":"Transmisión y vinculación según el procesador",
+"When to stop and call":"Cuándo parar y pedir ayuda",
+"Contact your campus <b>Teacher of the Deaf/Hard of Hearing</b> or the district <b>educational audiologist</b> if:":"Comuníquese con el <b>maestro(a) de sordos e hipoacúsicos (DHH)</b> de su escuela o con el <b>audiólogo educativo</b> del distrito si:",
+"<div>The student still can't hear after the 60-second check and the device fixes above.</div>":"<div>El estudiante todavía no escucha después de la revisión de 60 segundos y las soluciones de arriba.</div>",
+"<div>A device needs pairing, or an EduMic light shows yellow, magenta or red.</div>":"<div>Un dispositivo necesita vincularse, o una luz del EduMic está amarilla, magenta o roja.</div>",
+"<div>The student's own hearing aid or processor isn't working, even without the mic. Don't change settings on the student's device beyond switching programs.</div>":"<div>El audífono o procesador del estudiante no funciona, ni siquiera sin el micrófono. No cambie ajustes del dispositivo del estudiante, solo el programa.</div>",
+"Steps summarized from the manufacturers' published guides: Phonak Roger Touchscreen Mic user guide and FAQ, Oticon EduMic instructions for use and teacher quick guide, and Cochlear Mini Microphone 2+ / True Wireless user guides. “Program 1” follows the district DHH in-service slides. Always follow a student's individual plan when it differs.":"Pasos resumidos de las guías publicadas por los fabricantes: guía del usuario y preguntas frecuentes de Phonak Roger Touchscreen Mic, instrucciones de uso y guía rápida para maestros de Oticon EduMic, y guías del usuario de Cochlear Mini Microphone 2+ / True Wireless. El “programa 1” sigue las diapositivas de capacitación DHH del distrito. Siga siempre el plan individual del estudiante cuando sea diferente.",
+/* image descriptions and labels */
+"Roger Touchscreen Mic front view, with an arrow to the On/Off button on the right side and the mute button below the screen.":"Vista frontal del Roger Touchscreen Mic, con una flecha al botón On/Off del lado derecho y el botón de silencio debajo de la pantalla.",
+"Roger Touchscreen home screen showing SubNet, Network and the Connect button, with an arrow to Connect.":"Pantalla de inicio del Roger Touchscreen con SubNet, Network y el botón Connect, con una flecha a Connect.",
+"EduMic diagram: microphone slot on top, one button on the side, 3.5 mm jack and FM connector on the end, power and status lights on top, micro USB charging port, and a rotating clip on the back.":"Diagrama del EduMic: ranura del micrófono arriba, un botón en el costado, entrada jack de 3.5 mm y conector FM en el extremo, luces de encendido y estado arriba, puerto de carga micro USB y clip giratorio atrás.",
+"Cochlear Mini Microphone 2+ diagram: LED status indicator and ON/OFF button on top; volume up, mute and volume down on the side; mute LED indicator near the clip; charging connector at the bottom.":"Diagrama del Cochlear Mini Microphone 2+: luz de estado y botón ON/OFF arriba; subir volumen, silencio y bajar volumen en el costado; luz de silencio cerca del clip; conector de carga abajo.",
+"Choose device":"Elija el dispositivo",
+"Choose an action":"Elija una acción",
+/* animated demos */
+"Turn on":"Encender",
+"Mute / unmute":"Silenciar / activar",
+"Connect a student":"Conectar a un estudiante",
+"Volume":"Volumen",
+"Pause":"Pausa",
+"Play":"Reproducir",
+"Replay":"Repetir",
+"Drawn hand shows which button to press.":"La mano dibujada muestra qué botón presionar.",
+"Tap":"Toque",
+"Hold":"Mantenga",
+"Muted":"Silenciado",
+"Student's device within 4 in":"Dispositivo del estudiante a menos de 4 pulg.",
+"✓ Connected":"✓ Conectado",
+"about 10 s later":"unos 10 s después",
+"Flashing green = muted":"Verde parpadeante = silenciado",
+"Mute LED on":"Luz de silencio encendida",
+"Louder +":"Más alto +",
+"Louder + +":"Más alto + +",
+"Find the On/Off button on the right side.":"Busque el botón On/Off en el lado derecho.",
+"Press and hold it.":"Manténgalo presionado.",
+"Let go when the screen turns on.":"Suéltelo cuando se encienda la pantalla.",
+"Tap the button under the screen once.":"Toque una vez el botón debajo de la pantalla.",
+"It lights up: the mic is muted.":"Se ilumina: el micrófono está silenciado.",
+"Tap again to unmute.":"Tóquelo otra vez para quitar el silencio.",
+"Hold the student's device (receiver on) within 4 inches.":"Coloque el dispositivo del estudiante (receptor encendido) a menos de 4 pulgadas.",
+"Tap Connect on the home screen.":"Toque Connect en la pantalla de inicio.",
+"Wait for the confirmation, then tap the mic to test.":"Espere la confirmación y luego toque el micrófono para probar.",
+"Press and hold the side button for 2 seconds.":"Mantenga presionado el botón del costado 2 segundos.",
+"Both lights turn white. Let go.":"Ambas luces se ponen blancas. Suéltelo.",
+"Wait about 10 seconds for the Status light to turn green.":"Espere unos 10 segundos a que la luz de estado se ponga verde.",
+"Briefly press the side button.":"Presione brevemente el botón del costado.",
+"Status light flashes green: muted.":"La luz de estado parpadea en verde: silenciado.",
+"Briefly press again. Steady green: unmuted.":"Presione brevemente otra vez. Verde fijo: sin silencio.",
+"Press and hold ON/OFF on top (about 1.5 s).":"Mantenga presionado ON/OFF arriba (unos 1.5 s).",
+"The LED turns green. Let go.":"La luz se pone verde. Suéltelo.",
+"Blinking green: on and ready.":"Verde parpadeante: encendido y listo.",
+"Press MUTE on the side once.":"Presione MUTE en el costado una vez.",
+"The Mute LED lights: muted.":"La luz de silencio se enciende: silenciado.",
+"Press MUTE again to unmute.":"Presione MUTE otra vez para quitar el silencio.",
+"Press volume UP to make it louder for the student.":"Presione volumen UP para que el estudiante lo oiga más alto.",
+"Each press steps it up. Volume DOWN makes it softer.":"Cada presión lo sube un poco. Volumen DOWN lo baja."
+};
+
+(function(){
+  var ES=window.I18N_ES,LANG="en";
+  var SEL="h1,h2,h3,p,li,td,th,summary,figcaption,.eyebrow,nav.switch a,.media a > *";
+  function norm(x){return x.trim().replace(/\s+/g," ")}
+  var els=[].slice.call(document.querySelectorAll(SEL)).filter(function(e){return !e.parentElement.closest(SEL)&&!e.closest(".demo")});
+  var orig=els.map(function(e){return e.innerHTML});
+  var imgs=[].slice.call(document.querySelectorAll("img[alt]")),imgAlt=imgs.map(function(i){return i.alt});
+  var arias=[].slice.call(document.querySelectorAll("nav[aria-label]")),ariaO=arias.map(function(e){return e.getAttribute("aria-label")});
+  window.T=function(x){return LANG==="es"&&ES[x]!==undefined?ES[x]:x};
+  function setLang(l){
+    LANG=l==="es"?"es":"en";
+    els.forEach(function(e,i){var k=norm(orig[i]);e.innerHTML=(LANG==="es"&&ES[k]!==undefined)?ES[k]:orig[i]});
+    imgs.forEach(function(im,i){im.alt=T(imgAlt[i])});
+    arias.forEach(function(e,i){e.setAttribute("aria-label",T(ariaO[i]))});
+    document.documentElement.lang=LANG;
+    document.title=LANG==="es"?"Micrófono del salón: soluciones":"Classroom Mic Troubleshooting";
+    document.querySelectorAll(".lang button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.lang===LANG?"true":"false")});
+    try{localStorage.setItem("lang",LANG)}catch(e){}
+    document.dispatchEvent(new Event("langchange"));
+  }
+  document.querySelectorAll(".lang button").forEach(function(b){b.onclick=function(){setLang(b.dataset.lang)}});
+  var start="en";try{start=localStorage.getItem("lang")||((navigator.language||"").slice(0,2)==="es"?"es":"en")}catch(e){}
+  setLang(start);
+  window.__missing=function(){return els.map(function(e,i){return norm(orig[i])}).filter(function(k){return k&&ES[k]===undefined})};
 })();
 </script>
