@@ -1,25 +1,25 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Classroom Mic Quick Fix Sheet</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@700;800&display=swap">
 <style>
 @page{size:Letter landscape;margin:.32in}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Atkinson Hyperlegible","Segoe UI",sans-serif;font-size:9.6pt;line-height:1.32;color:#13232a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-h1,h2{font-family:"Bricolage Grotesque","Segoe UI",sans-serif;margin:0;line-height:1.05}
+body{margin:0;font-family:"Atkinson Hyperlegible","Segoe UI",sans-serif;font-size:9.6pt;line-height:1.32;color:#152238;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+h1,h2{font-family:"Lexend","Segoe UI",sans-serif;margin:0;line-height:1.05}
 h1{font-size:19pt}
-h2{font-size:13pt;color:#0e6670}
-h3{font-size:8.6pt;margin:0 0 2px;text-transform:uppercase;letter-spacing:.06em;color:#52646b}
+h2{font-size:13pt;color:var(--dev)}
+h3{font-size:8.6pt;margin:0 0 2px;text-transform:uppercase;letter-spacing:.06em;color:#4b5b73}
 p,ol,ul{margin:0}
 ol,ul{padding-left:1.25em}
 li{margin-bottom:1.5px}
-.top{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;border-bottom:2px solid #0e6670;padding-bottom:6px}
-.top small{display:block;color:#52646b;font-size:8pt}
+.top{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:#1b63c6;color:#fff;border-radius:14px;padding:10px 14px}
+.top small{display:block;color:#dcebff;font-size:8pt}
 .check{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;list-style:none;padding:0;counter-reset:c}
-.check li{counter-increment:c;background:#dcefee;border-radius:6px;padding:4px 6px 4px 22px;position:relative;margin:0}
-.check li::before{content:counter(c);position:absolute;left:5px;top:4px;width:13px;height:13px;border-radius:50%;background:#0e6670;color:#fff;font-weight:700;font-size:7.5pt;display:grid;place-items:center}
+.check li{counter-increment:c;background:#fff;color:#152238;border-radius:6px;padding:4px 6px 4px 22px;position:relative;margin:0}
+.check li::before{content:counter(c);position:absolute;left:5px;top:4px;width:13px;height:13px;border-radius:50%;background:#ffd23f;color:#3d2e00;font-weight:700;font-size:7.5pt;display:grid;place-items:center}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
-.col{border:1px solid #d5dfdd;border-radius:8px;padding:8px;display:grid;gap:6px;align-content:start}
+.col{border:1.5px solid #cfdcef;border-top:7px solid var(--dev);border-radius:12px;padding:8px;display:grid;gap:6px;align-content:start}
 .pic{position:relative;width:fit-content;max-width:100%;margin:0 auto;border:1px solid #e3e9e8;border-radius:6px;overflow:hidden;background:#fff}
 .pic img{display:block;max-height:1.95in;max-width:100%;width:auto;height:auto}
 .pin{position:absolute;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;border:2.5px solid #d93a2f;background:rgba(255,255,255,.6)}
@@ -29,10 +29,10 @@ li{margin-bottom:1.5px}
 .lt td{padding:1.5px 3px;border-bottom:1px solid #eef2f1;vertical-align:top}
 .lt td:first-child{white-space:nowrap;font-weight:700}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.25)}
-.warn{background:#fff3d6;color:#6b4a00;border-radius:6px;padding:4px 6px}
+.warn{background:#ffe9e4;color:#8a2414;border-left:4px solid #d93a2f;border-radius:6px;padding:4px 6px}
 .foot{margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-top:1px solid #d5dfdd;padding-top:5px;font-size:7.8pt;color:#52646b}
 .foot b{color:#13232a}
-.contact{border:1.5px dashed #0e6670;border-radius:6px;padding:4px 8px;color:#13232a}
+.contact{border:1.5px dashed #1b63c6;background:#fff6cc;border-radius:6px;padding:4px 8px;color:#13232a}
 </style></head><body>
 <div class="top">
   <div><h1>Classroom Mic Quick Fix</h1><small>DHH Services · keep by the charger</small></div>
@@ -46,7 +46,7 @@ li{margin-bottom:1.5px}
 </div>
 
 <div class="cols">
-  <section class="col">
+  <section class="col" style="--dev:#1b63c6">
     <h2>Roger Touchscreen Mic</h2>
     <div class="pic"><img src="images/roger-touchscreen.png" alt="">
       <span class="pin" style="left:54.8%;top:25%"></span>
@@ -64,7 +64,7 @@ li{margin-bottom:1.5px}
     <p class="warn"><b>Never tap NewNet.</b> It disconnects every student.</p>
   </section>
 
-  <section class="col">
+  <section class="col" style="--dev:#13874a">
     <h2>Oticon EduMic</h2>
     <div class="pic"><img src="images/edumic-diagram.png" alt=""><span class="pin" style="left:19%;top:55.5%"></span></div>
     <div><h3>Turn on</h3><p>Hold the button <b>2 s</b> until both lights are <b>white</b>. Let go. Wait ~10 s for <b>green</b>.</p></div>
@@ -84,7 +84,7 @@ li{margin-bottom:1.5px}
     <p class="warn"><b>Don't hold the button 12 s.</b> It clears all pairings.</p>
   </section>
 
-  <section class="col">
+  <section class="col" style="--dev:#d35400">
     <h2>Cochlear Mini Mic 2+</h2>
     <div class="pic"><img src="images/minimic-diagram.png" alt=""><span class="pin" style="left:64.4%;top:33%"></span><span class="pin" style="left:32.2%;top:53.5%"></span></div>
     <div><h3>Turn on</h3><p>Hold <b>ON/OFF</b> (top) ~1.5 s until green. Let go: <b>blinking green</b> = on. Student starts streaming (program 1, or hold processor button ~3 s).</p></div>

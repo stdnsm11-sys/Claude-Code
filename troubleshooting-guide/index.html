@@ -1,23 +1,35 @@
 <title>Classroom Mic Troubleshooting</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;700;800&display=swap">
 <style>
 /* Layout: a single readable column; a sticky device switcher; each device is a stack of
    "start-up → light/screen legend → symptom fixes → re-pairing → videos". */
+/* Bright classroom palette: sky-blue frame, sunny-yellow highlights, one color per device
+   (Roger = blue, EduMic = green, Mini Mic = orange) so staff can find "their" mic fast. */
 :root{
-  --bg:#f3f6f5; --surface:#ffffff; --ink:#13232a; --muted:#52646b; --line:#d5dfdd;
-  --accent:#0e6670; --accent-ink:#ffffff; --accent-soft:#dcefee; --warn-soft:#fff3d6; --warn-ink:#6b4a00;
+  --bg:#eef6ff; --surface:#ffffff; --ink:#152238; --muted:#4b5b73; --line:#cfdcef;
+  --accent:#1b63c6; --accent-ink:#ffffff; --accent-soft:#dcebff;
+  --sun:#ffd23f; --sun-soft:#fff6cc; --sun-ink:#5a4300;
+  --warn-soft:#ffe9e4; --warn-ink:#8a2414;
+  --roger:#1b63c6; --roger-soft:#dcebff; --edumic:#13874a; --edumic-soft:#daf5e5; --minimic:#d35400; --minimic-soft:#ffe7d4;
   --led-green:#1fae4b; --led-yellow:#e7b416; --led-red:#d93a2f; --led-blue:#2f6fe0; --led-white:#f4f4f4; --led-magenta:#c4359b; --led-off:#7b8a8f;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --display:"Lexend", "Segoe UI", system-ui, sans-serif;
   --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1719; --surface:#172226; --ink:#e6eeee; --muted:#9db0b4; --line:#2a3a3f;
-  --accent:#5cc3c9; --accent-ink:#06282b; --accent-soft:#163a3d; --warn-soft:#3a2f12; --warn-ink:#f6d98a; color-scheme:dark}}
+  --bg:#0e1626; --surface:#17223a; --ink:#eaf1ff; --muted:#a9b8d3; --line:#2b3a58;
+  --accent:#6fa8ff; --accent-ink:#0b1730; --accent-soft:#1d3359;
+  --sun:#ffd23f; --sun-soft:#3a3214; --sun-ink:#ffe48a; --warn-soft:#45201a; --warn-ink:#ffc2b5;
+  --roger:#6fa8ff; --roger-soft:#1d3359; --edumic:#4fd38a; --edumic-soft:#143b28; --minimic:#ff9a52; --minimic-soft:#45270f; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1719; --surface:#172226; --ink:#e6eeee; --muted:#9db0b4; --line:#2a3a3f;
-  --accent:#5cc3c9; --accent-ink:#06282b; --accent-soft:#163a3d; --warn-soft:#3a2f12; --warn-ink:#f6d98a; color-scheme:dark}
+  --bg:#0e1626; --surface:#17223a; --ink:#eaf1ff; --muted:#a9b8d3; --line:#2b3a58;
+  --accent:#6fa8ff; --accent-ink:#0b1730; --accent-soft:#1d3359;
+  --sun:#ffd23f; --sun-soft:#3a3214; --sun-ink:#ffe48a; --warn-soft:#45201a; --warn-ink:#ffc2b5;
+  --roger:#6fa8ff; --roger-soft:#1d3359; --edumic:#4fd38a; --edumic-soft:#143b28; --minimic:#ff9a52; --minimic-soft:#45270f; color-scheme:dark}
+[data-dev="roger"],[data-panel="roger"]{--dev:var(--roger);--dev-soft:var(--roger-soft)}
+[data-dev="edumic"],[data-panel="edumic"]{--dev:var(--edumic);--dev-soft:var(--edumic-soft)}
+[data-dev="minimic"],[data-panel="minimic"]{--dev:var(--minimic);--dev-soft:var(--minimic-soft)}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;
@@ -130,10 +142,77 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .demo-ctl span{font-size:13px;color:var(--muted)}
 
 footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14px;display:grid;gap:8px}
+
+/* ---- bright classroom treatment ---- */
+h1,h2{font-weight:800;letter-spacing:-.015em}
+h3{font-weight:700}
+header.hero{background:var(--accent);color:#fff;border-radius:22px;padding:26px 24px 22px;display:grid;gap:10px;position:relative;overflow:hidden}
+header.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:var(--sun);opacity:.9}
+header.hero::before{content:"";position:absolute;right:70px;bottom:-60px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14)}
+header.hero > *{position:relative;z-index:1;max-width:min(560px,78%)}
+@media (max-width:520px){header.hero > *{max-width:100%} header.hero::after{width:110px;height:110px;right:-45px;top:-45px}}
+header.hero .eyebrow{color:#fff;opacity:.9}
+header.hero .lede{color:#fff;opacity:.95}
+:root[data-theme="dark"] header.hero,:root[data-theme="dark"] header.hero .eyebrow,:root[data-theme="dark"] header.hero .lede{color:#0b1730}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) header.hero,:root:not([data-theme="light"]) header.hero .eyebrow,:root:not([data-theme="light"]) header.hero .lede{color:#0b1730}}
+
+nav.switch{border-bottom:0;padding-block:12px}
+nav.switch a{border:2px solid var(--line);border-radius:16px;padding:12px 14px 12px 44px;position:relative}
+nav.switch a::before{content:"";position:absolute;left:14px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;background:var(--dev);box-shadow:0 0 0 4px var(--dev-soft)}
+nav.switch a:hover{border-color:var(--dev)}
+nav.switch a[aria-current="true"]{background:var(--dev);border-color:var(--dev);color:#fff}
+nav.switch a[aria-current="true"] small{color:#fff}
+nav.switch a[aria-current="true"]::before{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.35)}
+:root[data-theme="dark"] nav.switch a[aria-current="true"],:root[data-theme="dark"] nav.switch a[aria-current="true"] small{color:#0b1730}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) nav.switch a[aria-current="true"],:root:not([data-theme="light"]) nav.switch a[aria-current="true"] small{color:#0b1730}}
+
+.first{border:2px solid var(--line);border-radius:20px;padding:22px}
+.checks li::before{background:var(--sun);color:#3d2e00;width:30px;height:30px;font-family:var(--display)}
+.checks li{grid-template-columns:32px 1fr}
+
+section.device{background:var(--surface);border:2px solid var(--line);border-top:10px solid var(--dev);border-radius:22px;padding:22px}
+section.device > .dev-head .eyebrow, section.device > .block > .eyebrow{display:inline-block;width:fit-content;background:var(--dev-soft);color:var(--dev);padding:3px 12px;border-radius:999px;letter-spacing:.06em}
+section.device h2{color:var(--dev)}
+section.device h3{display:flex;align-items:center;gap:10px}
+section.device h3::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--sun);flex:none}
+ol.steps li::marker{color:var(--dev)}
+figure{border-radius:16px;border:2px solid var(--line)}
+.legend-wrap{border:2px solid var(--line);border-radius:16px}
+.legend thead th{background:var(--dev-soft);color:var(--ink)}
+details{border:2px solid var(--line);border-radius:16px}
+details[open]{border-color:var(--dev)}
+summary::after{color:var(--dev);font-size:26px}
+summary:hover{background:var(--dev-soft);border-radius:14px}
+details[open] summary:hover{border-radius:14px 14px 0 0}
+.callout{border-left:6px solid var(--led-red)}
+.tag{background:var(--sun-soft);color:var(--sun-ink)}
+.media a{border:2px solid var(--line);border-radius:14px}
+.media a:hover{border-color:var(--dev);background:var(--dev-soft)}
+.media a b{color:var(--dev)}
+
+.chips button{border-width:2px}
+.chips button[aria-pressed="true"]{background:var(--dev);border-color:var(--dev);color:#fff}
+.stage{border:2px solid var(--line);border-radius:16px}
+.demo-steps li.on{background:var(--sun-soft)}
+.demo-steps li.on::before{background:var(--sun);color:#3d2e00}
+.demo-ctl button{border-color:var(--dev);color:var(--dev);border-radius:10px}
+.ring .fg{stroke:#ffb800}
+.ring .bg{stroke:rgba(255,184,0,.3)}
+.hold{background:#1b63c6}
+footer{border-top:2px dashed var(--line)}
+[hidden]{display:none!important}
+.checks b{display:inline}
+.checks div > b:first-child{display:block}
+@media (max-width:560px){
+  nav.switch{gap:6px}
+  nav.switch a{flex:1 1 0;min-width:0;padding:10px 8px 10px 30px;font-size:14px;line-height:1.25;border-radius:12px}
+  nav.switch a::before{left:9px;width:14px;height:14px;margin-top:-7px;box-shadow:0 0 0 3px var(--dev-soft)}
+  nav.switch a small{display:none}
+}
 </style>
 
 <div class="wrap">
-  <header>
+  <header class="hero">
     <span class="eyebrow">DHH Services · Teacher quick reference</span>
     <h1>Classroom Mic Troubleshooting</h1>
     <p class="lede">Your student can't hear the mic? Pick the device you're wearing, run the 60-second check, then find the symptom. Each fix comes from the manufacturer's user guide.</p>
