@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMR Tracker</title>
+<style>
+/* AMR Tracker: digital Amplification Monitoring Record.
+   Two views: Case Manager (fast daily entry) and DHH Teacher (live dashboard, reports, setup).
+   Status colors are used the same way everywhere:
+   green = documented & in use, amber = watch / device not in use, red = needs follow-up, gray = absent / no school. */
+:root{
+  --bg:#f4f6f9; --card:#fff; --ink:#1d2433; --muted:#5d6779; --line:#dde2ea; --soft:#eef1f6;
+  --brand:#2457c5; --brand-d:#1a3f91; --brand-s:#e6eefc;
+  --good:#1a7f45; --good-s:#ddf3e6;
+  --warn:#9a5b00; --warn-s:#fff1d6; --warn-b:#f0b54a;
+  --bad:#b42318; --bad-s:#fde4e1;
+  --gray:#8a93a3; --gray-s:#eceff3;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--brand)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+
+/* Top bar */
+header.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top .wrap{display:flex;align-items:center;gap:14px;min-height:58px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.logo .mark{width:32px;height:32px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:13px;letter-spacing:.5px}
+.logo small{display:block;font-weight:500;color:var(--muted);font-size:12px;line-height:1}
+.spacer{flex:1}
+.live{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.live .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(26,127,69,.5);animation:pulse 2s infinite}
+.live.off .dot{background:var(--gray);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(26,127,69,.45)}70%{box-shadow:0 0 0 7px rgba(26,127,69,0)}100%{box-shadow:0 0 0 0 rgba(26,127,69,0)}}
+.who{font-size:13px;color:var(--muted);text-align:right}
+.who b{color:var(--ink)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:16px 12px 14px;border-bottom:3px solid transparent;color:var(--muted);font-weight:600;white-space:nowrap}
+nav.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+.demo-bar{background:#fff7e0;border-bottom:1px solid #f1dfa6;font-size:13px}
+.demo-bar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:7px;padding-bottom:7px}
+.demo-bar select{padding:3px 6px;border-radius:6px;border:1px solid #d9c37d;background:#fff}
+
+main{padding:20px 0 60px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:17px;margin:0 0 10px}
+.sub{color:var(--muted);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid{display:grid;gap:12px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:600}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-d)}
+.btn.small{padding:4px 9px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=email],input[type=date],input[type=number],input[type=time],input[type=search],select,textarea{border:1px solid #c9d0db;border-radius:8px;padding:7px 9px;background:#fff;min-width:0}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+label.f{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+label.f > span.hint{font-weight:400}
+kbd{display:inline-block;min-width:20px;padding:0 5px;border:1px solid #c9d0db;border-bottom-width:2px;border-radius:5px;background:#fff;font:600 12px/18px ui-monospace,Menlo,Consolas,monospace;text-align:center;color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.pill.good{background:var(--good-s);color:var(--good)}
+.pill.warn{background:var(--warn-s);color:var(--warn)}
+.pill.bad{background:var(--bad-s);color:var(--bad)}
+.pill.gray{background:var(--gray-s);color:#4d5566}
+.pill.blue{background:var(--brand-s);color:var(--brand-d)}
+.muted{color:var(--muted)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.notice{border-left:4px solid var(--warn-b);background:var(--warn-s);padding:10px 12px;border-radius:6px;margin-bottom:14px;font-size:14px}
+.notice.info{border-color:var(--brand);background:var(--brand-s)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.toast.err{background:var(--bad)}
+
+/* ---------- Case manager daily check ---------- */
+.daybar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.daybar .date{font-size:20px;font-weight:700;min-width:260px}
+.progress{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;width:180px}
+.progress > i{display:block;height:100%;background:var(--good)}
+.keys{font-size:13px;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap;margin:-4px 0 14px}
+.keys span{display:inline-flex;gap:5px;align-items:center}
+.cm-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+@media (max-width:900px){.cm-layout{grid-template-columns:1fr}}
+.srow{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:150px 1fr auto;gap:10px 16px;align-items:center;scroll-margin:120px}
+.srow.sel{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-s)}
+.srow.done{border-left:5px solid var(--good)}
+.srow.partial{border-left:5px solid var(--warn-b)}
+.srow.todo{border-left:5px solid #c9d0db}
+@media (max-width:700px){.srow{grid-template-columns:1fr}}
+.sname{font-weight:800;font-size:18px;letter-spacing:.5px}
+.sid{color:var(--muted);font-size:12.5px}
+.ctrls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center}
+.dev{display:flex;flex-direction:column;gap:3px}
+.dev .lab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.seg{display:inline-flex;border:1px solid #c9d0db;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 12px;font-weight:700;min-width:46px}
+.seg button + button{border-left:1px solid #c9d0db}
+.seg button.on.yes{background:var(--good);color:#fff}
+.seg button.on.no{background:var(--bad);color:#fff}
+.seg button.on.abs{background:#5d6779;color:#fff}
+select.ald.on-good{border-color:var(--good);background:var(--good-s);color:var(--good);font-weight:700}
+select.ald.on-bad{border-color:var(--bad);background:var(--bad-s);color:var(--bad);font-weight:700}
+.extra{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.extra input.cmt{flex:1;min-width:200px}
+.chip{border:1px dashed #b9c1ce;background:#fff;border-radius:99px;padding:2px 10px;font-size:12.5px}
+.chip:hover{background:var(--soft)}
+.state{font-size:12.5px;font-weight:700;text-align:right;min-width:110px}
+.side h3{font-size:14px;margin:0 0 8px}
+.side ul{list-style:none;margin:0;padding:0}
+.side li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--soft);font-size:13.5px}
+.side li button{border:0;background:none;color:var(--brand);font-weight:600;padding:0}
+.reminder{font-size:12.5px;color:var(--muted);margin-top:12px}
+
+/* ---------- DHH dashboard ---------- */
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.tile .n{font-size:26px;font-weight:800;line-height:1.1}
+.tile .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.tile.bad .n{color:var(--bad)} .tile.warn .n{color:var(--warn)} .tile.good .n{color:var(--good)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.tablewrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);background:#fafbfc;white-space:nowrap}
+table.t td{padding:9px 10px;border-bottom:1px solid var(--soft);vertical-align:middle}
+table.t tr:last-child td{border-bottom:0}
+table.t tr.flag-bad td:first-child{box-shadow:inset 4px 0 0 var(--bad)}
+table.t tr.flag-warn td:first-child{box-shadow:inset 4px 0 0 var(--warn-b)}
+.spark{display:flex;gap:2px}
+.spark i{width:12px;height:18px;border-radius:3px;background:var(--gray-s);display:block}
+.spark i.g{background:#3aa66a} .spark i.w{background:var(--warn-b)} .spark i.r{background:#e0574b} .spark i.a{background:#b9c1ce} .spark i.p{background:#fff;border:1px dashed #b9c1ce}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.legend i{width:11px;height:14px;border-radius:3px;display:inline-block}
+.why{font-size:12.5px;color:var(--muted)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(20,26,40,.45);display:grid;place-items:center;z-index:50;padding:16px}
+.modal .box{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+@media (max-width:600px){.form-grid{grid-template-columns:1fr}}
+
+/* Report (printable AMR) */
+.report{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:14px}
+.report h2{font-size:19px;margin:0}
+.rhead{display:grid;grid-template-columns:repeat(4,auto);gap:4px 22px;margin:10px 0 14px;font-size:14px;justify-content:start}
+.rhead b{font-weight:700}
+table.amr{width:100%;border-collapse:collapse;font-size:13px}
+table.amr th,table.amr td{border:1px solid #aeb6c3;padding:4px 6px;text-align:left}
+table.amr th{background:#eef1f6}
+table.amr td.c{text-align:center}
+table.amr tr.missing td{background:#fdecea;color:var(--bad)}
+table.amr tr.absent td{color:#5d6779;background:#f6f7f9}
+.rsum{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;font-size:13.5px}
+.statement{font-size:12.5px;color:#333;margin-top:12px}
+.sig{display:flex;gap:40px;margin-top:22px;font-size:13px}
+.sig div{border-top:1px solid #333;padding-top:4px;min-width:220px}
+.pagebreak{break-after:page}
+
+@media print{
+  header.top,.demo-bar,.noprint,nav.tabs{display:none!important}
+  body,html{background:#fff}
+  main{padding:0}
+  .wrap{max-width:none;padding:0}
+  .report{border:0;padding:0;margin:0}
+  section:not(.printing){display:none!important}
+  .report + .report{break-before:page}
+}
+</style>
+</head>
+<body>
+<div id="demoBar" class="demo-bar" hidden>
+  <div class="wrap">
+    <b>Demo mode</b> <span class="muted">Sample data saved only in this browser.</span>
+    <label>Viewing as <select id="demoAs"></select></label>
+    <span class="muted">Tip: open this page in two tabs (one per role) to watch live updates.</span>
+    <span class="spacer"></span>
+    <button class="btn small" id="demoReset">Reset demo data</button>
+  </div>
+</div>
+<header class="top">
+  <div class="wrap">
+    <div class="logo"><div class="mark" aria-hidden="true">AMR</div><div>AMR Tracker<small>Amplification Monitoring Record</small></div></div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <span class="spacer"></span>
+    <div class="live" id="live"><span class="dot"></span><span id="liveTxt">Connecting…</span></div>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <div class="card" id="loading">Loading…</div>
+
+  <!-- Case manager: daily check -->
+  <section id="v-daily" hidden>
+    <div class="daybar">
+      <button class="btn" id="dPrev" title="Previous school day (←)">←</button>
+      <div class="date" id="dLabel"></div>
+      <button class="btn" id="dNext" title="Next school day (→)">→</button>
+      <button class="btn small" id="dToday">Today <kbd>T</kbd></button>
+      <input type="date" id="dPick" aria-label="Pick a date">
+      <span class="spacer"></span>
+      <div class="progress" aria-hidden="true"><i id="dBar"></i></div>
+      <span id="dCount" class="muted"></span>
+    </div>
+    <div class="keys" id="keyHelp">
+      <span><kbd>↑</kbd><kbd>↓</kbd> pick student</span>
+      <span><kbd>Y</kbd> all devices in use</span>
+      <span><kbd>A</kbd> absent</span>
+      <span><kbd>1</kbd> right <kbd>2</kbd> left <kbd>3</kbd> ALD (toggle)</span>
+      <span><kbd>C</kbd> comment</span>
+      <span><kbd>Shift</kbd>+<kbd>Y</kbd> everyone left: all in use</span>
+    </div>
+    <div class="cm-layout">
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <select id="dFilter" hidden></select>
+          <button class="btn small" id="dAllGood">Mark all remaining students "all in use"</button>
+        </div>
+        <div id="dList"></div>
+        <div class="reminder">AMR must be filled out daily after checking that the student's Hearing Assistive Technology is in use and working. Ling sound check: <b>oo, ah, ee, mm, ss, sh</b>.</div>
+      </div>
+      <aside class="card side">
+        <h3>Missed days</h3>
+        <div id="dMissed"></div>
+        <div class="reminder">This record documents the student's amplification use as listed in the IEP or by the 504 committee.</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- DHH: dashboard -->
+  <section id="v-dash" hidden>
+    <div class="row" style="align-items:flex-end;margin-bottom:12px">
+      <div><h1>Documentation dashboard</h1><p class="sub" id="dashSub" style="margin:0"></p></div>
+    </div>
+    <div id="dashNotices"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="filters">
+      <input type="search" id="fSearch" placeholder="Search initials or ID">
+      <select id="fCampus"></select>
+      <select id="fCm"></select>
+      <label class="row" style="gap:5px"><input type="checkbox" id="fFlag"> Needs attention only</label>
+    </div>
+    <div class="tablewrap"><table class="t" id="dashTable"></table></div>
+    <div class="legend">
+      <b>Last 10 school days:</b>
+      <span><i style="background:#3aa66a"></i>documented, all in use</span>
+      <span><i style="background:var(--warn-b)"></i>device not in use</span>
+      <span><i style="background:#b9c1ce"></i>absent</span>
+      <span><i style="background:#e0574b"></i>not documented</span>
+      <span><i style="background:#fff;border:1px dashed #b9c1ce"></i>today (still open)</span>
+    </div>
+  </section>
+
+  <!-- DHH: students -->
+  <section id="v-students" hidden>
+    <div class="row" style="margin-bottom:12px">
+      <div><h1>Students</h1><p class="sub" style="margin:0">Use initials and the school ID only. Do not enter full names.</p></div>
+      <span class="spacer"></span>
+      <button class="btn primary" id="addStudent">+ Add student</button>
+    </div>
+    <div class="tablewrap"><table class="t" id="stuTable"></table></div>
+  </section>
+
+  <!-- DHH: reports -->
+  <section id="v-report" hidden>
+    <div class="noprint">
+      <h1>AMR reports</h1>
+      <p class="sub">Print or save as PDF for the student's file. This replaces the monthly paper AMR.</p>
+      <div class="row card">
+        <label class="f">Student <select id="rStudent"></select></label>
+        <label class="f">Period <select id="rPeriod"></select></label>
+        <span class="spacer"></span>
+        <button class="btn" id="rCsv">Download all data (CSV)</button>
+        <button class="btn primary" id="rPrint">Print / Save PDF</button>
+      </div>
+    </div>
+    <div id="rOut"></div>
+  </section>
+
+  <!-- DHH: follow-up log -->
+  <section id="v-follow" hidden>
+    <div class="row" style="margin-bottom:12px">
+      <div><h1>Follow-up log</h1><p class="sub" style="margin:0">Your contacts with case managers about missing AMR documentation or devices.</p></div>
+      <span class="spacer"></span>
+      <button class="btn primary" id="addFollow">+ Log follow-up</button>
+    </div>
+    <div class="tablewrap"><table class="t" id="fuTable"></table></div>
+  </section>
+
+  <!-- DHH: settings -->
+  <section id="v-settings" hidden>
+    <h1>Settings</h1>
+    <p class="sub">School calendar and alert rules. Only school days count toward documentation.</p>
+    <form id="setForm" class="card form-grid" style="max-width:820px"></form>
+  </section>
+
+  <section id="v-none" hidden>
+    <div class="card" style="max-width:640px">
+      <h1>No students assigned</h1>
+      <p>You are signed in as <b id="noneEmail"></b>, but no DHH students list you as their case manager yet.</p>
+      <p class="muted">Ask your DHH teacher to add your district email to your student's record in AMR Tracker.</p>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal" hidden><div class="box" id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* =====================================================================
+   Constants (wording taken from the AMR 2026-2027 spreadsheet)
+   ===================================================================== */
+const DEVICE_TYPES = ['Hearing aid','Cochlear implant','BAHA','None'];
+const ALD_SUGGEST = ['None','Roger','FM system','Multi Mic','Soundfield only','Remote mic'];
+const DEFAULT_ALD_STATUS = ['In use','Not in use','Declined','Refused','Not working'];
+const REASONS = ['Dead battery','Left at home','Not working','Refused','Lost/damaged','Out for repair'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DEFAULT_SETTINGS = {
+  schoolYear:'2026-2027', firstDay:'2026-08-03', lastDay:'2027-05-28', noSchool:'',
+  dhhEmails:'', missThreshold:2, nonUseThreshold:2, cutoff:'10:00',
+  aldStatuses: DEFAULT_ALD_STATUS.join(', '),
+  emailDigest:true, emailCmReminder:false, reminderHour:13
+};
+const STATEMENT_1 = "AMR must be filled out daily after verifying the student's Hearing Assistive Technology is in use and functioning.";
+const STATEMENT_2 = "This record serves as documentation of the student's use of amplification as indicated on the Individual Education Plan (IEP) or by the 504 Committee. Keeping this documentation is not optional. At the end of the year, file this document in the teacher's folder.";
+
+/* =====================================================================
+   Small helpers
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const h = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ds = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const pd = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (s,n) => { const d = pd(s); d.setDate(d.getDate()+n); return ds(d); };
+const todayStr = () => ds(new Date());
+const nowMins = () => { const d = new Date(); return d.getHours()*60 + d.getMinutes(); };
+const fmtShort = s => { const d = pd(s); return `${d.getMonth()+1}/${d.getDate()}`; };
+const fmtLong = s => { const d = pd(s); return `${DOW[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; };
+const fmtDow = s => DOW[pd(s).getDay()].slice(0,3);
+const keyOf = (sid, date) => sid + '|' + date;
+const label = st => `${st.initials} (${st.schoolId})`;
+const emails = s => String(s||'').toLowerCase().split(/[\s,;]+/).filter(Boolean);
+const pct = (a,b) => b ? Math.round(100*a/b) + '%' : '—';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function normInitials(v){
+  const letters = String(v||'').toUpperCase().replace(/[^A-Z]/g,'');
+  return letters ? letters.split('').join('.') + '.' : '';
+}
+function toast(msg, err){
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, err ? 5000 : 2200);
+}
+function cutoffMins(){ const [a,b] = String(S.settings.cutoff||'10:00').split(':').map(Number); return (a||0)*60 + (b||0); }
+
+/* =====================================================================
+   School calendar
+   ===================================================================== */
+function parseNoSchool(text){
+  const set = new Set();
+  const toIso = t => {
+    t = t.trim();
+    let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+    m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); if (m) return `${m[3].length===2?'20'+m[3]:m[3]}-${pad(m[1])}-${pad(m[2])}`;
+    return null;
+  };
+  String(text||'').split(/\n|;/).forEach(line => {
+    const found = line.match(/\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2,4}/g);
+    if (!found) return;
+    const a = toIso(found[0]), b = found[1] ? toIso(found[1]) : a;
+    if (!a || !b) return;
+    for (let d = a, i = 0; d <= b && i < 400; d = addDays(d,1), i++) set.add(d);
+  });
+  return set;
+}
+let _cal = null;
+function cal(){
+  const key = S.settings.firstDay + S.settings.lastDay + S.settings.noSchool;
+  if (!_cal || _cal.key !== key) _cal = { key, off: parseNoSchool(S.settings.noSchool) };
+  return _cal;
+}
+function isSchoolDay(s){
+  const w = pd(s).getDay();
+  return w > 0 && w < 6 && s >= S.settings.firstDay && s <= S.settings.lastDay && !cal().off.has(s);
+}
+function schoolDays(a, b){
+  const out = [];
+  for (let d = a, i = 0; d <= b && i < 500; d = addDays(d,1), i++) if (isSchoolDay(d)) out.push(d);
+  return out;
+}
+function prevSchoolDay(s){ for (let i=0;i<60;i++){ s = addDays(s,-1); if (isSchoolDay(s)) return s; } return null; }
+function nextSchoolDay(s){ for (let i=0;i<60;i++){ s = addDays(s,1); if (isSchoolDay(s)) return s; } return null; }
+function latestSchoolDay(){
+  const t = todayStr();
+  if (isSchoolDay(t)) return t;
+  if (t > S.settings.lastDay) return isSchoolDay(S.settings.lastDay) ? S.settings.lastDay : prevSchoolDay(S.settings.lastDay);
+  return prevSchoolDay(t) || S.settings.firstDay;
+}
+
+/* =====================================================================
+   Students, entries, statistics
+   ===================================================================== */
+const needR = st => st.rightDevice && st.rightDevice !== 'None';
+const needL = st => st.leftDevice && st.leftDevice !== 'None';
+const needA = st => st.ald && st.ald !== 'None';
+const aldStatuses = () => String(S.settings.aldStatuses || DEFAULT_ALD_STATUS.join(',')).split(',').map(s=>s.trim()).filter(Boolean);
+const aldOk = v => v === aldStatuses()[0];
+
+function isComplete(e, st){
+  if (!e) return false;
+  if (e.absent === 'Y') return true;
+  return (!needR(st) || e.right) && (!needL(st) || e.left) && (!needA(st) || e.ald);
+}
+function allInUse(e, st){
+  return e.absent !== 'Y' && (!needR(st) || e.right==='yes') && (!needL(st) || e.left==='yes') && (!needA(st) || aldOk(e.ald));
+}
+function problems(e, st){
+  const p = [];
+  if (!e || e.absent === 'Y') return p;
+  if (needR(st) && e.right === 'no') p.push('Right');
+  if (needL(st) && e.left === 'no') p.push('Left');
+  if (needA(st) && e.ald && !aldOk(e.ald)) p.push('ALD');
+  return p;
+}
+const activeStudents = () => S.students.filter(s => s.active !== 'N').sort((a,b) => a.initials.localeCompare(b.initials) || a.schoolId.localeCompare(b.schoolId));
+
+/* Per-student documentation stats, as of now. */
+function stats(st){
+  const today = todayStr(), cm = cutoffMins();
+  const start = (st.start && st.start > S.settings.firstDay) ? st.start : S.settings.firstDay;
+  const end = today < S.settings.lastDay ? today : S.settings.lastDay;
+  let days = start <= end ? schoolDays(start, end) : [];
+  const todayOpen = days[days.length-1] === today && nowMins() < cm; // today not due until the cutoff time
+  const expected = todayOpen ? days.slice(0,-1) : days;
+  const ent = d => S.entries[keyOf(st.id, d)];
+  let consec = 0;
+  for (let i = expected.length-1; i >= 0; i--){ if (isComplete(ent(expected[i]), st)) break; consec++; }
+  const missed = expected.filter(d => !isComplete(ent(d), st));
+  const recent = days.slice(-10).map(d => {
+    const e = ent(d);
+    if (isComplete(e, st)) return { d, k: e.absent==='Y' ? 'a' : (problems(e,st).length ? 'w' : 'g'), e };
+    return { d, k: (d === today && todayOpen) ? 'p' : 'r', e };
+  });
+  const monthPrefix = today.slice(0,7);
+  const mDays = expected.filter(d => d.startsWith(monthPrefix));
+  const mDoc = mDays.filter(d => isComplete(ent(d), st)).length;
+  // device non-use in last 5 present (documented, not absent) days
+  const present = expected.filter(d => { const e = ent(d); return isComplete(e, st) && e.absent !== 'Y'; }).slice(-5);
+  const nonUse = present.filter(d => problems(ent(d), st).length).length;
+  const lastDoc = [...expected].reverse().find(d => isComplete(ent(d), st)) || null;
+  const lastFu = S.followups.filter(f => f.studentId === st.id).map(f => f.date).sort().pop() || null;
+  const streakStart = consec ? expected[expected.length - consec] : null;
+  const contacted = lastFu && streakStart && lastFu >= streakStart;
+  let level = 'good', why = [];
+  if (consec >= +S.settings.missThreshold){ level = 'bad'; why.push(`${consec} school days in a row not documented`); }
+  else if (consec > 0){ level = 'warn'; why.push(`${consec} day${consec>1?'s':''} not documented`); }
+  if (nonUse >= +S.settings.nonUseThreshold){ if (level==='good') level='warn'; why.push(`device not in use ${nonUse} of last ${present.length} days`); }
+  if (!expected.length){ level = 'gray'; why.push('tracking has not started'); }
+  return { days, expected, consec, missed, recent, mDays: mDays.length, mDoc, nonUse, presentN: present.length, lastDoc, lastFu, contacted, level, why, todayEntry: ent(today), todayOpen };
+}
+
+/* =====================================================================
+   Data layer: Google Apps Script back end, or demo (this browser only)
+   ===================================================================== */
+const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const S = { me:null, settings:{...DEFAULT_SETTINGS}, students:[], entries:{}, followups:[], since:'', tab:null, day:null, sel:0, cmFilter:'' };
+
+function gas(action, payload){
+  return new Promise((res, rej) => google.script.run
+    .withSuccessHandler(txt => { const r = JSON.parse(txt); r && r.error ? rej(new Error(r.error)) : res(r); })
+    .withFailureHandler(rej)
+    .api(action, JSON.stringify(payload || {})));
+}
+const api = (a, p) => IS_GAS ? gas(a, p) : Demo.api(a, p);
+
+function applyData(r, full){
+  if (r.me) S.me = r.me;
+  if (r.settings) S.settings = { ...DEFAULT_SETTINGS, ...r.settings };
+  if (r.students) S.students = r.students;
+  if (r.followups) S.followups = r.followups;
+  if (full) S.entries = {};
+  (r.entries || []).forEach(e => { S.entries[e.key] = e; });
+  if (r.serverTime) S.since = r.serverTime;
+}
+
+/* ---------- Demo back end (localStorage) ---------- */
+const Demo = {
+  KEY: 'amrTracker.demo.v1', mem: null,
+  read(){ try { const t = localStorage.getItem(this.KEY); if (t) return JSON.parse(t); } catch(e){} return this.mem; },
+  write(db){ this.mem = db; try { localStorage.setItem(this.KEY, JSON.stringify(db)); } catch(e){} },
+  as(){ try { return localStorage.getItem(this.KEY + '.as') || 'dhh'; } catch(e){ return this._as || 'dhh'; } },
+  setAs(v){ this._as = v; try { localStorage.setItem(this.KEY + '.as', v); } catch(e){} },
+  db(){ let db = this.read(); if (!db) { db = this.seed(); this.write(db); } return db; },
+  seed(){
+    const settings = { ...DEFAULT_SETTINGS, dhhEmails:'dhh.teacher@district.org',
+      noSchool: '2026-09-07 Labor Day\n2026-10-12 Fair day\n2026-11-23 to 2026-11-27 Thanksgiving break\n2026-12-21 to 2027-01-01 Winter break\n2027-01-18 MLK Day\n2027-03-15 to 2027-03-19 Spring break' };
+    const cmA = 'r.lopez@district.org', cmB = 'k.nguyen@district.org';
+    const mk = (i, initials, schoolId, campus, grade, r, l, ald, sf, cmName, cmEmail) =>
+      ({ id:'s'+i, initials, schoolId, campus, grade, rightDevice:r, leftDevice:l, ald, soundfield:sf, cmName, cmEmail, start:'2026-10-01', active:'Y', notes:'', updated:'' });
+    const students = [
+      mk(1,'A.B.','2401187','Oak Elementary','2','Cochlear implant','Cochlear implant','Roger','Y','R. Lopez',cmA),
+      mk(2,'J.M.','2398820','Oak Elementary','4','Hearing aid','Hearing aid','None','Y','R. Lopez',cmA),
+      mk(3,'J.M.','2410056','Oak Elementary','1','BAHA','None','Multi Mic','N','R. Lopez',cmA),
+      mk(4,'D.T.R.','2276431','Pecan Middle','7','Hearing aid','Cochlear implant','Roger','N','K. Nguyen',cmB),
+      mk(5,'S.K.','2301945','Pecan Middle','6','Hearing aid','Hearing aid','FM system','Y','K. Nguyen',cmB),
+      mk(6,'L.W.','2355502','Pecan Middle','8','None','Hearing aid','None','N','K. Nguyen',cmB),
+    ];
+    S.settings = settings; _cal = null;
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const entries = {}, last = latestSchoolDay();
+    const days = schoolDays('2026-10-01', last);
+    days.forEach((d, idx) => {
+      const fromEnd = days.length - 1 - idx;
+      students.forEach((st, si) => {
+        if (d === todayStr() && si !== 0) return;              // most of today still open
+        if (st.id === 's3' && fromEnd < 3) return;              // J.M. #2410056: 3 days missing
+        if (st.id === 's6' && fromEnd === 1) return;            // L.W.: missed yesterday
+        if (rnd() < 0.025) return;                               // occasional gaps
+        const e = { key:keyOf(st.id,d), studentId:st.id, student:label(st), date:d, absent:'', right:'', left:'', ald:'', ling:'Y', comment:'', by: st.cmEmail, ts: d+'T15:00:00.000Z' };
+        if (rnd() < 0.05) e.absent = 'Y';
+        else {
+          if (needR(st)) e.right = 'yes'; if (needL(st)) e.left = 'yes'; if (needA(st)) e.ald = 'In use';
+          if (st.id === 's5' && fromEnd < 6 && fromEnd % 2 === 0){ e.right = 'no'; e.comment = 'Right: Dead battery'; }
+          else if (rnd() < 0.04 && needA(st)){ e.ald = 'Not working'; e.comment = 'ALD: Not working - charger missing'; }
+        }
+        entries[e.key] = e;
+      });
+    });
+    const followups = [{ id:'f1', studentId:'s5', student:'S.K. (2301945)', date: addDays(last,-2), method:'Email', note:'Asked about spare batteries for right HA.', by:'dhh.teacher@district.org', ts:'' }];
+    return { settings, students, entries, followups };
+  },
+  me(db){
+    const as = this.as();
+    if (as === 'dhh') return { email:'dhh.teacher@district.org', name:'DHH Teacher', role:'dhh' };
+    const st = db.students.find(s => emails(s.cmEmail).includes(as));
+    return { email: as, name: st ? st.cmName : as, role:'cm' };
+  },
+  scope(db, me){
+    const students = me.role === 'dhh' ? db.students : db.students.filter(s => s.active !== 'N' && emails(s.cmEmail).includes(me.email));
+    const ids = new Set(students.map(s => s.id));
+    return { students, entries: Object.values(db.entries).filter(e => ids.has(e.studentId)), followups: me.role==='dhh' ? db.followups : [] };
+  },
+  async api(action, p){
+    await new Promise(r => setTimeout(r, 60));
+    const db = this.db(), me = this.me(db), now = new Date().toISOString();
+    const needDhh = () => { if (me.role !== 'dhh') throw new Error('Only the DHH teacher can do that.'); };
+    switch (action){
+      case 'bootstrap': {
+        const sc = this.scope(db, me);
+        if (me.role === 'cm' && !sc.students.length) me.role = 'none';
+        return { me, settings: db.settings, ...sc, serverTime: now };
+      }
+      case 'changes': {
+        const sc = this.scope(db, me);
+        return { me, settings: db.settings, students: sc.students, followups: sc.followups, entries: sc.entries.filter(e => (e.ts||'') > (p.since||'')), serverTime: now };
+      }
+      case 'saveEntries': {
+        const out = [];
+        (p.entries || []).forEach(e => {
+          const st = db.students.find(s => s.id === e.studentId);
+          if (!st) throw new Error('Unknown student');
+          if (me.role !== 'dhh' && !emails(st.cmEmail).includes(me.email)) throw new Error('Not your student');
+          const rec = { ...e, key:keyOf(e.studentId, e.date), student:label(st), by: me.email, ts: now };
+          db.entries[rec.key] = rec; out.push(rec);
+        });
+        this.write(db); return { entries: out, serverTime: now };
+      }
+      case 'saveStudent': {
+        needDhh(); const s = validateStudent(p.student, db.students);
+        const i = db.students.findIndex(x => x.id === s.id);
+        if (i >= 0) db.students[i] = s; else db.students.push(s);
+        this.write(db); return { student: s };
+      }
+      case 'deleteStudent': {
+        needDhh(); db.students = db.students.filter(s => s.id !== p.id);
+        Object.keys(db.entries).forEach(k => { if (k.startsWith(p.id + '|')) delete db.entries[k]; });
+        db.followups = db.followups.filter(f => f.studentId !== p.id);
+        this.write(db); return { ok:true };
+      }
+      case 'saveSettings': { needDhh(); db.settings = { ...db.settings, ...p.settings }; this.write(db); return { settings: db.settings }; }
+      case 'addFollowUp': {
+        needDhh(); const st = db.students.find(s => s.id === p.followup.studentId);
+        const f = { ...p.followup, id: uid(), student: st ? label(st) : '', by: me.email, ts: now };
+        db.followups.push(f); this.write(db); return { followup: f };
+      }
+      case 'deleteFollowUp': { needDhh(); db.followups = db.followups.filter(f => f.id !== p.id); this.write(db); return { ok:true }; }
+    }
+    throw new Error('Unknown action ' + action);
+  }
+};
+
+/* Shared validation (mirrors Code.gs) */
+function validateStudent(s, all){
+  const out = { ...s };
+  out.initials = normInitials(s.initials);
+  if (out.initials.length < 4 || out.initials.length > 8) throw new Error('Initials must be 2 to 4 letters (for example J.D.).');
+  out.schoolId = String(s.schoolId||'').trim();
+  if (!/^[A-Za-z0-9]{3,12}$/.test(out.schoolId)) throw new Error('School ID must be 3 to 12 letters or numbers.');
+  if (all.some(x => x.schoolId === out.schoolId && x.id !== s.id)) throw new Error('Another student already has school ID ' + out.schoolId + '.');
+  if (!emails(s.cmEmail).length) throw new Error('Enter the case manager\'s district email.');
+  out.cmEmail = emails(s.cmEmail).join(', ');
+  out.id = s.id || uid();
+  out.active = s.active === 'N' ? 'N' : 'Y';
+  out.updated = new Date().toISOString();
+  return out;
+}
+
+/* =====================================================================
+   App shell: tabs, live updates
+   ===================================================================== */
+const TABS = {
+  dhh: [['dash','Dashboard'],['daily','Daily check'],['students','Students'],['report','AMR reports'],['follow','Follow-ups'],['settings','Settings']],
+  cm:  [['daily','Daily check']],
+  none:[['none','Home']]
+};
+function renderTabs(){
+  const tabs = TABS[S.me.role] || TABS.none;
+  if (!tabs.some(t => t[0] === S.tab)) S.tab = tabs[0][0];
+  $('#tabs').innerHTML = tabs.length > 1 ? tabs.map(([k,v]) => `<button role="tab" data-tab="${k}" aria-selected="${k===S.tab}">${v}</button>`).join('') : '';
+  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'v-' + S.tab);
+  $('#loading').hidden = true;
+  $('#who').innerHTML = `<b>${h(S.me.name || S.me.email)}</b><br>${S.me.role==='dhh' ? 'DHH teacher' : S.me.role==='cm' ? 'Case manager' : ''}`;
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b){ S.tab = b.dataset.tab; render(); } });
+
+function render(){
+  renderTabs();
+  ({ daily:renderDaily, dash:renderDash, students:renderStudents, report:renderReport, follow:renderFollow, settings:renderSettings, none:() => $('#noneEmail').textContent = S.me.email })[S.tab]();
+}
+
+let lastSync = null;
+function setLive(ok){
+  lastSync = ok ? new Date() : lastSync;
+  $('#live').classList.toggle('off', !ok);
+  $('#liveTxt').textContent = ok ? 'Live · updated ' + lastSync.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Offline – retrying';
+}
+async function load(){
+  try { const r = await api('bootstrap'); applyData(r, true); _cal = null; setLive(true); render(); }
+  catch(e){ $('#loading').textContent = 'Could not load: ' + e.message; setLive(false); }
+}
+async function poll(){
+  if (document.hidden || !S.me) return;
+  if (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !$('#modal').hidden) return;
+  try {
+    const r = await api('changes', { since: S.since });
+    const before = JSON.stringify([S.students.length, S.followups.length, S.settings]);
+    applyData(r, false); _cal = null; setLive(true);
+    const changed = (r.entries||[]).length || before !== JSON.stringify([S.students.length, S.followups.length, S.settings]);
+    if (changed && $('#modal').hidden && !(document.activeElement && document.activeElement.classList.contains('cmt'))) render();
+  } catch(e){ setLive(false); }
+}
+setInterval(poll, IS_GAS ? 60000 : 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+window.addEventListener('storage', e => { if (!IS_GAS && e.key === Demo.KEY) poll(); });
+
+/* =====================================================================
+   Case manager: Daily check
+   ===================================================================== */
+const pending = {};
+function dailyStudents(){
+  let list = activeStudents();
+  if (S.me.role === 'dhh' && S.cmFilter) list = list.filter(s => emails(s.cmEmail).includes(S.cmFilter));
+  return list;
+}
+function draft(st){ return { ...(S.entries[keyOf(st.id, S.day)] || { key:keyOf(st.id,S.day), studentId:st.id, date:S.day, absent:'', right:'', left:'', ald:'', ling:'', comment:'' }) }; }
+
+function renderDaily(){
+  if (!S.day || !isSchoolDayOrPast(S.day)) S.day = latestSchoolDay();
+  const list = dailyStudents();
+  S.sel = Math.min(S.sel, Math.max(0, list.length-1));
+  $('#dLabel').textContent = fmtLong(S.day) + (S.day === todayStr() ? ' (today)' : '');
+  $('#dPick').value = S.day; $('#dPick').max = todayStr();
+  $('#dNext').disabled = !nextSchoolDay(S.day) || nextSchoolDay(S.day) > todayStr();
+  const done = list.filter(st => isComplete(S.entries[keyOf(st.id,S.day)], st)).length;
+  $('#dCount').textContent = `${done} of ${list.length} documented`;
+  $('#dBar').style.width = list.length ? (100*done/list.length)+'%' : '0';
+  const f = $('#dFilter');
+  if (S.me.role === 'dhh'){
+    const cms = [...new Map(S.students.flatMap(s => emails(s.cmEmail).map(e => [e, s.cmName || e]))).entries()];
+    f.hidden = false; f.innerHTML = `<option value="">All case managers</option>` + cms.map(([e,n]) => `<option value="${h(e)}" ${e===S.cmFilter?'selected':''}>${h(n)} (${h(e)})</option>`).join('');
+  }
+  const statuses = aldStatuses();
+  $('#dList').innerHTML = !isSchoolDay(S.day) ? `<div class="card">No school on this day.</div>` : list.map((st, i) => {
+    const e = S.entries[keyOf(st.id, S.day)] || {};
+    const comp = isComplete(e, st), any = e.absent || e.right || e.left || e.ald;
+    const cls = comp ? 'done' : any ? 'partial' : 'todo';
+    const ps = pending[st.id];
+    const stateTxt = ps === 'saving' ? '<span class="muted">Saving…</span>' : ps === 'error' ? '<span class="pill bad">Not saved</span>'
+      : comp ? (e.absent==='Y' ? '<span class="pill gray">Absent ✓</span>' : problems(e,st).length ? '<span class="pill warn">Saved · issue noted</span>' : '<span class="pill good">Saved ✓</span>')
+      : any ? '<span class="pill warn">Incomplete</span>' : '<span class="pill gray">Not yet documented</span>';
+    const seg = (field, n) => `<div class="seg" role="group">
+        <button data-act="${field}" data-v="yes" class="yes ${e[field]==='yes'?'on':''}" ${e.absent==='Y'?'disabled':''}>Yes</button>
+        <button data-act="${field}" data-v="no" class="no ${e[field]==='no'?'on':''}" ${e.absent==='Y'?'disabled':''}>No</button></div>`;
+    const ctrls = [];
+    if (needR(st)) ctrls.push(`<div class="dev"><span class="lab">Right · ${h(st.rightDevice)} <kbd>1</kbd></span>${seg('right')}</div>`);
+    if (needL(st)) ctrls.push(`<div class="dev"><span class="lab">Left · ${h(st.leftDevice)} <kbd>2</kbd></span>${seg('left')}</div>`);
+    if (needA(st)) ctrls.push(`<div class="dev"><span class="lab">ALD · ${h(st.ald)} <kbd>3</kbd></span>
+      <select class="ald ${e.ald ? (aldOk(e.ald)?'on-good':'on-bad') : ''}" data-act="ald" ${e.absent==='Y'?'disabled':''}>
+        <option value="">— choose —</option>${statuses.map(s => `<option ${e.ald===s?'selected':''}>${h(s)}</option>`).join('')}</select></div>`);
+    ctrls.push(`<div class="dev"><span class="lab">Attendance <kbd>A</kbd></span><div class="seg"><button data-act="absent" class="abs ${e.absent==='Y'?'on':''}">Absent</button></div></div>`);
+    ctrls.push(`<label class="dev" title="Ling six-sound check (oo, ah, ee, mm, ss, sh)"><span class="lab">Ling check</span><span><input type="checkbox" data-act="ling" ${e.ling==='Y'?'checked':''} ${e.absent==='Y'?'disabled':''}> done</span></label>`);
+    const showReasons = problems(e, st).length > 0;
+    return `<div class="srow ${cls} ${i===S.sel?'sel':''}" data-i="${i}" data-sid="${st.id}">
+      <div><div class="sname">${h(st.initials)}</div><div class="sid">ID ${h(st.schoolId)}${S.me.role==='dhh' ? ' · ' + h(st.cmName||'') : ''}</div><div class="sid">${h(st.campus||'')}</div></div>
+      <div class="ctrls">${ctrls.join('')}</div>
+      <div class="state">${stateTxt}${e.by && comp ? `<div class="sid">${h(e.by.split('@')[0])}</div>` : ''}</div>
+      <div class="extra">
+        <input class="cmt" type="text" data-act="comment" maxlength="300" placeholder="Problem / comment (optional)  –  press C" value="${h(e.comment||'')}">
+        ${showReasons ? REASONS.map(r => `<button class="chip" data-act="reason" data-v="${h(r)}">${h(r)}</button>`).join('') : ''}
+      </div>
+    </div>`;
+  }).join('') || `<div class="card">No students assigned.</div>`;
+  renderMissed(list);
+  scrollSel(false);
+}
+function isSchoolDayOrPast(d){ return d <= todayStr(); }
+function scrollSel(focus){
+  const el = document.querySelector(`.srow[data-i="${S.sel}"]`);
+  if (el && focus) el.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+function renderMissed(list){
+  const items = [];
+  list.forEach(st => {
+    const s = stats(st);
+    s.missed.slice(-15).forEach(d => { if (d !== S.day) items.push([d, st]); });
+  });
+  items.sort((a,b) => b[0].localeCompare(a[0]));
+  const byDay = {};
+  items.forEach(([d, st]) => (byDay[d] = byDay[d] || []).push(`${st.initials} <span class="muted">${h(st.schoolId)}</span>`));
+  const days = Object.keys(byDay).sort().reverse().slice(0, 12);
+  $('#dMissed').innerHTML = days.length
+    ? `<p class="muted" style="margin:0 0 6px;font-size:13px">School days that still need documentation:</p><ul>` + days.map(d => `<li><span><b>${fmtDow(d)} ${fmtShort(d)}</b> · ${byDay[d].join(', ')}</span><button data-go="${d}">Fill in</button></li>`).join('') + '</ul>'
+    : `<p class="muted" style="margin:0">All caught up. 🎉</p>`;
+}
+$('#dMissed').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b){ S.day = b.dataset.go; S.sel = 0; renderDaily(); } });
+
+function setDay(d){ if (!d) return; S.day = d; S.sel = 0; renderDaily(); }
+$('#dPrev').onclick = () => setDay(prevSchoolDay(S.day));
+$('#dNext').onclick = () => { const n = nextSchoolDay(S.day); if (n && n <= todayStr()) setDay(n); };
+$('#dToday').onclick = () => setDay(latestSchoolDay());
+$('#dPick').onchange = e => { const v = e.target.value; if (v && v <= todayStr()) setDay(v); };
+$('#dFilter').onchange = e => { S.cmFilter = e.target.value; S.sel = 0; renderDaily(); };
+$('#dAllGood').onclick = () => markAllGood();
+
+function update(st, change, opts = {}){
+  const e = { ...draft(st), ...change };
+  if (change.absent === 'Y'){ e.right = ''; e.left = ''; e.ald = ''; e.ling = ''; }
+  e.student = label(st); e.key = keyOf(st.id, S.day); e.date = S.day; e.studentId = st.id;
+  S.entries[e.key] = { ...e, by: e.by || S.me.email };
+  pending[st.id] = 'saving';
+  if (!opts.noRender) renderDaily();
+  clearTimeout(update['t'+st.id]);
+  update['t'+st.id] = setTimeout(() => saveEntries([S.entries[e.key]]), opts.now ? 0 : 450);
+}
+async function saveEntries(list){
+  list.forEach(e => pending[e.studentId] = 'saving');
+  try {
+    const r = await api('saveEntries', { entries: list.map(({key,studentId,date,absent,right,left,ald,ling,comment}) => ({key,studentId,date,absent,right,left,ald,ling,comment})) });
+    r.entries.forEach(e => { S.entries[e.key] = e; delete pending[e.studentId]; });
+    setLive(true);
+  } catch(err){
+    list.forEach(e => pending[e.studentId] = 'error');
+    toast('Not saved: ' + err.message, true);
+  }
+  if (S.tab === 'daily' && !(document.activeElement && document.activeElement.classList.contains('cmt'))) renderDaily();
+}
+function allGoodChange(st){ return { absent:'', right: needR(st)?'yes':'', left: needL(st)?'yes':'', ald: needA(st)?aldStatuses()[0]:'', ling:'Y' }; }
+function markAllGood(){
+  const list = dailyStudents().filter(st => !isComplete(S.entries[keyOf(st.id,S.day)], st));
+  if (!list.length) return toast('Everyone is already documented for this day.');
+  if (!confirm(`Mark ${list.length} student(s) as present with all devices in use on ${fmtLong(S.day)}?\n\n${list.map(label).join(', ')}`)) return;
+  const recs = list.map(st => { const e = { ...draft(st), ...allGoodChange(st), student:label(st), by:S.me.email }; S.entries[e.key] = e; return e; });
+  renderDaily(); saveEntries(recs);
+}
+
+$('#dList').addEventListener('click', e => {
+  const row = e.target.closest('.srow'); if (!row) return;
+  const i = +row.dataset.i; if (S.sel !== i){ S.sel = i; document.querySelectorAll('.srow.sel').forEach(r => r.classList.remove('sel')); row.classList.add('sel'); }
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const st = dailyStudents()[i], cur = draft(st), act = b.dataset.act;
+  if (act === 'right' || act === 'left') update(st, { [act]: b.dataset.v, absent:'' });
+  else if (act === 'absent') update(st, cur.absent === 'Y' ? { absent:'' } : { absent:'Y' });
+  else if (act === 'reason'){
+    const which = problems(cur, st).join('/'); const add = `${which}: ${b.dataset.v}`;
+    update(st, { comment: cur.comment ? cur.comment + '; ' + add : add });
+  }
+});
+$('#dList').addEventListener('change', e => {
+  const row = e.target.closest('.srow'); if (!row) return;
+  const st = dailyStudents()[+row.dataset.i], act = e.target.dataset.act;
+  if (act === 'ald') update(st, { ald: e.target.value, absent:'' });
+  if (act === 'ling') update(st, { ling: e.target.checked ? 'Y' : '' });
+  if (act === 'comment') update(st, { comment: e.target.value.trim() }, { now:true });
+});
+$('#dList').addEventListener('keydown', e => {
+  if (e.target.classList.contains('cmt') && (e.key === 'Enter' || e.key === 'Escape')){ e.preventDefault(); e.target.blur(); }
+});
+$('#dList').addEventListener('focusout', e => { if (e.target.classList.contains('cmt')) setTimeout(() => { if (S.tab==='daily' && !document.activeElement.classList.contains('cmt')) renderDaily(); }, 50); });
+
+document.addEventListener('keydown', e => {
+  if (S.tab !== 'daily' || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && e.target.type !== 'checkbox') return;
+  const list = dailyStudents(); if (!list.length || !isSchoolDay(S.day)) { if (e.key==='ArrowLeft') $('#dPrev').click(); return; }
+  const st = list[S.sel], cur = draft(st), k = e.key.toLowerCase();
+  const next = () => { if (S.sel < list.length-1) S.sel++; };
+  const go = fn => { e.preventDefault(); fn(); };
+  if (k === 'arrowdown' || k === 'j') go(() => { next(); renderDaily(); scrollSel(true); });
+  else if (k === 'arrowup' || k === 'k') go(() => { if (S.sel > 0) S.sel--; renderDaily(); scrollSel(true); });
+  else if (k === 'arrowleft') go(() => $('#dPrev').click());
+  else if (k === 'arrowright') go(() => $('#dNext').click());
+  else if (k === 't') go(() => $('#dToday').click());
+  else if (k === 'y' && e.shiftKey) go(markAllGood);
+  else if (k === 'y') go(() => { update(st, allGoodChange(st), { noRender:true }); next(); renderDaily(); scrollSel(true); });
+  else if (k === 'a') go(() => { update(st, cur.absent === 'Y' ? { absent:'' } : { absent:'Y' }, { noRender:true }); if (cur.absent !== 'Y') next(); renderDaily(); scrollSel(true); });
+  else if (k === '1' && needR(st)) go(() => update(st, { right: cur.right === 'yes' ? 'no' : 'yes', absent:'' }));
+  else if (k === '2' && needL(st)) go(() => update(st, { left: cur.left === 'yes' ? 'no' : 'yes', absent:'' }));
+  else if (k === '3' && needA(st)) go(() => { const L = aldStatuses(); update(st, { ald: L[(L.indexOf(cur.ald)+1) % L.length], absent:'' }); });
+  else if (k === 'c') go(() => { const el = document.querySelector(`.srow[data-i="${S.sel}"] .cmt`); if (el) el.focus(); });
+});
+
+/* =====================================================================
+   DHH: Dashboard
+   ===================================================================== */
+const dashF = { q:'', campus:'', cm:'', flag:false };
+function renderDash(){
+  const list = activeStudents(), today = todayStr();
+  const rows = list.map(st => ({ st, s: stats(st) }));
+  const todayIsSchool = isSchoolDay(today);
+  const docToday = rows.filter(r => isComplete(r.s.todayEntry, r.st)).length;
+  const red = rows.filter(r => r.s.level === 'bad').length, amber = rows.filter(r => r.s.level === 'warn').length;
+  const mD = rows.reduce((a,r) => a + r.s.mDoc, 0), mT = rows.reduce((a,r) => a + r.s.mDays, 0);
+  $('#dashSub').textContent = `${fmtLong(today)} · ${S.settings.schoolYear} school year` + (todayIsSchool ? '' : ' · no school today');
+  const n = [];
+  if (!String(S.settings.noSchool||'').trim()) n.push(`<div class="notice">Add holidays and breaks in <b>Settings</b> so those days are not counted as missed documentation.</div>`);
+  if (todayIsSchool && nowMins() < cutoffMins()) n.push(`<div class="notice info">Today's entries are due by ${h(S.settings.cutoff)}. Until then, students not yet documented today are not counted as missed.</div>`);
+  $('#dashNotices').innerHTML = n.join('');
+  $('#tiles').innerHTML = [
+    ['', list.length, 'Active students'],
+    ['good', todayIsSchool ? `${docToday}/${list.length}` : '—', 'Documented today'],
+    ['bad', red, 'Need follow-up'],
+    ['warn', amber, 'Watch'],
+    ['', pct(mD, mT), 'Documented this month'],
+  ].map(([c,v,l]) => `<div class="tile ${c}"><div class="n">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  const campuses = [...new Set(list.map(s => s.campus).filter(Boolean))].sort();
+  const cms = [...new Map(list.flatMap(s => emails(s.cmEmail).map(e => [e, s.cmName || e]))).entries()];
+  $('#fCampus').innerHTML = `<option value="">All campuses</option>` + campuses.map(c => `<option ${c===dashF.campus?'selected':''}>${h(c)}</option>`).join('');
+  $('#fCm').innerHTML = `<option value="">All case managers</option>` + cms.map(([e,nm]) => `<option value="${h(e)}" ${e===dashF.cm?'selected':''}>${h(nm)}</option>`).join('');
+
+  const order = { bad:0, warn:1, good:2, gray:3 };
+  const shown = rows.filter(({st, s}) =>
+    (!dashF.q || (st.initials + ' ' + st.schoolId).toLowerCase().includes(dashF.q.toLowerCase())) &&
+    (!dashF.campus || st.campus === dashF.campus) &&
+    (!dashF.cm || emails(st.cmEmail).includes(dashF.cm)) &&
+    (!dashF.flag || s.level === 'bad' || s.level === 'warn')
+  ).sort((a,b) => order[a.s.level] - order[b.s.level] || b.s.consec - a.s.consec || a.st.initials.localeCompare(b.st.initials));
+
+  const levelPill = s => s.level === 'bad' ? `<span class="pill bad">Follow up</span>` : s.level === 'warn' ? `<span class="pill warn">Watch</span>` : s.level === 'gray' ? `<span class="pill gray">Not started</span>` : `<span class="pill good">On track</span>`;
+  const todayCell = (st, s) => {
+    if (!todayIsSchool) return '<span class="muted">—</span>';
+    const e = s.todayEntry;
+    if (isComplete(e, st)) return e.absent==='Y' ? '<span class="pill gray">Absent</span>' : problems(e,st).length ? `<span class="pill warn">${problems(e,st).join(', ')} not in use</span>` : '<span class="pill good">✓ In use</span>';
+    return s.todayOpen ? '<span class="pill gray">Pending</span>' : '<span class="pill bad">Missing</span>';
+  };
+  $('#dashTable').innerHTML = `<thead><tr><th>Student</th><th>Campus</th><th>Case manager</th><th>Today</th><th>Last 10 school days</th><th>This month</th><th>Last documented</th><th>Status</th><th></th></tr></thead><tbody>` +
+    shown.map(({st, s}) => `<tr class="${s.level==='bad'?'flag-bad':s.level==='warn'?'flag-warn':''}">
+      <td><b>${h(st.initials)}</b><div class="sid mono">${h(st.schoolId)}</div></td>
+      <td>${h(st.campus||'')}</td>
+      <td>${h(st.cmName||'')}<div class="sid">${h(st.cmEmail)}</div></td>
+      <td>${todayCell(st, s)}</td>
+      <td><div class="spark">${s.recent.map(r => `<i class="${r.k}" title="${fmtDow(r.d)} ${fmtShort(r.d)}: ${({g:'documented, all in use',w:'documented – '+(r.e?problems(r.e,st).join(', '):'')+' not in use'+(r.e&&r.e.comment?' ('+h(r.e.comment)+')':''),a:'absent',r:'NOT documented',p:'today, still open'})[r.k]}"></i>`).join('')}</div></td>
+      <td>${pct(s.mDoc, s.mDays)}<div class="sid">${s.mDoc}/${s.mDays} days</div></td>
+      <td>${s.lastDoc ? fmtDow(s.lastDoc) + ' ' + fmtShort(s.lastDoc) : '<span class="muted">never</span>'}</td>
+      <td>${levelPill(s)}<div class="why">${h(s.why.join('; '))}</div>${s.contacted ? `<div class="why">✓ contacted ${fmtShort(s.lastFu)}</div>` : ''}</td>
+      <td><div class="acts">${(s.level==='bad'||s.level==='warn') ? `<a class="btn small" target="_blank" data-mail="${st.id}" href="${mailto(st, s)}">Email CM</a>` : ''}<button class="btn small" data-fu="${st.id}">Log contact</button><button class="btn small" data-rep="${st.id}">AMR</button></div></td>
+    </tr>`).join('') + `</tbody>` + (shown.length ? '' : `<tbody><tr><td colspan="9" class="muted">No students match.</td></tr></tbody>`);
+}
+function mailto(st, s){
+  const first = (st.cmName || '').split(/\s+/)[0] || 'there';
+  const missed = s.missed.slice(-10).map(d => `${fmtDow(d)} ${fmtShort(d)}`).join(', ');
+  const lines = [`Hi ${first},`, '',
+    `I'm checking on the Amplification Monitoring Record (AMR) for ${label(st)}.`];
+  if (s.consec) lines.push('', `These school days have not been documented yet: ${missed}.`, 'Could you please fill them in through AMR Tracker? It only takes a few seconds per day.');
+  if (s.nonUse >= +S.settings.nonUseThreshold) lines.push('', `The student's device was marked not in use on ${s.nonUse} of the last ${s.presentN} school days. Is there anything I can help with (batteries, repairs, a spare)?`);
+  lines.push('', 'Thank you!');
+  return 'mailto:' + encodeURIComponent(st.cmEmail.replace(/\s/g,'')) + '?subject=' + encodeURIComponent(`AMR documentation – ${label(st)}`) + '&body=' + encodeURIComponent(lines.join('\n'));
+}
+$('#fSearch').oninput = e => { dashF.q = e.target.value; renderDashKeepFocus(); };
+$('#fCampus').onchange = e => { dashF.campus = e.target.value; renderDash(); };
+$('#fCm').onchange = e => { dashF.cm = e.target.value; renderDash(); };
+$('#fFlag').onchange = e => { dashF.flag = e.target.checked; renderDash(); };
+function renderDashKeepFocus(){ renderDash(); $('#fSearch').focus(); }
+$('#dashTable').addEventListener('click', e => {
+  const m = e.target.closest('[data-mail]');
+  if (m){ const st = S.students.find(s => s.id === m.dataset.mail), s = stats(st);
+    const note = s.consec ? `Emailed about undocumented days: ${s.missed.slice(-10).map(fmtShort).join(', ')}` : `Emailed about device not in use`;
+    setTimeout(() => followUpForm(st.id, 'Email', note), 300); return; }
+  const f = e.target.closest('[data-fu]'); if (f) return followUpForm(f.dataset.fu);
+  const r = e.target.closest('[data-rep]'); if (r){ S.tab = 'report'; S.repStudent = r.dataset.rep; S.repPeriod = todayStr().slice(0,7); render(); }
+});
+
+/* =====================================================================
+   DHH: Students
+   ===================================================================== */
+function renderStudents(){
+  const list = [...S.students].sort((a,b) => (a.active==='N') - (b.active==='N') || a.initials.localeCompare(b.initials));
+  $('#stuTable').innerHTML = `<thead><tr><th>Student</th><th>Campus / grade</th><th>Right</th><th>Left</th><th>ALD</th><th>Soundfield</th><th>Case manager</th><th>Tracking since</th><th></th></tr></thead><tbody>` +
+    (list.map(st => `<tr ${st.active==='N'?'style="opacity:.55"':''}>
+      <td><b>${h(st.initials)}</b><div class="sid mono">${h(st.schoolId)}</div>${st.active==='N'?'<span class="pill gray">Inactive</span>':''}</td>
+      <td>${h(st.campus||'')}<div class="sid">${st.grade ? 'Grade ' + h(st.grade) : ''}</div></td>
+      <td>${h(st.rightDevice||'—')}</td><td>${h(st.leftDevice||'—')}</td><td>${h(st.ald||'—')}</td>
+      <td>${st.soundfield==='Y'?'Yes':'No'}</td>
+      <td>${h(st.cmName||'')}<div class="sid">${h(st.cmEmail)}</div></td>
+      <td>${st.start ? fmtShort(st.start) + '/' + st.start.slice(2,4) : ''}</td>
+      <td><button class="btn small" data-edit="${st.id}">Edit</button></td></tr>`).join('') || `<tr><td colspan="9" class="muted">No students yet. Click “Add student”.</td></tr>`) + '</tbody>';
+}
+$('#addStudent').onclick = () => studentForm();
+$('#stuTable').addEventListener('click', e => { const b = e.target.closest('[data-edit]'); if (b) studentForm(S.students.find(s => s.id === b.dataset.edit)); });
+
+function devSelect(name, val){
+  const known = DEVICE_TYPES.includes(val) || !val;
+  return `<select name="${name}">${DEVICE_TYPES.map(d => `<option ${d===(val||'None')?'selected':''}>${d}</option>`).join('')}${known?'':`<option selected>${h(val)}</option>`}</select>`;
+}
+function openModal(html){ $('#modalBox').innerHTML = html; $('#modal').hidden = false; const f = $('#modalBox').querySelector('input,select,textarea'); if (f) f.focus(); }
+function closeModal(){ $('#modal').hidden = true; $('#modalBox').innerHTML = ''; }
+$('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+
+function studentForm(st){
+  st = st || { rightDevice:'Hearing aid', leftDevice:'Hearing aid', ald:'None', soundfield:'N', active:'Y', start: latestSchoolDay() };
+  openModal(`<h2>${st.id ? 'Edit student' : 'Add student'}</h2>
+  <p class="muted" style="margin-top:0">For privacy, store <b>initials and school ID only</b>. The school ID tells apart students with the same initials.</p>
+  <form class="form-grid" id="stuForm">
+    <label class="f">Initials <input name="initials" required value="${h(st.initials||'')}" placeholder="J.D." autocomplete="off"></label>
+    <label class="f">School ID <input name="schoolId" required value="${h(st.schoolId||'')}" inputmode="numeric" autocomplete="off"></label>
+    <label class="f">Campus <input name="campus" value="${h(st.campus||'')}" list="campusList"><datalist id="campusList">${[...new Set(S.students.map(s=>s.campus).filter(Boolean))].map(c=>`<option>${h(c)}`).join('')}</datalist></label>
+    <label class="f">Grade <input name="grade" value="${h(st.grade||'')}"></label>
+    <label class="f">Right personal listening device ${devSelect('rightDevice', st.rightDevice)}</label>
+    <label class="f">Left personal listening device ${devSelect('leftDevice', st.leftDevice)}</label>
+    <label class="f">Assistive listening device (ALD) <input name="ald" value="${h(st.ald||'None')}" list="aldList"><datalist id="aldList">${ALD_SUGGEST.map(a=>`<option>${a}`).join('')}</datalist><span class="hint">Type "None" if the student has no ALD.</span></label>
+    <label class="f">Daily access to classroom soundfield? <select name="soundfield"><option value="Y" ${st.soundfield==='Y'?'selected':''}>Yes</option><option value="N" ${st.soundfield!=='Y'?'selected':''}>No</option></select><span class="hint">Does not need daily documentation.</span></label>
+    <label class="f">Case manager name <input name="cmName" value="${h(st.cmName||'')}" placeholder="Ms. Lopez"></label>
+    <label class="f">Case manager district email(s) <input name="cmEmail" required value="${h(st.cmEmail||'')}" placeholder="name@district.org"><span class="hint">Add more than one, separated by commas (e.g. a para).</span></label>
+    <label class="f">Start tracking on <input type="date" name="start" value="${h(st.start||'')}"><span class="hint">Days before this are not counted as missed.</span></label>
+    <label class="f">Status <select name="active"><option value="Y">Active</option><option value="N" ${st.active==='N'?'selected':''}>Inactive (moved / dismissed)</option></select></label>
+    <label class="f full">Notes (no names or medical details) <input name="notes" value="${h(st.notes||'')}"></label>
+    <div class="full row">
+      ${st.id ? `<button type="button" class="btn danger" id="stuDel">Delete student & all records</button>` : ''}
+      <span class="spacer"></span>
+      <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary">Save</button>
+    </div>
+  </form>`);
+  const form = $('#stuForm');
+  form.initials.addEventListener('blur', () => form.initials.value = normInitials(form.initials.value));
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const data = { ...st, ...Object.fromEntries(new FormData(form)) };
+    try { validateStudent(data, S.students); const r = await api('saveStudent', { student:data });
+      const i = S.students.findIndex(s => s.id === r.student.id); if (i>=0) S.students[i] = r.student; else S.students.push(r.student);
+      closeModal(); toast('Student saved'); render();
+    } catch(err){ toast(err.message, true); }
+  };
+  const del = $('#stuDel');
+  if (del) del.onclick = async () => {
+    if (!confirm(`Permanently delete ${label(st)} and ALL of their AMR records?\n\nTip: to keep the records, set the student to Inactive instead.`)) return;
+    try { await api('deleteStudent', { id: st.id }); S.students = S.students.filter(s => s.id !== st.id);
+      Object.keys(S.entries).forEach(k => { if (k.startsWith(st.id+'|')) delete S.entries[k]; });
+      S.followups = S.followups.filter(f => f.studentId !== st.id); closeModal(); render(); toast('Deleted'); }
+    catch(err){ toast(err.message, true); }
+  };
+}
+
+/* =====================================================================
+   DHH: Follow-ups
+   ===================================================================== */
+function followUpForm(studentId, method, note){
+  openModal(`<h2>Log follow-up with case manager</h2>
+  <form class="form-grid" id="fuForm">
+    <label class="f full">Student <select name="studentId" required>${activeStudents().map(s => `<option value="${s.id}" ${s.id===studentId?'selected':''}>${h(label(s))} – ${h(s.cmName||s.cmEmail)}</option>`).join('')}</select></label>
+    <label class="f">Date <input type="date" name="date" value="${todayStr()}" max="${todayStr()}" required></label>
+    <label class="f">How <select name="method">${['Email','In person','Phone','Teams/chat','Other'].map(m => `<option ${m===method?'selected':''}>${m}</option>`).join('')}</select></label>
+    <label class="f full">Note <textarea name="note" rows="3" placeholder="What was discussed / next steps">${h(note||'')}</textarea></label>
+    <div class="full row"><span class="spacer"></span><button type="button" class="btn" onclick="closeModal()">Cancel</button><button class="btn primary">Save</button></div>
+  </form>`);
+  $('#fuForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const f = Object.fromEntries(new FormData(ev.target));
+    try { const r = await api('addFollowUp', { followup: f }); S.followups.push(r.followup); closeModal(); toast('Follow-up logged'); render(); }
+    catch(err){ toast(err.message, true); }
+  };
+}
+$('#addFollow').onclick = () => followUpForm();
+function renderFollow(){
+  const list = [...S.followups].sort((a,b) => (b.date+b.ts).localeCompare(a.date+a.ts));
+  $('#fuTable').innerHTML = `<thead><tr><th>Date</th><th>Student</th><th>Case manager</th><th>How</th><th>Note</th><th></th></tr></thead><tbody>` +
+    (list.map(f => { const st = S.students.find(s => s.id === f.studentId) || {};
+      return `<tr><td>${fmtShort(f.date)}/${f.date.slice(2,4)}</td><td><b>${h(st.initials||f.student)}</b> <span class="sid mono">${h(st.schoolId||'')}</span></td><td>${h(st.cmName||'')}</td><td>${h(f.method)}</td><td>${h(f.note)}</td><td><button class="btn small danger" data-delfu="${h(f.id)}">Delete</button></td></tr>`; }).join('')
+     || `<tr><td colspan="6" class="muted">No follow-ups logged yet.</td></tr>`) + '</tbody>';
+}
+$('#fuTable').addEventListener('click', async e => {
+  const b = e.target.closest('[data-delfu]'); if (!b || !confirm('Delete this follow-up note?')) return;
+  try { await api('deleteFollowUp', { id: b.dataset.delfu }); S.followups = S.followups.filter(f => f.id !== b.dataset.delfu); renderFollow(); } catch(err){ toast(err.message, true); }
+});
+
+/* =====================================================================
+   DHH: AMR reports (printable) + CSV
+   ===================================================================== */
+function yearMonths(){
+  const out = []; let d = pd(S.settings.firstDay); d.setDate(1);
+  const end = pd(S.settings.lastDay);
+  while (d <= end && out.length < 14){ out.push(ds(d).slice(0,7)); d.setMonth(d.getMonth()+1); }
+  return out;
+}
+function renderReport(){
+  const list = [...S.students].sort((a,b) => a.initials.localeCompare(b.initials));
+  if (!S.repStudent || !list.some(s => s.id === S.repStudent)) S.repStudent = list[0] && list[0].id;
+  const months = yearMonths();
+  if (!S.repPeriod) S.repPeriod = months.includes(todayStr().slice(0,7)) ? todayStr().slice(0,7) : months[0];
+  $('#rStudent').innerHTML = `<option value="__all">All active students</option>` + list.map(s => `<option value="${s.id}" ${s.id===S.repStudent?'selected':''}>${h(label(s))}${s.active==='N'?' (inactive)':''}</option>`).join('');
+  if (S.repStudent === '__all') $('#rStudent').value = '__all';
+  $('#rPeriod').innerHTML = months.map(m => `<option value="${m}" ${m===S.repPeriod?'selected':''}>${MONTHS[+m.slice(5)-1]} ${m.slice(0,4)}</option>`).join('') + `<option value="year" ${S.repPeriod==='year'?'selected':''}>Whole school year (to date)</option>`;
+  const studs = S.repStudent === '__all' ? activeStudents() : list.filter(s => s.id === S.repStudent);
+  $('#rOut').innerHTML = studs.map(st => amrReport(st, S.repPeriod)).join('') || '<div class="card">Add a student first.</div>';
+}
+function amrReport(st, period){
+  let a, b, title;
+  if (period === 'year'){ a = S.settings.firstDay; b = S.settings.lastDay; title = `School year ${S.settings.schoolYear}`; }
+  else { a = period + '-01'; const d = pd(a); d.setMonth(d.getMonth()+1); d.setDate(0); b = ds(d); title = `${MONTHS[+period.slice(5)-1]} ${period.slice(0,4)}`; }
+  const startTrack = st.start && st.start > a ? st.start : a;
+  const t = todayStr(), end = b < t ? b : t;
+  const days = startTrack <= end ? schoolDays(startTrack, end) : [];
+  let doc=0, abs=0, rY=0, rN=0, lY=0, lN=0, aY=0, aN=0;
+  const rows = days.map(d => {
+    const e = S.entries[keyOf(st.id, d)];
+    const comp = isComplete(e, st);
+    if (comp) doc++;
+    if (!comp) return `<tr class="missing"><td>${fmtDow(d)} ${fmtShort(d)}</td><td colspan="${3 + (needA(st)?1:0)}">Not documented</td><td></td><td>${e && e.comment ? h(e.comment) : ''}</td><td></td></tr>`;
+    if (e.absent === 'Y'){ abs++; return `<tr class="absent"><td>${fmtDow(d)} ${fmtShort(d)}</td><td class="c">✓</td><td class="c">—</td><td class="c">—</td>${needA(st)?'<td class="c">—</td>':''}<td></td><td>${h(e.comment||'')}</td><td>${h((e.by||'').split('@')[0])}</td></tr>`; }
+    if (e.right==='yes') rY++; if (e.right==='no') rN++;
+    if (e.left==='yes') lY++; if (e.left==='no') lN++;
+    if (e.ald) aldOk(e.ald) ? aY++ : aN++;
+    const yn = v => v==='yes' ? 'Yes' : v==='no' ? '<b>No</b>' : '—';
+    return `<tr><td>${fmtDow(d)} ${fmtShort(d)}</td><td class="c"></td><td class="c">${needR(st)?yn(e.right):'n/a'}</td><td class="c">${needL(st)?yn(e.left):'n/a'}</td>${needA(st)?`<td class="c">${aldOk(e.ald)?h(e.ald):'<b>'+h(e.ald)+'</b>'}</td>`:''}<td class="c">${e.ling==='Y'?'✓':''}</td><td>${h(e.comment||'')}</td><td>${h((e.by||'').split('@')[0])}</td></tr>`;
+  }).join('');
+  const fus = S.followups.filter(f => f.studentId === st.id && f.date >= a && f.date <= b).sort((x,y) => x.date.localeCompare(y.date));
+  return `<div class="report">
+    <h2>Amplification Monitoring Record</h2>
+    <div class="rhead">
+      <span><b>Period:</b> ${h(title)}</span><span><b>School year:</b> ${h(S.settings.schoolYear)}</span><span><b>Student:</b> ${h(st.initials)}</span><span><b>School ID:</b> ${h(st.schoolId)}</span>
+      <span><b>Campus:</b> ${h(st.campus||'')}</span><span><b>Right:</b> ${h(st.rightDevice||'None')}</span><span><b>Left:</b> ${h(st.leftDevice||'None')}</span><span><b>ALD:</b> ${h(st.ald||'None')}</span>
+      <span><b>Staff responsible:</b> ${h(st.cmName||st.cmEmail)}</span>
+    </div>
+    <table class="amr"><thead><tr><th>Date</th><th>Absent</th><th>Right</th><th>Left</th>${needA(st)?'<th>ALD</th>':''}<th>Ling</th><th>Problem / comment</th><th>Entered by</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="8" class="muted">No school days in this period yet.</td></tr>`}</tbody></table>
+    <div class="rsum">
+      <span><b>School days:</b> ${days.length}</span><span><b>Documented:</b> ${doc} (${pct(doc, days.length)})</span><span><b>Absent:</b> ${abs}</span>
+      ${needR(st) ? `<span><b>Right in use:</b> ${rY}/${rY+rN} (${pct(rY, rY+rN)})</span>` : ''}
+      ${needL(st) ? `<span><b>Left in use:</b> ${lY}/${lY+lN} (${pct(lY, lY+lN)})</span>` : ''}
+      ${needA(st) ? `<span><b>ALD in use:</b> ${aY}/${aY+aN} (${pct(aY, aY+aN)})</span>` : ''}
+    </div>
+    <div><b>Student has daily access to a classroom soundfield system:</b> ${st.soundfield==='Y' ? 'Yes' : 'No'} <span class="muted">(does not need daily documentation)</span></div>
+    ${fus.length ? `<div style="margin-top:10px"><b>DHH teacher follow-up with case manager:</b><ul style="margin:4px 0">${fus.map(f => `<li>${fmtShort(f.date)} – ${h(f.method)}: ${h(f.note)}</li>`).join('')}</ul></div>` : ''}
+    <p class="statement">${STATEMENT_1}<br>Ling sound checks: oo, ah, ee, mm, ss, sh.<br>${STATEMENT_2}</p>
+    <div class="sig"><div>DHH teacher signature</div><div>Date</div></div>
+  </div>`;
+}
+$('#rStudent').onchange = e => { S.repStudent = e.target.value; renderReport(); };
+$('#rPeriod').onchange = e => { S.repPeriod = e.target.value; renderReport(); };
+$('#rPrint').onclick = () => { $('#v-report').classList.add('printing'); window.print(); setTimeout(() => $('#v-report').classList.remove('printing'), 500); };
+$('#rCsv').onclick = () => {
+  const cols = ['date','initials','schoolId','campus','caseManager','absent','right','left','ald','ling','comment','enteredBy','savedAt'];
+  const byId = Object.fromEntries(S.students.map(s => [s.id, s]));
+  const rows = Object.values(S.entries).sort((a,b) => a.date.localeCompare(b.date) || a.student.localeCompare(b.student)).map(e => {
+    const st = byId[e.studentId] || {};
+    return [e.date, st.initials, st.schoolId, st.campus, st.cmName, e.absent, e.right, e.left, e.ald, e.ling, e.comment, e.by, e.ts];
+  });
+  const csv = [cols, ...rows].map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+  a.download = `AMR_${S.settings.schoolYear}_${todayStr()}.csv`; a.target = '_self'; document.body.appendChild(a); a.click(); a.remove();
+};
+
+/* =====================================================================
+   DHH: Settings
+   ===================================================================== */
+function renderSettings(){
+  const s = S.settings;
+  $('#setForm').innerHTML = `
+    <label class="f">School year <input name="schoolYear" value="${h(s.schoolYear)}"></label><span></span>
+    <label class="f">First day of school <input type="date" name="firstDay" value="${h(s.firstDay)}" required></label>
+    <label class="f">Last day of school <input type="date" name="lastDay" value="${h(s.lastDay)}" required></label>
+    <label class="f full">No-school days (holidays, breaks, teacher work days)
+      <textarea name="noSchool" rows="8" placeholder="2026-11-23 to 2026-11-27 Thanksgiving break&#10;1/18/2027 MLK Day">${h(s.noSchool)}</textarea>
+      <span class="hint">One date or range per line. Words after the date are ignored. Weekends are skipped automatically.</span></label>
+    <label class="f">Flag "follow up" after this many school days in a row not documented <input type="number" min="1" max="20" name="missThreshold" value="${h(s.missThreshold)}"></label>
+    <label class="f">Flag "watch" when a device is not in use on this many of the last 5 days <input type="number" min="1" max="5" name="nonUseThreshold" value="${h(s.nonUseThreshold)}"></label>
+    <label class="f">Daily entry is due by <input type="time" name="cutoff" value="${h(s.cutoff)}"><span class="hint">Before this time, today is not counted as missed.</span></label>
+    <label class="f">ALD choices (first one = "in use") <input name="aldStatuses" value="${h(s.aldStatuses)}"><span class="hint">From the AMR: In use, Not in use, Declined, Refused, Not working.</span></label>
+    ${IS_GAS ? `
+    <label class="f full">DHH teacher emails (can see the dashboard and edit students) <input name="dhhEmails" value="${h(s.dhhEmails)}"><span class="hint">Separate with commas. The account that set up the app is always included.</span></label>
+    <label class="f"><span><input type="checkbox" name="emailDigest" ${s.emailDigest?'checked':''}> Email DHH teachers a morning summary of students needing follow-up</span></label>
+    <label class="f"><span><input type="checkbox" name="emailCmReminder" ${s.emailCmReminder?'checked':''}> Email case managers a reminder if today is not documented</span>
+      <span class="hint">Reminder hour (24h): <input type="number" min="8" max="17" name="reminderHour" value="${h(s.reminderHour)}" style="width:70px"></span></label>
+    ` : `<p class="full muted">Email alerts and DHH teacher accounts are set up when you install the app on Google (see README).</p>`}
+    <div class="full row"><span class="spacer"></span><button class="btn primary">Save settings</button></div>`;
+}
+$('#setForm').onsubmit = async ev => {
+  ev.preventDefault();
+  const f = ev.target, fd = Object.fromEntries(new FormData(f));
+  const next = { ...fd, missThreshold: +fd.missThreshold || 2, nonUseThreshold: +fd.nonUseThreshold || 2 };
+  if (IS_GAS){ next.emailDigest = !!f.emailDigest.checked; next.emailCmReminder = !!f.emailCmReminder.checked; next.reminderHour = +fd.reminderHour || 13; }
+  if (next.lastDay <= next.firstDay) return toast('Last day must be after the first day.', true);
+  try { const r = await api('saveSettings', { settings: next }); S.settings = { ...DEFAULT_SETTINGS, ...r.settings }; _cal = null; toast('Settings saved'); }
+  catch(err){ toast(err.message, true); }
+};
+
+/* =====================================================================
+   Start
+   ===================================================================== */
+if (!IS_GAS){
+  $('#demoBar').hidden = false;
+  const db = Demo.db();
+  const cms = [...new Map(db.students.flatMap(s => emails(s.cmEmail).map(e => [e, s.cmName || e]))).entries()];
+  $('#demoAs').innerHTML = `<option value="dhh">DHH teacher</option>` + cms.map(([e,n]) => `<option value="${h(e)}">Case manager: ${h(n)}</option>`).join('');
+  $('#demoAs').value = Demo.as();
+  $('#demoAs').onchange = e => { Demo.setAs(e.target.value); S.tab = null; S.sel = 0; S.cmFilter = ''; load(); };
+  $('#demoReset').onclick = () => { if (confirm('Reset all demo data?')){ try { localStorage.removeItem(Demo.KEY); } catch(e){} Demo.mem = null; load(); } };
+}
+load();
+</script>
+</body>
+</html>
