@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hoop Vault Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap">
+<style>
+/* Hoop Vault: an EDUCATIONAL simulation of predatory pay-to-win / loot-box design.
+   No real money is ever charged. All "$" amounts are pretend and only tallied for the Reality Check. */
+:root{
+  --bg:#0b0b14; --panel:#151526; --panel2:#1d1d33; --line:#2c2c4a; --text:#f2f2fa; --muted:#a3a3c2;
+  --gem:#43e0ff; --coin:#ffc93c; --hot:#ff3d6e; --ok:#3ddc84; --insight:#ffe14d;
+  --bronze:#c07a45; --silver:#c9d1dc; --gold:#ffcf3f; --diamond:#6fe7ff; --galaxy:#c06bff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+body{min-height:100vh;background:radial-gradient(1200px 600px at 50% -200px,#2b1650 0%,var(--bg) 60%)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+h1,h2,h3,.disp{font-family:"Bebas Neue",Impact,sans-serif;letter-spacing:.04em;font-weight:400;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:12px 16px 120px}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0}
+.logo{font-size:34px;background:linear-gradient(90deg,#ff3d6e,#ffc93c,#43e0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bal{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.pill{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:800;display:flex;gap:6px;align-items:center}
+.pill .g{color:var(--gem)} .pill .c{color:var(--coin)}
+.pill button{background:var(--hot);color:#fff;padding:2px 9px;border-radius:999px;font-weight:800}
+.toggle{background:var(--panel2);color:var(--text);padding:8px 12px;border:1px solid var(--line)}
+.toggle.on{background:var(--insight);color:#111}
+
+/* ticker */
+.ticker{overflow:hidden;white-space:nowrap;background:#000a;border-block:1px solid var(--line);font-size:13px;color:var(--muted);padding:6px 0;position:relative}
+.ticker span{display:inline-block;padding-left:100%;animation:tick 28s linear infinite}
+@keyframes tick{to{transform:translateX(-100%)}}
+
+/* offer banner */
+.offer{margin:12px 0;background:linear-gradient(90deg,#4a0e2e,#2a0f4f);border:1px solid var(--hot);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.offer .clock{font-family:"Bebas Neue";font-size:34px;color:var(--hot);min-width:96px}
+.offer b{color:var(--coin)}
+.offer .buy{margin-left:auto;background:var(--hot);color:#fff;padding:10px 18px;font-weight:800;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.05);box-shadow:0 0 22px var(--hot)}}
+
+/* layout */
+.grid{display:grid;grid-template-columns:1fr 320px;gap:14px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative}
+.panel h2{font-size:26px;margin-bottom:8px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{background:var(--panel2);color:var(--muted);padding:8px 14px;font-weight:800;border:1px solid var(--line)}
+.tabs button.act{background:var(--text);color:#111}
+.tabs .badge{background:var(--hot);color:#fff;border-radius:999px;padding:0 6px;margin-left:4px;font-size:11px}
+.hide{display:none!important}
+.btn{background:var(--panel2);color:var(--text);padding:10px 16px;font-weight:800;border:1px solid var(--line)}
+.btn.primary{background:linear-gradient(180deg,#ff5a85,#d81b4f);border:0;color:#fff}
+.btn.gem{background:linear-gradient(180deg,#5ae9ff,#169bc4);color:#04202a;border:0}
+.btn.coin{background:linear-gradient(180deg,#ffd866,#e0a300);color:#2a1d00;border:0}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.muted{color:var(--muted)} .small{font-size:12px}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.card{border-radius:12px;padding:8px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;color:#111;position:relative;overflow:hidden;border:2px solid #0003}
+.card .ovr{font-family:"Bebas Neue";font-size:36px;line-height:1}
+.card .nm{font-weight:800;font-size:13px;line-height:1.15}
+.card .tier{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
+.card .pos{font-size:11px;font-weight:800}
+.card .qs{position:absolute;right:6px;top:6px;background:#0008;color:#fff;font-size:10px;padding:3px 6px;border-radius:6px}
+.t-bronze{background:linear-gradient(160deg,#e3a571,#8a4d23)}
+.t-silver{background:linear-gradient(160deg,#f4f7fb,#8c96a6)}
+.t-gold{background:linear-gradient(160deg,#fff09a,#d9a100)}
+.t-diamond{background:linear-gradient(160deg,#d5fbff,#26b6d8);box-shadow:0 0 16px #6fe7ff88}
+.t-galaxy{background:linear-gradient(160deg,#ffb3f5,#7a2cff 55%,#1a0b4a);color:#fff;box-shadow:0 0 22px #c06bffaa}
+.card.lineup::after{content:"STARTER";position:absolute;bottom:6px;right:6px;font-size:9px;font-weight:800;background:#000a;color:#fff;padding:2px 5px;border-radius:5px}
+
+/* store */
+.bundles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.bundle{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;position:relative}
+.bundle .amt{font-family:"Bebas Neue";font-size:38px;color:var(--gem)}
+.bundle .ribbon{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--hot);color:#fff;font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.bundle.best{border-color:var(--coin);box-shadow:0 0 18px #ffc93c44}
+.bundle .bonus{color:var(--ok);font-weight:800;font-size:12px;min-height:16px}
+.packs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:6px}
+.pack{border-radius:16px;padding:16px;background:linear-gradient(160deg,#2a1a55,#120c2b);border:1px solid #6d4bd8}
+.pack.premium{background:linear-gradient(160deg,#5a1240,#1b0b2a);border-color:var(--hot)}
+.pack h3{font-size:28px}
+.pack .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.oddslink{font-size:11px;color:#6f6f8f;text-decoration:underline;cursor:pointer;background:none;padding:0;margin-top:8px}
+
+/* collection meter */
+.meter{height:12px;background:#000;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--hot),var(--coin))}
+
+/* sidebar */
+.stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.stat b{font-variant-numeric:tabular-nums}
+.real{border-color:var(--insight)}
+.real h2{color:var(--insight)}
+.bigmoney{font-family:"Bebas Neue";font-size:48px;color:var(--insight);line-height:1}
+.log{max-height:220px;overflow:auto;font-size:12px;color:var(--muted)}
+.log div{padding:3px 0;border-bottom:1px solid #ffffff0d}
+
+/* match */
+.court{background:linear-gradient(180deg,#5b3417,#3b210d);border-radius:14px;padding:18px;text-align:center;border:3px solid #a8692f}
+.score{display:flex;justify-content:center;align-items:center;gap:22px;font-family:"Bebas Neue";font-size:64px}
+.score small{display:block;font-size:16px;color:#fff9;font-family:Inter;font-weight:800}
+.vs{font-size:22px;color:#fffa}
+
+/* modal */
+.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:20px}
+.reveal{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0;perspective:900px}
+.slot{width:130px;height:180px;position:relative}
+.slot .back{position:absolute;inset:0;border-radius:12px;background:repeating-linear-gradient(45deg,#2b1a5a 0 10px,#1a0f3a 10px 20px);border:2px solid #6d4bd8;display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue";font-size:40px;color:#6d4bd8;transition:box-shadow .3s}
+.slot .back.tease-diamond{box-shadow:0 0 40px 10px var(--diamond);border-color:var(--diamond)}
+.slot .back.tease-galaxy{box-shadow:0 0 50px 14px var(--galaxy);border-color:var(--galaxy)}
+.slot .card{position:absolute;inset:0;animation:flip .45s ease-out}
+@keyframes flip{from{transform:rotateY(90deg)}to{transform:rotateY(0)}}
+
+/* wheel */
+.wheelwrap{position:relative;width:300px;height:300px;margin:10px auto}
+.wheelwrap svg{width:100%;height:100%;transition:transform 4.2s cubic-bezier(.17,.67,.12,1)}
+.pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid #fff;z-index:2;filter:drop-shadow(0 2px 2px #000)}
+
+/* insight tags + toasts */
+.toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:60;max-width:360px}
+.toast{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;animation:in .3s}
+.toast.spend{border-color:var(--hot)}
+.toast.ins{background:#2a2600;border-color:var(--insight);color:#fff7c2}
+.toast.ins b{color:var(--insight)}
+@keyframes in{from{transform:translateY(20px);opacity:0}}
+.itag{display:none;background:var(--insight);color:#111;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;cursor:help;vertical-align:middle;margin-left:6px;white-space:nowrap}
+body.insight .itag{display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
+.tacticlist{display:grid;gap:8px}
+.tacticlist div{background:var(--panel2);border-radius:10px;padding:10px;border-left:4px solid var(--line)}
+.tacticlist div.seen{border-left-color:var(--insight)}
+.disclaimer{background:#0d2a1a;border:1px solid var(--ok);color:#c9ffe0;padding:8px 12px;border-radius:10px;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo disp">HOOP VAULT</div>
+    <span class="muted small">Ultimate Squad Mode · Season <b id="seasonNum">1</b></span>
+    <div class="bal">
+      <div class="pill"><span class="g">◆</span><span id="gems">0</span><span class="small muted">Gems</span><button id="plusGems" title="Get more gems">+</button><span class="itag" data-t="currency">Premium currency</span></div>
+      <div class="pill"><span class="c">●</span><span id="coins">0</span><span class="small muted">Coins</span><span class="itag" data-t="grind">Engineered grind</span></div>
+      <button class="toggle" id="insightBtn">🔍 Insight Mode</button>
+      <button class="toggle" id="debriefBtn">📋 Debrief</button>
+    </div>
+  </div>
+
+  <div class="ticker"><span id="ticker"></span></div>
+
+  <div class="offer" id="offer">
+    <div class="clock" id="clock">14:59</div>
+    <div><div class="disp" style="font-size:24px">⚡ GALAXY GUARANTEE BUNDLE ⚡ <span class="itag" data-t="fomo">Fake urgency</span></div>
+      <div class="small">3 Premium Packs + <b>1 GUARANTEED Diamond</b> + 2,000 Gems · <s class="muted">$89.97 value</s> <b>Only $49.99!</b> <span class="itag" data-t="anchoring">Price anchoring</span></div></div>
+    <button class="buy" id="offerBuy">BUY NOW – $49.99</button>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="tabs" id="tabs">
+        <button data-tab="play" class="act">🏀 Play</button>
+        <button data-tab="store">🛒 Store<span class="badge">SALE</span></button>
+        <button data-tab="packs">🎁 Packs</button>
+        <button data-tab="wheel">🎡 Lucky Wheel<span class="badge" id="wheelBadge">1</span></button>
+        <button data-tab="squad">🧢 My Squad</button>
+      </div>
+
+      <!-- PLAY -->
+      <section data-pane="play">
+        <div class="court">
+          <div class="muted small" style="color:#fff9">YOUR SQUAD OVR <b id="teamOvr" style="color:#fff;font-size:18px">--</b> &nbsp;·&nbsp; NEXT OPPONENT OVR <b id="oppPreview" style="color:#fff;font-size:18px">??</b> <span class="itag" data-t="rubberband">Rubber-band matchmaking</span></div>
+          <div class="score"><div><span id="sHome">0</span><small>YOU</small></div><div class="vs">VS</div><div><span id="sAway">0</span><small id="oppName">OPPONENT</small></div></div>
+          <div id="matchMsg" style="min-height:44px;font-weight:800"></div>
+          <button class="btn primary" id="playBtn" style="font-size:18px;padding:14px 30px">PLAY MATCH</button>
+          <div class="small" style="color:#fffa;margin-top:8px">Win: 150–250 coins · Loss: 60 coins · Standard pack = 7,500 coins</div>
+        </div>
+        <div id="lossOffer" class="offer hide" style="border-color:var(--coin)">
+          <div><div class="disp" style="font-size:22px">SO CLOSE! 😤 <span class="itag" data-t="lossoffer">Loss-timed offer</span></div>
+          <div class="small">Players who opened a Premium Pack after a loss won <b>73%</b> more games!* <span class="muted">*internal data</span></div></div>
+          <button class="buy" id="lossBuy" style="background:var(--coin);color:#111">OPEN PREMIUM PACK</button>
+        </div>
+        <h3 style="font-size:22px;margin:14px 0 6px">Starting Five</h3>
+        <div class="cards" id="lineup"></div>
+      </section>
+
+      <!-- STORE -->
+      <section data-pane="store" class="hide">
+        <h2>Gem Store <span class="itag" data-t="oneclick">One-click buying</span><span class="itag" data-t="leftover">Leftover trap</span></h2>
+        <p class="small muted">Gems power everything: packs, boosts, and spins. Bigger bundles = more bonus gems!</p>
+        <div class="bundles" id="bundles"></div>
+        <div class="disclaimer">🧪 Simulation: no real payment happens. Each “purchase” adds a pretend charge to your Reality Check.</div>
+      </section>
+
+      <!-- PACKS -->
+      <section data-pane="packs" class="hide">
+        <h2>Packs <span class="itag" data-t="lootbox">Loot box</span><span class="itag" data-t="hiddenodds">Buried odds</span></h2>
+        <div class="small muted" style="margin-bottom:6px">Collection progress: <b id="colPct">0%</b> of the Season <span class="seasonN">1</span> Galaxy set <span class="itag" data-t="sunk">Sunk-cost meter</span></div>
+        <div class="meter"><i id="colBar" style="width:0%"></i></div>
+        <div class="packs">
+          <div class="pack">
+            <h3>Standard Pack</h3>
+            <div class="small muted">3 players · chance at <b style="color:var(--galaxy)">GALAXY 95+</b></div>
+            <div class="row">
+              <button class="btn gem" data-buy="standard" data-cur="gems">◆ 600</button>
+              <button class="btn coin" data-buy="standard" data-cur="coins">● 7,500</button>
+            </div>
+            <button class="oddslink" data-odds="standard">pack probability disclosure</button>
+          </div>
+          <div class="pack premium">
+            <h3>Premium Pack 🔥</h3>
+            <div class="small muted">3 players · <b>BOOSTED</b> Diamond & Galaxy odds!</div>
+            <div class="row"><button class="btn gem" data-buy="premium" data-cur="gems">◆ 1,250</button></div>
+            <button class="oddslink" data-odds="premium">pack probability disclosure</button>
+          </div>
+        </div>
+        <div id="shortfall" class="small" style="margin-top:10px;color:var(--coin)"></div>
+      </section>
+
+      <!-- WHEEL -->
+      <section data-pane="wheel" class="hide">
+        <h2>Lucky Wheel <span class="itag" data-t="wheel">Deceptive wheel</span></h2>
+        <p class="small muted">One free spin every day. Extra spins just ◆ 100!</p>
+        <div class="wheelwrap"><div class="pointer"></div><svg id="wheel" viewBox="-110 -110 220 220"></svg></div>
+        <div style="text-align:center">
+          <button class="btn primary" id="spinBtn">SPIN</button>
+          <div id="wheelMsg" style="margin-top:10px;font-weight:800;min-height:24px"></div>
+        </div>
+      </section>
+
+      <!-- SQUAD -->
+      <section data-pane="squad" class="hide">
+        <h2>My Squad</h2>
+        <p class="small muted">Your best five start automatically. Tap a card to quick-sell it for coins.</p>
+        <div class="cards" id="collection"></div>
+      </section>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="display:grid;gap:14px;align-content:start">
+      <div class="panel real">
+        <h2>Reality Check</h2>
+        <div class="small muted">Pretend money “spent” so far</div>
+        <div class="bigmoney" id="usd">$0.00</div>
+        <div class="stat"><span>Purchases</span><b id="rPurch">0</b></div>
+        <div class="stat"><span>Packs opened</span><b id="rPacks">0</b></div>
+        <div class="stat"><span>Matches (W–L)</span><b id="rWL">0–0</b></div>
+        <div class="stat"><span>Galaxy pulls</span><b id="rGal">0</b></div>
+        <div class="stat"><span>Time in session</span><b id="rTime">0:00</b></div>
+        <div class="stat"><span>Cost per win</span><b id="rPerWin">—</b></div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:20px">Live Pulls <span class="itag" data-t="social">Fake social proof</span></h3>
+        <div class="log" id="feed"></div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:20px">Your Activity</h3>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div id="modalRoot"></div>
+
+<script>
+(() => {
+// ---------- Tactic glossary (used by Insight Mode + Debrief) ----------
+const TACTICS = {
+  currency:{t:"Premium currency",d:"Prices are shown in Gems, not dollars. A 1,250-gem pack doesn't 'feel' like $12, which weakens the pain of paying."},
+  leftover:{t:"Leftover currency trap",d:"Bundle sizes never line up with pack prices (packs cost 600 / 1,250; bundles give 450, 1,000, 2,100…). You almost always end with a remainder that's 'wasted' unless you buy more."},
+  anchoring:{t:"Price anchoring & 'best value' badges",d:"A crossed-out 'value' price and 'BEST VALUE' ribbons push you toward the biggest bundle by making it seem like the rational choice."},
+  lootbox:{t:"Paid randomized rewards (loot boxes)",d:"You pay for a chance, not an item. Unpredictable rewards (a variable-ratio schedule) are the same reinforcement pattern slot machines use, and they are the hardest to stop."},
+  hiddenodds:{t:"Buried odds",d:"The real probabilities exist, but they're behind a tiny grey link with a dull name. Most players never open it."},
+  nearmiss:{t:"Near-miss animation",d:"The pack glowed Diamond/Galaxy before revealing something ordinary. Near-misses excite the brain almost like wins and push people to try 'one more'."},
+  hook:{t:"Rigged first pull",d:"Your free welcome pack was guaranteed to contain a Diamond. An early big win anchors your expectations and gets you hooked."},
+  honeymoon:{t:"Early-win honeymoon",d:"Your first few opponents were deliberately weak. Easy early wins build attachment before the difficulty ramps up."},
+  rubberband:{t:"Rubber-band matchmaking",d:"Opponents are scaled to YOUR team rating. Buying better players only helps briefly, so the game never lets you feel 'done'."},
+  lossoffer:{t:"Offer timed to a loss",d:"Purchase prompts appear right after a close loss, when frustration is highest and judgment is weakest. The '73%' stat is made up."},
+  fomo:{t:"Fake urgency (FOMO)",d:"The countdown silently resets when it hits zero or when you reload. The 'limited time' offer never actually goes away."},
+  wheel:{t:"Deceptive wheel",d:"The GALAXY slice is drawn huge, but its real chance is 0.2%. The wheel often stops just past it to create a near-miss."},
+  social:{t:"Fabricated social proof",d:"The 'Live Pulls' feed is generated randomly and only shows big wins, making jackpots seem common."},
+  powercreep:{t:"Power creep / season reset",d:"A new season raised opponent ratings and released stronger cards. The players you paid for are now worse, so you have to buy again."},
+  grind:{t:"Engineered grind",d:"A win earns ~200 coins; a pack costs 7,500. That's ~40 wins per pack. Earning by playing is made tedious so paying seems reasonable."},
+  oneclick:{t:"Frictionless purchasing",d:"One tap buys, with no confirmation step and no running total. Removing friction removes the moment where you'd reconsider."},
+  sunk:{t:"Sunk-cost collection meter",d:"A progress bar toward 'completing' a set that is built to be extremely expensive to finish, and that resets every season."},
+};
+const seen = new Set();
+const shown = new Set(); // tactics already explained in a pop-up this session
+
+// ---------- Data ----------
+const TIERS = {
+  bronze:{lo:60,hi:69,qs:25}, silver:{lo:70,hi:77,qs:75}, gold:{lo:78,hi:85,qs:250},
+  diamond:{lo:86,hi:92,qs:1000}, galaxy:{lo:95,hi:99,qs:5000}
+};
+const ODDS = {
+  standard:{bronze:.50,silver:.32,gold:.147,diamond:.03,galaxy:.003},
+  premium:{bronze:.20,silver:.40,gold:.30,diamond:.09,galaxy:.01},
+};
+const PACK_COST = {standard:{gems:600,coins:7500}, premium:{gems:1250}};
+const BUNDLES = [
+  {usd:4.99,gems:450},
+  {usd:9.99,gems:1000,bonus:"+5% bonus"},
+  {usd:19.99,gems:2100,bonus:"+10% bonus",ribbon:"MOST POPULAR"},
+  {usd:49.99,gems:5500,bonus:"+15% bonus"},
+  {usd:99.99,gems:11500,bonus:"+20% bonus",ribbon:"BEST VALUE",best:true},
+];
+const FIRST = ["Jalen","Marcus","Dre","Tyrese","Kobi","Malik","Zion","Darius","Andre","Cam","Isaiah","Theo","Jaylen","Nico","Rashad","Devin","Omari","Luka","Bryce","Quinn"];
+const LAST = ["Holloway","Brooks","Okafor","Vance","Mercer","Reyes","Kessler","Adeyemi","Sterling","Booker","Lyons","Castillo","Whitfield","Hale","Navarro","Pryce","Dunmore","Ashby","Calloway","Rivers"];
+const POS = ["PG","SG","SF","PF","C"];
+const TEAMS = ["Night Owls","Iron Hawks","Riverside Kings","Dune Vipers","Metro Titans","Coastline Waves","Summit Bears"];
+const HANDLES = ["xHoopGod","ballislife22","DimeDropper","TripleDubz","PostMaster","SplashFam","GlassCleaner","ankleTaker","courtvision","BuzzerBeatr"];
+
+const rnd = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const fmt = n=>n.toLocaleString();
+const money = n=>"$"+n.toFixed(2);
+
+// ---------- State ----------
+const SAVE="hoopVaultSim.v1";
+let S;
+function fresh(){
+  return {gems:600,coins:0,usd:0,purchases:0,packs:0,wins:0,losses:0,games:0,galaxy:0,season:1,
+    cards:[mk("bronze"),mk("bronze"),mk("silver"),mk("bronze"),mk("silver")],
+    firstPack:true,freeSpin:true,insight:false,started:Date.now(),log:[],seen:[],introDone:false,
+    offerEnd:Date.now()+15*60e3, nextOpp:null};
+}
+function mk(tier,season){
+  season = season || (S?S.season:1);
+  const T=TIERS[tier], bump=(season-1)*3;
+  return {id:Math.random().toString(36).slice(2,9),tier,season,
+    name:pick(FIRST)+" "+pick(LAST),pos:pick(POS),
+    ovr:Math.min(99+season-1,rnd(T.lo,T.hi)+bump)};
+}
+function load(){ try{ const s=JSON.parse(localStorage.getItem(SAVE)); if(s&&s.cards) return s; }catch(e){} return null; }
+function save(){ S.seen=[...seen]; try{ localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
+S = load() || fresh();
+(S.seen||[]).forEach(x=>seen.add(x));
+
+// ---------- Helpers ----------
+const $ = id=>document.getElementById(id);
+function toast(html,cls="",ms=4200){
+  const d=document.createElement("div"); d.className="toast "+cls; d.innerHTML=html;
+  const box=$("toasts"); box.appendChild(d); setTimeout(()=>d.remove(),ms);
+  while(box.children.length>3) box.firstChild.remove();
+}
+function tactic(k){
+  seen.add(k); save();
+  if(S.insight && !shown.has(k)){ shown.add(k); toast(`🔍 <b>${TACTICS[k].t}</b><br>${TACTICS[k].d}`,"ins",8000); }
+}
+function log(msg){ S.log.unshift(msg); S.log=S.log.slice(0,60); renderLog(); }
+function lineup(){ return [...S.cards].sort((a,b)=>b.ovr-a.ovr).slice(0,5); }
+function teamOvr(){ const l=lineup(); return Math.round(l.reduce((s,c)=>s+c.ovr,0)/l.length); }
+
+function charge(b){
+  S.usd+=b.usd; S.purchases++; S.gems+=b.gems;
+  toast(`💳 Pretend charge <b>${money(b.usd)}</b> → +${fmt(b.gems)} ◆`,"spend");
+  log(`Bought ${fmt(b.gems)} gems for ${money(b.usd)} (pretend)`);
+  tactic("oneclick"); tactic("currency");
+  save(); render();
+}
+
+// ---------- Render ----------
+function cardHTML(c,opts={}){
+  return `<div class="card t-${c.tier}${opts.lineup?" lineup":""}" ${opts.sell?`data-sell="${c.id}"`:""}>
+    ${opts.sell?`<span class="qs">sell ●${TIERS[c.tier].qs}</span>`:""}
+    <div><div class="ovr">${c.ovr}</div><div class="pos">${c.pos}</div></div>
+    <div><div class="nm">${c.name}</div><div class="tier">${c.tier} · S${c.season}</div></div></div>`;
+}
+function render(){
+  $("gems").textContent=fmt(S.gems); $("coins").textContent=fmt(S.coins);
+  $("seasonNum").textContent=S.season; document.querySelectorAll(".seasonN").forEach(e=>e.textContent=S.season);
+  $("teamOvr").textContent=teamOvr();
+  const ids=new Set(lineup().map(c=>c.id));
+  $("lineup").innerHTML=lineup().map(c=>cardHTML(c,{lineup:true})).join("");
+  $("collection").innerHTML=[...S.cards].sort((a,b)=>b.ovr-a.ovr).map(c=>cardHTML(c,{sell:!ids.has(c.id),lineup:ids.has(c.id)})).join("");
+  // reality check
+  $("usd").textContent=money(S.usd); $("rPurch").textContent=S.purchases; $("rPacks").textContent=S.packs;
+  $("rWL").textContent=`${S.wins}–${S.losses}`; $("rGal").textContent=S.galaxy;
+  $("rPerWin").textContent=S.wins?money(S.usd/S.wins):"—";
+  // collection meter: galaxy cards owned this season out of a 12-card set
+  const owned=S.cards.filter(c=>c.tier==="galaxy"&&c.season===S.season).length + S.cards.filter(c=>c.tier==="diamond"&&c.season===S.season).length*0.25;
+  const pct=Math.min(100,Math.round(owned/12*100*10)/10 + (S.packs?3:0));
+  $("colPct").textContent=pct+"%"; $("colBar").style.width=pct+"%";
+  $("wheelBadge").classList.toggle("hide",!S.freeSpin);
+  $("spinBtn").textContent=S.freeSpin?"FREE SPIN":"SPIN AGAIN – ◆ 100";
+  document.body.classList.toggle("insight",S.insight);
+  $("insightBtn").classList.toggle("on",S.insight);
+  // shortfall nudge
+  const need = PACK_COST.premium.gems - S.gems;
+  $("shortfall").innerHTML = (S.gems>0 && S.gems<PACK_COST.premium.gems)
+    ? `You have ◆ ${fmt(S.gems)}. Just <b>◆ ${fmt(need)}</b> more for a Premium Pack! <button class="btn gem" id="topUp" style="padding:4px 10px">Top up</button>` : "";
+  const tu=$("topUp"); if(tu) tu.onclick=()=>{ tactic("leftover"); const b=BUNDLES.find(b=>b.gems>=need)||BUNDLES[4]; charge(b); };
+}
+function renderLog(){ $("log").innerHTML=S.log.map(l=>`<div>${l}</div>`).join(""); }
+function renderBundles(){
+  $("bundles").innerHTML=BUNDLES.map((b,i)=>`<div class="bundle${b.best?" best":""}">
+    ${b.ribbon?`<div class="ribbon">${b.ribbon}</div>`:""}
+    <div class="amt">◆ ${fmt(b.gems)}</div><div class="bonus">${b.bonus||""}</div>
+    <button class="btn primary" data-bundle="${i}" style="width:100%;margin-top:8px">${money(b.usd)}</button></div>`).join("");
+}
+
+// ---------- Tabs ----------
+$("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-tab]"); if(!b) return;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("act",x===b));
+  document.querySelectorAll("[data-pane]").forEach(p=>p.classList.toggle("hide",p.dataset.pane!==b.dataset.tab));
+  if(b.dataset.tab==="store"){ tactic("anchoring"); tactic("leftover"); }
+  if(b.dataset.tab==="packs") tactic("sunk");
+  if(b.dataset.tab==="wheel") tactic("wheel");
+});
+function goTab(t){ document.querySelector(`#tabs button[data-tab="${t}"]`).click(); }
+
+// ---------- Store ----------
+$("bundles").addEventListener("click",e=>{ const b=e.target.closest("[data-bundle]"); if(b) charge(BUNDLES[+b.dataset.bundle]); });
+$("plusGems").onclick=()=>goTab("store");
+$("offerBuy").onclick=()=>{
+  S.usd+=49.99; S.purchases++; S.gems+=2000; save();
+  toast(`💳 Pretend charge <b>$49.99</b>`,"spend"); log("Bought Galaxy Guarantee Bundle for $49.99 (pretend)");
+  tactic("fomo"); tactic("anchoring");
+  openPack("premium",{free:true,guaranteeDiamond:true}).then(()=>openPack("premium",{free:true})).then(()=>openPack("premium",{free:true}));
+};
+
+// ---------- Packs ----------
+function roll(odds){ let r=Math.random(),acc=0; for(const k in odds){ acc+=odds[k]; if(r<acc) return k; } return "bronze"; }
+document.querySelector('[data-pane="packs"]').addEventListener("click",e=>{
+  const b=e.target.closest("[data-buy]"); if(b){ buyPack(b.dataset.buy,b.dataset.cur); return; }
+  const o=e.target.closest("[data-odds]"); if(o){ showOdds(o.dataset.odds); }
+});
+function buyPack(type,cur){
+  const cost=PACK_COST[type][cur];
+  const have = cur==="gems"?S.gems:S.coins;
+  if(have<cost){
+    if(cur==="coins"){ toast(`Need ● ${fmt(cost-have)} more coins — that's about ${Math.ceil((cost-have)/200)} more wins. Or use Gems! ◆`); tactic("grind"); }
+    else { toast(`Need ◆ ${fmt(cost-have)} more gems.`); tactic("leftover"); goTab("store"); }
+    return;
+  }
+  if(cur==="gems") S.gems-=cost; else S.coins-=cost;
+  tactic("lootbox");
+  openPack(type,{});
+}
+function openPack(type,{guaranteeDiamond,free}){
+  return new Promise(res=>{
+    let tiers=[roll(ODDS[type]),roll(ODDS[type]),roll(ODDS[type])];
+    if(S.firstPack){ tiers=["silver","gold","diamond"]; S.firstPack=false; tactic("hook"); }
+    if(guaranteeDiamond && !tiers.some(t=>t==="diamond"||t==="galaxy")) tiers[2]="diamond";
+    const cards=tiers.map(t=>mk(t));
+    S.packs++; cards.forEach(c=>{ S.cards.push(c); if(c.tier==="galaxy") S.galaxy++; });
+    log(`Opened ${type} pack: ${cards.map(c=>c.tier[0].toUpperCase()+c.tier.slice(1)+" "+c.ovr).join(", ")}`);
+    save();
+    // reveal modal
+    const m=modal(`<h2 style="font-size:34px;text-align:center">${type.toUpperCase()} PACK</h2>
+      <div class="reveal">${cards.map((c,i)=>`<div class="slot" id="slot${i}"><div class="back">?</div></div>`).join("")}</div>
+      <div id="packMsg" style="text-align:center;min-height:24px;font-weight:800"></div>
+      <div style="text-align:center;margin-top:10px"><button class="btn" id="packClose" disabled>Continue</button>
+      <button class="btn primary" id="packAgain" disabled>Open Another ◆ ${fmt(PACK_COST[type].gems)}</button></div>`);
+    let near=false;
+    cards.forEach((c,i)=>{
+      const back=m.querySelector(`#slot${i} .back`);
+      const isLow=["bronze","silver","gold"].includes(c.tier);
+      const tease = isLow && Math.random()<0.3 ? (Math.random()<0.35?"galaxy":"diamond") : (c.tier==="diamond"||c.tier==="galaxy"?c.tier:null);
+      const t0=700+i*1100;
+      if(tease) setTimeout(()=>back.classList.add("tease-"+tease),t0);
+      setTimeout(()=>{
+        m.querySelector(`#slot${i}`).insertAdjacentHTML("beforeend",cardHTML(c));
+        if(tease&&isLow){ near=true; m.querySelector("#packMsg").textContent="Ooh… so close! 😩"; }
+        if(c.tier==="galaxy") m.querySelector("#packMsg").textContent="🌌 GALAXY PULL!!! 🌌";
+      },t0+600);
+    });
+    setTimeout(()=>{
+      m.querySelector("#packClose").disabled=false; m.querySelector("#packAgain").disabled=false;
+      if(near) tactic("nearmiss");
+      render();
+    },700+cards.length*1100+700);
+    m.querySelector("#packClose").onclick=()=>{ close(); res(); };
+    m.querySelector("#packAgain").onclick=()=>{ close(); res(); buyPack(type,"gems"); };
+  });
+}
+function showOdds(type){
+  tactic("hiddenodds");
+  const o=ODDS[type];
+  modal(`<h2>${type} pack — per-card odds</h2><table><tr><th>Tier</th><th>Chance per card</th><th>Expected packs to see one</th></tr>
+    ${Object.keys(o).map(k=>`<tr><td>${k}</td><td>${(o[k]*100).toFixed(1)}%</td><td>${Math.round(1/(1-Math.pow(1-o[k],3)))}</td></tr>`).join("")}</table>
+    <p class="small muted">Odds shown per card; each pack contains 3 cards.</p><button class="btn" onclick="this.closest('.modal').remove()">Close</button>`);
+}
+
+// ---------- Matches ----------
+function opponent(){
+  const t=teamOvr();
+  if(S.games<3){ return Math.max(55,t-rnd(5,8)); } // honeymoon
+  const floor=68+(S.season-1)*5;
+  return Math.max(floor+rnd(-2,3), t+rnd(-1,4)); // rubber band
+}
+$("playBtn").onclick=()=>{
+  const btn=$("playBtn"); btn.disabled=true;
+  $("lossOffer").classList.add("hide");
+  const me=teamOvr(), opp=opponent(), oppName=pick(TEAMS);
+  $("oppName").textContent=oppName.toUpperCase(); $("oppPreview").textContent=opp;
+  const pWin=1/(1+Math.exp(-(me-opp)/3));
+  const win=Math.random()<pWin;
+  let h=rnd(88,112), a;
+  if(win) a=h-rnd(2,14); else { a=h+(Math.random()<0.65?rnd(1,4):rnd(5,15)); }
+  // animate score
+  let k=0; const steps=20;
+  const iv=setInterval(()=>{ k++; $("sHome").textContent=Math.round(h*k/steps); $("sAway").textContent=Math.round(a*k/steps);
+    if(k>=steps){ clearInterval(iv); finish(); } },60);
+  function finish(){
+    S.games++;
+    if(S.games===3) tactic("honeymoon");
+    if(S.games>=4) tactic("rubberband");
+    if(win){ const c=rnd(150,250); S.coins+=c; S.wins++; $("matchMsg").innerHTML=`WIN! +● ${c} coins`; log(`Beat ${oppName} (OVR ${opp}) ${h}-${a}`); }
+    else { S.coins+=60; S.losses++; const m=a-h;
+      $("matchMsg").innerHTML=`Lost by ${m}. +● 60 coins${m<=4?"<br><span style='color:var(--coin)'>A Diamond in your lineup would have flipped that!</span>":""}`;
+      log(`Lost to ${oppName} (OVR ${opp}) ${h}-${a}`);
+      if(m<=6){ $("lossOffer").classList.remove("hide"); tactic("lossoffer"); }
+    }
+    if(S.games%2===0) tactic("grind");
+    if(S.games%8===0) newSeason();
+    btn.disabled=false; save(); render();
+  }
+};
+$("lossBuy").onclick=()=>{ goTab("packs"); if(S.gems>=PACK_COST.premium.gems) buyPack("premium","gems"); else { toast("Not enough gems — top up in the Store!"); tactic("leftover"); goTab("store"); } };
+function newSeason(){
+  S.season++;
+  modal(`<h2 style="font-size:40px;color:var(--galaxy)">SEASON ${S.season} IS LIVE! 🚀</h2>
+    <p>All-new <b>Galaxy ${94+S.season}+</b> players just dropped. Competition is heating up: opponents across the league are stronger.</p>
+    <p class="small muted">Your Season ${S.season-1} cards remain usable.</p>
+    <button class="btn primary" onclick="this.closest('.modal').remove();document.querySelector('[data-tab=packs]').click()">SEE NEW PACKS</button>
+    <button class="btn" onclick="this.closest('.modal').remove()">Later</button>`);
+  log(`Season ${S.season} began — opponent floor raised`);
+  tactic("powercreep");
+}
+
+// ---------- Wheel ----------
+// Visual slice sizes (degrees) vs actual probability: deliberately mismatched.
+const WHEEL=[
+  {label:"GALAXY!",deg:70,p:.002,color:"#7a2cff",prize:()=>{const c=mk("galaxy");S.cards.push(c);S.galaxy++;return `GALAXY ${c.ovr} ${c.name}!`}},
+  {label:"◆ 50",deg:50,p:.30,color:"#169bc4",prize:()=>{S.gems+=50;return "50 Gems"}},
+  {label:"● 100",deg:50,p:.45,color:"#e0a300",prize:()=>{S.coins+=100;return "100 Coins"}},
+  {label:"DIAMOND",deg:60,p:.008,color:"#26b6d8",prize:()=>{const c=mk("diamond");S.cards.push(c);return `Diamond ${c.ovr} ${c.name}`}},
+  {label:"● 250",deg:40,p:.20,color:"#c48a00",prize:()=>{S.coins+=250;return "250 Coins"}},
+  {label:"PACK",deg:90,p:.04,color:"#d81b4f",prize:()=>{setTimeout(()=>openPack("standard",{}),900);return "a Standard Pack!"}},
+];
+function drawWheel(){
+  let a=0, html="";
+  WHEEL.forEach(s=>{
+    s.start=a; s.end=a+s.deg;
+    const r=100, a0=(a-90)*Math.PI/180, a1=(a+s.deg-90)*Math.PI/180;
+    const large=s.deg>180?1:0;
+    html+=`<path d="M0 0 L${r*Math.cos(a0)} ${r*Math.sin(a0)} A${r} ${r} 0 ${large} 1 ${r*Math.cos(a1)} ${r*Math.sin(a1)} Z" fill="${s.color}" stroke="#0b0b14" stroke-width="2"/>`;
+    const mid=(a+s.deg/2-90)*Math.PI/180;
+    html+=`<text x="${62*Math.cos(mid)}" y="${62*Math.sin(mid)}" fill="#fff" font-size="12" font-weight="800" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a+s.deg/2} ${62*Math.cos(mid)} ${62*Math.sin(mid)})">${s.label}</text>`;
+    a+=s.deg;
+  });
+  html+=`<circle r="14" fill="#0b0b14" stroke="#fff" stroke-width="3"/>`;
+  $("wheel").innerHTML=html;
+}
+let wheelRot=0, spinning=false;
+$("spinBtn").onclick=()=>{
+  if(spinning) return;
+  if(!S.freeSpin){ if(S.gems<100){ toast("Need ◆ 100 to spin."); goTab("store"); return; } S.gems-=100; }
+  S.freeSpin=false; spinning=true; tactic("wheel");
+  // choose by REAL probability
+  let r=Math.random(),acc=0,res=WHEEL[2];
+  for(const s of WHEEL){ acc+=s.p; if(r<acc){res=s;break;} }
+  // land inside chosen slice; if it borders GALAXY, land right next to the border (near miss)
+  let land;
+  const gal=WHEEL[0];
+  if(res!==gal && (res.start===gal.end || res.end===360)) land = res.start===gal.end ? res.start+2 : res.end-2;
+  else land = res.start + res.deg*(0.2+Math.random()*0.6);
+  const target = 360*6 + (360-land);
+  wheelRot = wheelRot - (wheelRot%360) + target;
+  $("wheel").style.transform=`rotate(${wheelRot}deg)`;
+  $("wheelMsg").textContent="";
+  setTimeout(()=>{
+    const txt=res.prize(); spinning=false;
+    $("wheelMsg").innerHTML = `You won ${txt}` + (res!==gal && (Math.abs(land-gal.end)<4 || Math.abs(land-360)<4) ? "<br><span style='color:var(--galaxy)'>SO CLOSE to Galaxy!</span>":"");
+    log(`Wheel: ${txt}`); save(); render();
+  },4300);
+  render();
+};
+
+// ---------- Squad (quick sell) ----------
+$("collection").addEventListener("click",e=>{
+  const c=e.target.closest("[data-sell]"); if(!c) return;
+  const i=S.cards.findIndex(x=>x.id===c.dataset.sell); if(i<0) return;
+  const card=S.cards[i]; S.coins+=TIERS[card.tier].qs; S.cards.splice(i,1);
+  log(`Quick-sold ${card.name} for ${TIERS[card.tier].qs} coins`); save(); render();
+});
+
+// ---------- Fake social feed + ticker ----------
+function fakePull(){
+  const t=Math.random()<.5?"GALAXY":"DIAMOND";
+  return `${pick(HANDLES)}${rnd(1,99)} pulled ${t} ${t==="GALAXY"?rnd(95,99):rnd(86,92)} ${pick(FIRST)} ${pick(LAST)}!`;
+}
+function feedTick(){
+  const f=$("feed"); const d=document.createElement("div"); d.textContent="🔥 "+fakePull(); f.prepend(d);
+  while(f.children.length>25) f.lastChild.remove();
+  if(Math.random()<.08) tactic("social");
+}
+$("ticker").textContent=Array.from({length:8},fakePull).join("   ·   ");
+for(let i=0;i<6;i++) feedTick();
+setInterval(feedTick,3500);
+
+// ---------- Countdown that secretly resets ----------
+setInterval(()=>{
+  let left=S.offerEnd-Date.now();
+  if(left<=0){ S.offerEnd=Date.now()+15*60e3; left=S.offerEnd-Date.now(); tactic("fomo"); save(); }
+  const m=Math.floor(left/60e3), s=Math.floor(left/1e3)%60;
+  $("clock").textContent=`${m}:${String(s).padStart(2,"0")}`;
+  const el=Math.floor((Date.now()-S.started)/1e3);
+  $("rTime").textContent=`${Math.floor(el/3600)?Math.floor(el/3600)+"h ":""}${Math.floor(el/60)%60}:${String(el%60).padStart(2,"0")}`;
+},1000);
+// reload always shows a fresh 15:00 → part of the fake urgency
+S.offerEnd=Date.now()+15*60e3;
+
+// ---------- Modals ----------
+function modal(html){
+  close();
+  const m=document.createElement("div"); m.className="modal"; m.innerHTML=`<div class="box">${html}</div>`;
+  $("modalRoot").appendChild(m); return m;
+}
+function close(){ $("modalRoot").innerHTML=""; }
+
+$("insightBtn").onclick=()=>{ S.insight=!S.insight; save(); render(); if(S.insight) toast("🔍 <b>Insight Mode on.</b> Yellow tags and pop-ups explain each tactic as it happens.","ins"); };
+
+function debrief(){
+  const stdPack = 1-Math.pow(1-ODDS.standard.galaxy,3), prmPack=1-Math.pow(1-ODDS.premium.galaxy,3);
+  const rate = 99.99/11500; // best-case $ per gem
+  const stdCost = (1/stdPack)*PACK_COST.standard.gems*rate, prmCost=(1/prmPack)*PACK_COST.premium.gems*rate;
+  const set12 = prmCost*12; // rough: 12 distinct galaxy cards, ignoring duplicates
+  modal(`<h2 style="font-size:40px">Debrief: what just happened?</h2>
+    <div class="disclaimer">No real money was charged. All amounts below are pretend.</div>
+    <table style="margin:12px 0">
+      <tr><td>Pretend money spent</td><td><b>${money(S.usd)}</b> across ${S.purchases} purchases</td></tr>
+      <tr><td>Packs opened</td><td>${S.packs} (Galaxy pulls: ${S.galaxy})</td></tr>
+      <tr><td>Record</td><td>${S.wins}–${S.losses} (${S.games?Math.round(S.wins/S.games*100):0}% wins)</td></tr>
+      <tr><td>Expected cost of ONE Galaxy card</td><td>~${money(stdCost)} via Standard packs, ~${money(prmCost)} via Premium (at the "best value" gem rate)</td></tr>
+      <tr><td>Expected cost to "complete" a 12-card Galaxy set</td><td>${money(set12)}+ (more with duplicates). Then a new season starts.</td></tr>
+      <tr><td>Wins needed to earn ONE Standard pack</td><td>~${Math.round(7500/200)} wins</td></tr>
+    </table>
+    <h3 style="font-size:24px">Tactics in this game <span class="small muted" style="font-family:Inter">(highlighted = you ran into it)</span></h3>
+    <div class="tacticlist">${Object.entries(TACTICS).map(([k,v])=>`<div class="${seen.has(k)?"seen":""}"><b>${seen.has(k)?"✔ ":""}${v.t}</b><br><span class="small muted">${v.d}</span></div>`).join("")}</div>
+    <h3 style="font-size:24px;margin-top:14px">Real-world context</h3>
+    <ul class="small">
+      <li>Sports games with card-collecting modes sell randomized player packs bought with premium currency, often with casino-style extras such as prize wheels and pachinko-like boards.</li>
+      <li>In 2019 a major basketball game's trailer for its card mode showed slot machines, prize wheels and pachinko-style boards. It drew widespread criticism, including from people who worried about gambling-like design in a game rated for teens.</li>
+      <li>In 2018, Belgium's Gaming Commission concluded that paid loot boxes in several popular games violated its gambling law.</li>
+      <li>Research finds a consistent link between loot-box spending and problem-gambling symptoms, especially among adolescents.</li>
+    </ul>
+    <h3 style="font-size:24px">Discussion questions</h3>
+    <ol class="small">
+      <li>When did you first stop thinking in dollars and start thinking in Gems?</li>
+      <li>Which moment made you most want to spend? Was it after a loss, a near-miss, or a countdown?</li>
+      <li>Did buying better players make winning easier for long? Why not?</li>
+      <li>How is opening a pack different from, and similar to, pulling a slot machine lever?</li>
+    </ol>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn" id="dClose">Back to game</button>
+      <button class="btn primary" id="dReset">Reset simulation</button>
+    </div>`);
+  $("dClose").onclick=close;
+  $("dReset").onclick=()=>{ if(confirm("Erase all progress and start over?")){ S=fresh(); S.introDone=true; seen.clear(); save(); close(); render(); renderLog(); } };
+}
+$("debriefBtn").onclick=debrief;
+
+function intro(){
+  const m=modal(`<h2 style="font-size:40px">Welcome to Hoop Vault</h2>
+    <p><b>This is an educational simulation.</b> It copies the <i>design tactics</i> found in many pay-to-win sports games so you can experience them, and then take them apart.</p>
+    <ul class="small">
+      <li>💳 <b>No real money is charged, ever.</b> Every price is pretend; the “Reality Check” panel adds up what it <i>would</i> have cost.</li>
+      <li>🔍 <b>Insight Mode</b> shows a yellow tag and pop-up every time a manipulative tactic is used on you.</li>
+      <li>📋 <b>Debrief</b> shows your totals, the real odds, and every tactic in the game.</li>
+    </ul>
+    <p class="small muted">Classroom tip: play 5–10 minutes with Insight Mode <b>off</b>, then turn it on or open the Debrief and discuss.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="iOff">Play normally (Insight off)</button>
+      <button class="btn" id="iOn" style="background:var(--insight);color:#111">Play with Insight Mode on</button>
+    </div>
+    <p class="small muted" style="margin-top:10px">🎁 Welcome gift: ◆ 600 Gems, enough for your first Standard Pack!</p>`);
+  const go=on=>{ S.insight=on; S.introDone=true; save(); close(); render(); goTab("packs"); };
+  $("iOff").onclick=()=>go(false); $("iOn").onclick=()=>go(true);
+}
+
+// ---------- Boot ----------
+renderBundles(); drawWheel(); render(); renderLog();
+if(!S.introDone) intro();
+})();
+</script>
+</body>
+</html>
