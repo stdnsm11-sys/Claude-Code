@@ -14,6 +14,18 @@ A picture schedule that walks a 4-year-old through the whole day, from waking up
 | 🌤️ Afternoon | Going home · Snack · Play time · Going to the store |
 | 🌙 Night | Dinner (food first, then treat) · Bath time · Bedtime |
 
+### School day / Weekend
+The **🏫 School day / 🏡 Weekend** switch under the greeting changes which routines show. It switches to Weekend on Saturday and Sunday by itself (you can turn this off). Weekends leave out every school routine:
+
+| Part of day | Weekend routines |
+|---|---|
+| 🌅 Morning | Wake up · Breakfast · Play at home |
+| ☀️ Noon | Potty time · Lunch at home · Nap time |
+| 🌤️ Afternoon | Snack · Play time · Going to the store · Park |
+| 🌙 Night | Dinner · Bath time · Bedtime |
+
+In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
+
 ## Moving through the day
 - On a fresh routine, a **First up** banner shows what's first. **Let's start** says "Good morning! First, wake up…" (speech needs one tap first on most tablets).
 - **Tapping a tile** says the step out loud and changes the outline: **red** (not yet) → **yellow** (waiting for the child) → **green** (done).
@@ -23,12 +35,27 @@ A picture schedule that walks a 4-year-old through the whole day, from waking up
 - **Read it** reads the whole routine aloud.
 - Every new day starts fresh, with all tiles back to red. You can turn this off.
 
-## For the adult (tap **Adult**)
-- **This routine:** rename it, move it to another part of the day, move it earlier or later, start it over, or delete it.
-- **Routines for this part of the day:** add any ready-made routine back, add a blank one (also the **+** stop on the trail), or start the whole day over.
-- **Add a step** from about 120 pictures in 6 groups: Morning, School, Noon, Afternoon, Night, Calm & wait.
-- **Make your own step:** type the word, what it should say out loud, and pick a picture or **upload a photo**. Real photos of the child's own things often work best.
-- Buttons under each tile set the color directly (✕ red, … yellow, ✓ green), move the tile, or remove it.
-- **Settings:** follow the clock, start fresh each morning, taps change color, speech, celebration, tile size, voice speed.
+## Parent mode (press and hold **🔒 Parent**)
+Parent mode opens with a press-and-hold so a quick tap from the child won't open it. A dark bar shows while it is on; **Done** closes it.
+
+**Changing tiles**, right on the board:
+- **✏️ Edit:** change the word, what it says out loud (with a **Listen** button), and the picture.
+- **🔄 New picture:** Claude draws a new symbol for that tile right on the board. Tap again for another try, or **Undo** to go back.
+- **🗑 Remove**, with **Undo**.
+- **◀ ▶** move a tile earlier or later.
+- **+ Add a tile** at the end of the routine opens the tile editor.
+
+**The tile editor** gives three ways to get a picture:
+1. **✨ Draw it** asks Claude for a simple AAC-style symbol. **Try again** makes another attempt. Every attempt stays as a thumbnail so you can pick the best one.
+2. **Pick a picture** from emoji that match the word.
+3. **Use a photo** from the device.
+
+Drawing with Claude only works when the app is opened on claude.ai. It asks the viewer once for permission and uses their Claude account. Opened as a plain file (`index.html`), 🔄 cycles through matching emoji instead.
+
+**Routines and settings** (below the board):
+- **This routine:** rename it, move it to another part of the day, choose **Shows on** (school days, weekends, both), change the order, start it over, or delete it.
+- **Ready-made routines** for this part of the day and kind of day, **+ Blank routine**, and **Start the whole day over**.
+- **Quick add** from about 120 library pictures.
+- **Settings:** follow the clock, start fresh each morning, switch to Weekend automatically, taps change color, speech, celebration, tile size, voice speed.
 
 Schedules and photos are saved only in this browser on this device.
