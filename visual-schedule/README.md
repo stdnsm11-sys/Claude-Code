@@ -55,6 +55,22 @@ In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
 
 Ready-made breakdowns work offline for: get dressed, shirt on, pants on, socks on, shoes on, coat on, wash hands, brush teeth, potty / bathroom, bath, pajamas on, toys away / clean up, throw away trash, hang up backpack, car seat, line up, and eat my food. For any other tile, Claude writes the small steps at the chosen level (on claude.ai only).
 
+## Printing
+Tap **🖨️ Print** at the top. Choose:
+- **What to print:** this routine (or the small steps you're in), the whole part of the day, or the whole day (school day or weekend, whichever is showing).
+- **Card size:** Large (2 across), Medium (3 across) or Small (4 across).
+- **Add the small steps** of broken-down tiles as their own numbered sections.
+- **Dotted cut lines** for cutting cards out for velcro strips or a first/then board.
+
+A preview shows the first page. **Save PDF to print** makes a US Letter PDF with black-outlined, numbered cards (photos included). Open the PDF and print it. The app can't open the printer dialog itself on claude.ai, so it always goes through a PDF.
+
+## Real photos from the camera
+A photo of the real thing (for *Snack*, his bag of M&Ms) shows big on the tile, with the symbol kept small in the corner.
+- In Parent mode, tap **📷** under a tile to open the camera right away. The photo is added to that tile, with **Undo**.
+- Or long-press a tile → **📷 Add a photo**, or open **✏️ Edit** → **Take a photo** / **Choose a photo** / **Remove photo**.
+- On phones and tablets, the camera opens (some devices first ask camera or photo library). On a computer it opens a file picker.
+- Photos are cropped square and saved only on this device.
+
 ## Parent mode (press and hold **🔒 Parent**)
 Parent mode opens with a press-and-hold so a quick tap from the child won't open it. A dark bar shows while it is on; **Done** closes it.
 

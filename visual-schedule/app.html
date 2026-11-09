@@ -131,6 +131,14 @@ button{cursor:pointer;color:var(--ink)}
 .tm-size{display:flex;flex-direction:column;gap:6px;background:var(--quiet);border-radius:14px;padding:10px 12px}
 .tm-size .hint{margin:0;color:var(--muted);font-size:.85rem}
 
+/* print */
+.pr-opts{display:flex;flex-direction:column;gap:14px}
+.pr-opts fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pr-opts legend{font-weight:700;color:var(--muted);font-size:.88rem;margin-bottom:6px;padding:0}
+.pr-opts .seg{flex-wrap:wrap;border-radius:18px}
+.pr-prev{width:100%;max-width:220px;border:2px solid var(--line);border-radius:6px;box-shadow:0 2px 8px rgba(20,24,40,.15);background:#fff}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
 /* tile editor */
 .sheet{position:fixed;inset:0;background:rgba(20,24,40,.5);display:grid;place-items:center;z-index:25;padding:16px;overflow-y:auto}
 .sheet .box{background:var(--card);color:var(--ink);border-radius:26px;padding:20px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow-y:auto}
@@ -178,7 +186,14 @@ button{cursor:pointer;color:var(--ink)}
   display:flex;flex-direction:column;align-items:stretch;padding:8px 8px 6px;gap:4px;box-shadow:0 3px 0 rgba(20,24,40,.14);
   transition:border-color .25s,transform .12s,background-color .25s;touch-action:manipulation;-webkit-user-select:none;user-select:none;text-align:center}
 .tile:active{transform:scale(.97)}
-.tile .pic{flex:1;display:grid;place-items:center;border-radius:10px;overflow:hidden;min-height:0}
+.tile .pic{position:relative;flex:1;display:grid;place-items:center;border-radius:10px;overflow:hidden;min-height:0}
+.pic .sym{position:absolute;left:4px;bottom:4px;width:36%;aspect-ratio:1;border-radius:50%;background:var(--card);border:3px solid var(--card);box-shadow:0 1px 3px rgba(20,24,40,.35);
+  display:grid;place-items:center;overflow:hidden;font-family:var(--emoji);line-height:1}
+.tile .pic .sym{font-size:calc(var(--tile) * .14)}
+.pic .sym img{width:100%;height:100%;object-fit:cover}
+.ed-prev .pic{position:relative}
+.ed-prev .pic .sym{font-size:22px}
+.tm-head .ed-prev .pic .sym{font-size:15px}
 .tile .pic .emo{font-family:var(--emoji);font-size:calc(var(--tile) * .42);line-height:1;display:flex;gap:2px}
 .tile .pic .emo.two{font-size:calc(var(--tile) * .3)}
 .tile .pic img{width:100%;height:100%;object-fit:cover}
@@ -287,6 +302,7 @@ button{cursor:pointer;color:var(--ink)}
     </div>
     <div class="tools">
       <button class="btn" id="readAll" type="button"><span class="e">🔊</span> Read it</button>
+      <button class="btn" id="printBtn" type="button"><span class="e">🖨️</span> Print</button>
       <div class="seg" role="group" aria-label="Board view">
         <button type="button" id="vAll" aria-pressed="true">All steps</button>
         <button type="button" id="vFT" aria-pressed="false">First / Then</button>
@@ -296,7 +312,7 @@ button{cursor:pointer;color:var(--ink)}
   </header>
 
   <div class="parentbar" id="parentbar" hidden>
-    <p>Parent mode is on <small>Under each tile: ✏️ change it, 🔄 new picture, 🗑 remove, ◀ ▶ move. The + tile adds one. Tapping a tile still changes its color. Changes save by themselves.</small></p>
+    <p>Parent mode is on <small>Under each tile: ✏️ change it, 🔄 new picture, 📷 take a photo, 🧩 smaller steps, 🗑 remove, ◀ ▶ move. The + tile adds one. Changes save by themselves.</small></p>
     <button class="btn" id="parentDone" type="button">Done</button>
   </div>
 
@@ -446,11 +462,15 @@ button{cursor:pointer;color:var(--ink)}
       <div class="cands" id="edEmoji" style="gap:4px"></div>
     </div>
     <div class="ed-sec">
-      <h3>Or use a photo</h3>
-      <p class="hint">Real photos of the child's own things often work best. Photos stay on this device.</p>
-      <label class="field">Photo
-        <input id="edPhoto" type="file" accept="image/*">
-      </label>
+      <h3>Add a real photo</h3>
+      <p class="hint">A photo of the real thing (his own snack bag, cup or toothbrush) shows big on the tile, with the symbol kept small in the corner. Photos stay on this device.</p>
+      <div class="row">
+        <button class="btn primary" id="edCam" type="button"><span class="e">📷</span> Take a photo</button>
+        <button class="btn" id="edLib" type="button"><span class="e">🖼️</span> Choose a photo</button>
+        <button class="btn" id="edNoPhoto" type="button" hidden>Remove photo</button>
+      </div>
+      <input class="vh" id="edPhotoCam" type="file" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+      <input class="vh" id="edPhoto" type="file" accept="image/*" tabindex="-1" aria-hidden="true">
     </div>
     <div class="ed-acts">
       <button class="btn left" id="edRemove" type="button">🗑 Remove tile</button>
@@ -473,6 +493,38 @@ button{cursor:pointer;color:var(--ink)}
     </div>
     <div class="tm-acts" id="tmActs"></div>
     <p class="drawmsg" id="tmMsg" aria-live="polite" style="margin:0"></p>
+  </div>
+</div>
+<input class="vh" id="quickCam" type="file" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<div class="sheet" id="psheet" hidden role="dialog" aria-modal="true" aria-labelledby="prH">
+  <div class="box" style="max-width:560px">
+    <h2 id="prH">Print the schedule</h2>
+    <div class="ed-top" style="grid-template-columns:minmax(0,1fr) 160px">
+      <div class="pr-opts">
+        <fieldset><legend>What to print</legend>
+          <div class="seg" role="group" id="prWhat">
+            <button type="button" data-what="routine" aria-pressed="true">This routine</button>
+            <button type="button" data-what="part" aria-pressed="false">This part of the day</button>
+            <button type="button" data-what="day" aria-pressed="false">The whole day</button>
+          </div>
+        </fieldset>
+        <fieldset><legend>Card size</legend>
+          <div class="seg" role="group" id="prSize">
+            <button type="button" data-cols="2" aria-pressed="false">Large</button>
+            <button type="button" data-cols="3" aria-pressed="true">Medium</button>
+            <button type="button" data-cols="4" aria-pressed="false">Small</button>
+          </div>
+        </fieldset>
+        <label class="toggle"><input type="checkbox" id="prSub" checked> Add the small steps of broken-down tiles</label>
+        <label class="toggle"><input type="checkbox" id="prCut"> Dotted cut lines (for velcro or a first/then board)</label>
+      </div>
+      <div><canvas class="pr-prev" id="prPrev" width="1275" height="1650" aria-label="Preview of the first page"></canvas></div>
+    </div>
+    <p class="drawmsg" id="prMsg" aria-live="polite" style="margin:0"></p>
+    <div class="ed-acts">
+      <button class="btn" id="prCancel" type="button">Close</button>
+      <button class="btn primary" id="prGo" type="button"><span class="e">📄</span> Save PDF to print</button>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -697,7 +749,9 @@ function emoCount(em){
   if (window.Intl && Intl.Segmenter) return [...new Intl.Segmenter().segment(em)].length;
   return Math.max(1, (em.match(/\p{Extended_Pictographic}/gu) || []).length - (em.match(/‍/g) || []).length);
 }
+function symHTML(t){ return t.img ? `<img src="${t.img}" alt="">` : esc(t.emoji || "⭐"); }
 function picHTML(t){
+  if (t.photo) return `<img src="${t.photo}" alt=""><span class="sym" aria-hidden="true">${symHTML(t)}</span>`;
   if (t.img) return `<img src="${t.img}" alt="">`;
   const em = t.emoji || "⭐";
   return `<span class="emo${emoCount(em) > 1 ? " two" : ""}" aria-hidden="true">${esc(em)}</span>`;
@@ -715,6 +769,7 @@ function ctlHTML(t, i, n){
     <button type="button" data-act="left" ${i === 0 ? "disabled" : ""} aria-label="Move earlier">◀</button>
     <button type="button" data-act="edit" aria-label="Edit tile">✏️</button>
     <button type="button" data-act="regen" aria-label="New picture">🔄</button>
+    <button type="button" data-act="cam" aria-label="Take a photo for this tile">📷</button>
     <button type="button" data-act="parts" aria-label="Break into smaller steps">🧩</button>
     <button type="button" data-act="del" aria-label="Remove tile">🗑</button>
     <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button></div>`;
@@ -915,6 +970,7 @@ $("board").addEventListener("click", e => {
     if (act === "edit") return openEditor(tiles[i]);
     if (act === "regen") return regenTile(tiles[i]);
     if (act === "parts") return openTileMenu(tiles[i]);
+    if (act === "cam") return snapFor(tiles[i]);
     if (act === "left" && i > 0) [tiles[i-1], tiles[i]] = [tiles[i], tiles[i-1]];
     if (act === "right" && i < tiles.length - 1) [tiles[i+1], tiles[i]] = [tiles[i], tiles[i+1]];
     if (act === "del"){ const [gone] = tiles.splice(i, 1); lastRemoved = {arr:tiles, i, t:gone}; toastUndo(`Removed “${gone.label}”.`); }
@@ -1096,7 +1152,7 @@ async function regenTile(t){
 
 let ed = null;   // {tile (null = new), label, say, emoji, img, cands:[src], ctl}
 function openEditor(t){
-  ed = {tile:t, label:t ? t.label : "", say:t ? t.say : "", emoji:t ? t.emoji : PICKS[0], img:t ? t.img : null, cands:[], attempt:t ? (t.attempts || 0) : 0, ctl:null};
+  ed = {tile:t, label:t ? t.label : "", say:t ? t.say : "", emoji:t ? t.emoji : PICKS[0], img:t ? t.img : null, photo:t ? t.photo || null : null, cands:[], attempt:t ? (t.attempts || 0) : 0, ctl:null};
   if (t && t.img && t.drawn) ed.cands.push(t.img);
   $("edH").textContent = t ? "Edit tile" : "New tile";
   $("edLabel").value = ed.label; $("edSay").value = t && t.say !== t.label ? t.say : ""; $("edPhoto").value = "";
@@ -1106,7 +1162,9 @@ function openEditor(t){
 function edRender(){
   if (!ed) return;
   $("edWord").textContent = ed.label || "Word";
-  $("edPic").innerHTML = ed.img ? `<img src="${ed.img}" alt="">` : `<span class="emo">${esc(ed.emoji || "⭐")}</span>`;
+  $("edPic").innerHTML = ed.photo ? `<img src="${ed.photo}" alt=""><span class="sym">${symHTML(ed)}</span>`
+    : ed.img ? `<img src="${ed.img}" alt="">` : `<span class="emo">${esc(ed.emoji || "⭐")}</span>`;
+  $("edNoPhoto").hidden = !ed.photo;
   $("edDrawSec").hidden = !sampleFn;
   $("edDraw").innerHTML = ed.cands.length ? '<span class="e">🔄</span> Try again' : '<span class="e">✨</span> Draw it';
   $("edDraw").disabled = !!ed.ctl; $("edStop").hidden = !ed.ctl;
@@ -1131,16 +1189,36 @@ $("edDraw").onclick = async () => {
   mine.ctl = null; edRender();
 };
 $("edStop").onclick = () => { if (ed && ed.ctl) ed.ctl.abort(); };
-$("edPhoto").onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const rd = new FileReader();
-  rd.onload = () => { const img = new Image(); img.onload = () => {
-      const side = 360, c = document.createElement("canvas"), m = Math.min(img.width, img.height);
-      c.width = c.height = side;
-      c.getContext("2d").drawImage(img, (img.width - m)/2, (img.height - m)/2, m, m, 0, 0, side, side);
-      ed.img = c.toDataURL("image/jpeg", 0.8); edRender();
-    }; img.onerror = () => toast("That file isn't a picture this browser can open. Try a JPG or PNG."); img.src = rd.result; };
-  rd.readAsDataURL(f);
+// Photos are cropped to a square and kept small so many fit in this device's storage.
+function squarePhoto(file){
+  return new Promise((ok, no) => {
+    const rd = new FileReader();
+    rd.onerror = () => no();
+    rd.onload = () => { const img = new Image(); img.onload = () => {
+        const side = 420, c = document.createElement("canvas"), m = Math.min(img.width, img.height);
+        c.width = c.height = side;
+        c.getContext("2d").drawImage(img, (img.width - m)/2, (img.height - m)/2, m, m, 0, 0, side, side);
+        ok(c.toDataURL("image/jpeg", 0.82));
+      }; img.onerror = () => no(); img.src = rd.result; };
+    rd.readAsDataURL(file);
+  });
+}
+const BADPIC = "That file isn't a picture this browser can open. Try a JPG or PNG.";
+async function photoInto(input){ const f = input.files[0]; input.value = ""; if (!f) return; try { ed.photo = await squarePhoto(f); edRender(); } catch(e){ toast(BADPIC); } }
+$("edCam").onclick = () => $("edPhotoCam").click();
+$("edLib").onclick = () => $("edPhoto").click();
+$("edPhotoCam").onchange = e => photoInto(e.target);
+$("edPhoto").onchange = e => photoInto(e.target);
+$("edNoPhoto").onclick = () => { ed.photo = null; edRender(); };
+// 📷 on a tile: straight to the camera, then the photo joins that tile
+let snapTile = null;
+function snapFor(t){ snapTile = t; $("quickCam").click(); }
+$("quickCam").onchange = async e => {
+  const f = e.target.files[0], t = snapTile; e.target.value = ""; snapTile = null; if (!f || !t) return;
+  try {
+    const old = t.photo; t.photo = await squarePhoto(f); save(); render();
+    toastUndo(`Photo added to “${t.label}”.`, () => { t.photo = old; });
+  } catch(err){ toast(BADPIC); }
 };
 function closeEditor(){ if (ed && ed.ctl) ed.ctl.abort(); ed = null; $("sheet").hidden = true; }
 $("edCancel").onclick = closeEditor;
@@ -1155,7 +1233,7 @@ $("edSave").onclick = () => {
   if (!r){ toast("Add a routine first."); return; }
   const say = $("edSay").value.trim() || (ed.tile && ed.tile.label === label ? ed.tile.say : (PIC[label] && PIC[label][1]) || label);
   const t = ed.tile || mk(ed.emoji, label, say);
-  t.label = label; t.say = say; t.emoji = ed.emoji; t.img = ed.img; t.drawn = !!(ed.img && ed.cands.includes(ed.img)); t.attempts = ed.attempt;
+  t.label = label; t.say = say; t.emoji = ed.emoji; t.img = ed.img; t.photo = ed.photo || null; t.drawn = !!(ed.img && ed.cands.includes(ed.img)); t.attempts = ed.attempt;
   if (!ed.tile){ L.arr.push(t); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1 && !t.img) r.icon = t.emoji; }
   closeEditor(); save(); render(); toast(`Saved “${label}”.`);
 };
@@ -1187,6 +1265,7 @@ function tmRender(){
     if (adult) b.push(`<button type="button" class="btn" data-tm="own"><span class="e">➕</span> Add my own smaller steps</button>`);
   }
   b.push(`<button type="button" class="btn" data-tm="say"><span class="e">🔊</span> Say it</button>`);
+  if (adult) b.push(`<button type="button" class="btn" data-tm="cam"><span class="e">📷</span> ${t.photo ? "Take a new photo" : "Add a photo"}</button>`);
   if (adult) b.push(`<button type="button" class="btn" data-tm="edit"><span class="e">✏️</span> Edit tile</button>`);
   b.push(`<button type="button" class="btn" data-tm="close">Close</button>`);
   $("tmActs").innerHTML = b.join("");
@@ -1203,6 +1282,7 @@ $("tmActs").onclick = async e => {
   if (act === "close") return closeTileMenu();
   if (act === "say") return speak(t.say);
   if (act === "edit"){ closeTileMenu(); return openEditor(t); }
+  if (act === "cam"){ closeTileMenu(); return snapFor(t); }
   if (act === "open"){ closeTileMenu(); return stepInto(t); }
   if (act === "own"){ t.sub = []; t.status = "todo"; closeTileMenu(); save(); path.push(t.id); render(true); return toast("Add the small steps with the + tile."); }
   if (act === "merge"){
@@ -1258,6 +1338,177 @@ Reply with only a JSON array, for example: [{"emoji":"🗄️","label":"Go to dr
   if (steps.length < 2) throw {code:"bad_list"};
   return steps;
 }
+
+/* ---------- print ---------- */
+// The viewer can't open a print dialog, so the schedule becomes a PDF the person saves and prints.
+let downloadsApi = null;
+(async () => { try { if (window.claude && claude.use) downloadsApi = await claude.use("downloads"); } catch(e){} })();
+const PR = {what:"routine", cols:3};
+const PW = 1275, PH = 1650, PM = 75;   // US Letter at 150 dpi, with margins
+function prSections(){
+  // [{title, sub, tiles}] in print order
+  const L = list(), out = [], mode = S.mode === "weekend" ? "Weekend" : "School day";
+  const addR = (r, P) => {
+    const walk = (arr, title, sub) => {
+      out.push({title, sub, icon:r.icon || "⭐", tiles:arr});
+      if ($("prSub").checked) arr.forEach(t => { if (t.sub && t.sub.length) walk(t.sub, `${t.label}: small steps`, title, t); });
+    };
+    walk(r.tiles, r.name, `${P.name} · ${mode}`);
+  };
+  if (PR.what === "routine" && L){
+    if (L.trail.length){ const here = L.trail[L.trail.length - 1];
+      const walk = (arr, title, sub) => { out.push({title, sub, icon:here.emoji || "⭐", tiles:arr}); if ($("prSub").checked) arr.forEach(t => { if (t.sub && t.sub.length) walk(t.sub, `${t.label}: small steps`, title); }); };
+      walk(L.arr, here.label, L.r.name);
+    } else addR(L.r, PART[S.part]);
+  } else {
+    const parts = PR.what === "part" ? [S.part] : ORDER;
+    parts.forEach(p => inPart(p).forEach(r => addR(r, PART[p])));
+  }
+  return out.filter(x => x.tiles.length);
+}
+const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+async function prReady(sections){
+  const em = new Set(), imgs = new Map();
+  sections.forEach(sc => { em.add(sc.icon); sc.tiles.forEach(t => { em.add(t.emoji || "⭐"); [t.photo, t.img].forEach(s => { if (s && !imgs.has(s)) imgs.set(s, null); }); }); });
+  try {
+    await Promise.all([document.fonts.load('48px "Noto Color Emoji"', [...em].join("")), document.fonts.load('600 40px "Fredoka"', "Aa"), document.fonts.load('700 40px "Fredoka"', "Aa"), document.fonts.load('400 20px "Andika"', "Aa")]);
+  } catch(e){}
+  for (const k of imgs.keys()) imgs.set(k, await loadImg(k));
+  return imgs;
+}
+function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function fitLines(g, text, maxW, size, weight){
+  for (let s = size; s >= size * 0.6; s -= 2){
+    g.font = `${weight} ${s}px Fredoka, "Trebuchet MS", sans-serif`;
+    const words = text.split(/\s+/), lines = []; let line = "";
+    words.forEach(w => { const tryL = line ? line + " " + w : w; if (g.measureText(tryL).width <= maxW || !line) line = tryL; else { lines.push(line); line = w; } });
+    lines.push(line);
+    if (lines.length <= 2 && lines.every(l => g.measureText(l).width <= maxW)) return {lines, s};
+  }
+  return {lines:[text], s:size * 0.6};
+}
+function drawCover(g, im, x, y, w, h){ const m = Math.min(im.width, im.height); g.drawImage(im, (im.width - m)/2, (im.height - m)/2, m, m, x, y, w, h); }
+function drawTile(g, t, n, x, y, w, h, imgs){
+  g.save();
+  rr(g, x, y, w, h, w * 0.09); g.fillStyle = "#fff"; g.fill(); g.lineWidth = Math.max(5, w * 0.03); g.strokeStyle = "#1d1f2b"; g.stroke();
+  const pad = w * 0.08, picH = h * 0.62, px = x + pad, py = y + pad, pw = w - pad * 2;
+  const photo = t.photo && imgs.get(t.photo), sym = t.img && imgs.get(t.img);
+  g.save(); rr(g, px, py, pw, picH, w * 0.05); g.clip();
+  if (photo) drawCover(g, photo, px, py, pw, picH);
+  else if (sym) drawCover(g, sym, px + (pw - picH) / 2, py, picH, picH);
+  else { g.font = `${picH * 0.78}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + pw / 2, py + picH * 0.54); }
+  g.restore();
+  if (photo){   // the symbol stays small in the corner of a photo
+    const d = picH * 0.36, cx = px + d / 2 + 6, cy = py + picH - d / 2 - 6;
+    g.beginPath(); g.arc(cx, cy, d / 2 + 4, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 2; g.strokeStyle = "#1d1f2b"; g.stroke();
+    if (sym){ g.save(); g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.clip(); drawCover(g, sym, cx - d / 2, cy - d / 2, d, d); g.restore(); }
+    else { g.font = `${d * 0.72}px "Noto Color Emoji", "Apple Color Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
+  }
+  const {lines, s} = fitLines(g, t.label, w - pad * 2, w * 0.12, 600);
+  g.fillStyle = "#1d1f2b"; g.textAlign = "center"; g.textBaseline = "middle";
+  const ty = py + picH + (h - pad - picH - pad) / 2 + pad * 0.4;
+  lines.forEach((l, k) => g.fillText(l, x + w / 2, ty + (k - (lines.length - 1) / 2) * s * 1.1));
+  // step number
+  const r = w * 0.075; g.beginPath(); g.arc(x + r * 0.9, y + r * 0.9, r, 0, Math.PI * 2); g.fillStyle = "#1d1f2b"; g.fill();
+  g.fillStyle = "#fff"; g.font = `700 ${r * 1.1}px Fredoka, sans-serif`; g.fillText(String(n), x + r * 0.9, y + r * 0.95);
+  if (t.sub && t.sub.length){ g.font = `600 ${w * 0.055}px Andika, sans-serif`; g.textAlign = "right"; g.fillStyle = "#555"; g.fillText(`${t.sub.length} small steps →`, x + w - pad, y + h - pad * 0.45); }
+  g.restore();
+}
+async function prPages(limit){
+  const sections = prSections(), imgs = await prReady(sections), cols = PR.cols;
+  const gap = 34, tw = (PW - PM * 2 - gap * (cols - 1)) / cols, th = tw * 1.12, pages = [];
+  let g = null, y = 0;
+  const newPage = () => { const c = document.createElement("canvas"); c.width = PW; c.height = PH; g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, PW, PH); pages.push(c); y = PM;
+    g.font = '400 20px Andika, sans-serif'; g.fillStyle = "#888"; g.textAlign = "right"; g.textBaseline = "alphabetic"; g.fillText(`Step by Step Schedule · page ${pages.length}`, PW - PM, PH - PM / 2); };
+  newPage();
+  for (const sc of sections){
+    const headH = 96;
+    if (y + headH + th > PH - PM) newPage();
+    if (y > PM) y += 18;
+    g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillStyle = "#1d1f2b";
+    g.font = '52px "Noto Color Emoji", "Apple Color Emoji", sans-serif'; g.fillText(sc.icon, PM, y + 54);
+    g.font = '700 50px Fredoka, "Trebuchet MS", sans-serif'; g.fillText(sc.title, PM + 72, y + 52);
+    g.font = '400 24px Andika, sans-serif'; g.fillStyle = "#666"; g.fillText(sc.sub, PM + 74, y + 84);
+    y += headH;
+    for (let i = 0; i < sc.tiles.length; i += cols){
+      if (y + th > PH - PM){ newPage(); g.font = '700 30px Fredoka, sans-serif'; g.fillStyle = "#666"; g.textAlign = "left"; g.fillText(`${sc.title} (continued)`, PM, y + 30); y += 52; }
+      for (let k = 0; k < cols && i + k < sc.tiles.length; k++){
+        const x = PM + k * (tw + gap);
+        if ($("prCut").checked){ g.save(); g.setLineDash([10, 9]); g.strokeStyle = "#aaa"; g.lineWidth = 2; g.strokeRect(x - gap / 2 + 2, y - gap / 2 + 2, tw + gap - 4, th + gap - 4); g.restore(); }
+        drawTile(g, sc.tiles[i + k], i + k + 1, x, y, tw, th, imgs);
+      }
+      y += th + gap;
+      if (limit && pages.length > limit) return pages.slice(0, limit);
+    }
+  }
+  return pages;
+}
+// A small PDF writer: one full-page JPEG per US Letter page.
+async function pdfFrom(pages){
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const put = d => { const b = typeof d === "string" ? enc.encode(d) : d; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; put(`${n} 0 obj\n`); body(); put("\nendobj\n"); };
+  const jpgs = [];
+  for (const c of pages) jpgs.push(new Uint8Array(await (await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.9))).arrayBuffer()));
+  const n = pages.length, kids = [];
+  for (let i = 0; i < n; i++) kids.push(`${3 + i * 3} 0 R`);
+  put("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, () => put("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2, () => put(`<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${n} >>`));
+  jpgs.forEach((j, i) => {
+    const p = 3 + i * 3, cs = `q 612 0 0 792 0 0 cm /Im0 Do Q`;
+    obj(p, () => put(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 ${p + 2} 0 R >> >> /Contents ${p + 1} 0 R >>`));
+    obj(p + 1, () => put(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p + 2, () => { put(`<< /Type /XObject /Subtype /Image /Width ${PW} /Height ${PH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.length} >>\nstream\n`); put(j); put("\nendstream"); });
+  });
+  const xref = len, total = 3 + n * 3;
+  put(`xref\n0 ${total}\n0000000000 65535 f \n`);
+  for (let i = 1; i < total; i++) put(String(offs[i]).padStart(10, "0") + " 00000 n \n");
+  put(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts, {type:"application/pdf"});
+}
+let prTimer = null;
+async function prPreview(){
+  const pages = await prPages(1), c = $("prPrev"), g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  if (pages[0]) g.drawImage(pages[0], 0, 0);
+  const all = prSections(), count = all.reduce((a, s) => a + s.tiles.length, 0);
+  $("prMsg").textContent = count ? `${count} cards in ${all.length} ${all.length === 1 ? "section" : "sections"}.` : "Nothing to print here yet.";
+  $("prGo").disabled = !count;
+}
+function prSync(){
+  document.querySelectorAll("#prWhat [data-what]").forEach(b => b.setAttribute("aria-pressed", b.dataset.what === PR.what));
+  document.querySelectorAll("#prSize [data-cols]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.cols === PR.cols));
+  const L = list(); $("prWhat").querySelector('[data-what="routine"]').textContent = L && L.trail.length ? "These small steps" : "This routine";
+  $("prWhat").querySelector('[data-what="part"]').textContent = `The whole ${PART[S.part].name.toLowerCase()}`;
+  clearTimeout(prTimer); prTimer = setTimeout(prPreview, 60);
+}
+$("printBtn").onclick = () => { $("psheet").hidden = false; prSync(); $("prGo").focus(); };
+$("prCancel").onclick = () => { $("psheet").hidden = true; };
+$("prWhat").onclick = e => { const b = e.target.closest("[data-what]"); if (b){ PR.what = b.dataset.what; prSync(); } };
+$("prSize").onclick = e => { const b = e.target.closest("[data-cols]"); if (b){ PR.cols = +b.dataset.cols; prSync(); } };
+$("prSub").onchange = prSync; $("prCut").onchange = prSync;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("psheet").hidden) $("psheet").hidden = true; });
+$("prGo").onclick = async () => {
+  $("prGo").disabled = true; $("prMsg").textContent = "Making the PDF…";
+  try {
+    const pages = await prPages(), blob = await pdfFrom(pages);
+    const L = list(), base = PR.what === "day" ? `${S.mode === "weekend" ? "Weekend" : "School day"} schedule` : PR.what === "part" ? `${PART[S.part].name} schedule` : (L && L.trail.length ? L.trail[L.trail.length - 1].label : (L ? L.r.name : "Schedule"));
+    const filename = `${base.replace(/[^\w ,'-]+/g, "").trim() || "Schedule"}.pdf`;
+    if (downloadsApi){
+      await downloadsApi.save({filename, data:blob});
+      $("prMsg").textContent = `Saved “${filename}” (${pages.length} ${pages.length === 1 ? "page" : "pages"}). Open it and print.`;
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      $("prMsg").textContent = `Downloaded “${filename}” (${pages.length} ${pages.length === 1 ? "page" : "pages"}). Open it and print.`;
+    }
+  } catch(e){
+    const c = e && e.code;
+    $("prMsg").textContent = c === "declined" ? "The PDF wasn't saved." : c === "rate_limited" ? "A save is already open. Finish that one, then try again." : "The PDF couldn't be saved here. Try again, or open the app from its index.html file.";
+  }
+  $("prGo").disabled = false;
+};
 
 let lastRemoved = null, undoFn = null;
 function toastUndo(m, fn){
