@@ -5,7 +5,7 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 **No real money is ever charged.** Every price is pretend; the **Reality Check** panel adds up what it *would* have cost.
 
 ## How to use it
-1. Play for 5–10 minutes with **Insight Mode off**: open packs, play matches, spin the wheel, "buy" gems.
+1. Play for 5–10 minutes with **Teach Mode off**: open packs, play matches, spin the wheel, "buy" gems.
 2. Flip the **🎓 Teach Mode** switch at the top. The game works exactly the same, but every time you do something:
    - the part of the screen using a trick glows yellow,
    - the **Teach panel** explains what just happened, the psychology behind it, the casino version, and how to resist it,
