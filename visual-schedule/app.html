@@ -3,77 +3,112 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&family=Noto+Color+Emoji&display=swap">
 <style>
-/* Layout: an AAC-style picture board. Square, Boardmaker-like cells (picture on top, word below)
-   sit in sequence on a soft felt-board ground. Each cell's thick outline carries its status:
-   coral red = not yet, amber = waiting on the child, green = done. Badges repeat the status as a
-   shape (number, hourglass, check) so color is never the only cue.
-   Adult tools live behind an "Adult" switch in quiet dashed panels so the child's board stays calm.
-   Deliberately one soft light look (best for tablets in a classroom), so no dark-mode blocks. */
+/* Layout: the day as a journey. Four tabs (Morning, Noon, Afternoon, Night) sit like a sky strip;
+   under them, the routines for that part of the day form a trail of round stops; under the trail,
+   the current routine's picture tiles (AAC / Boardmaker cells). Finishing a routine celebrates
+   and walks the child to the next stop, then on to the next part of the day.
+   The page ground shifts with the time of day: peach sunrise, bright noon sky, warm afternoon,
+   deep blue night. Tile outlines keep one meaning everywhere: coral red = not yet,
+   amber = waiting on the child, green = done (repeated as number / hourglass / check badges).
+   The look is chosen per part of day, not by the device theme, so there are no dark-mode blocks. */
 :root{
-  --ground:#eef3f1; --ground-2:#e2ebe8;
-  --card:#ffffff; --quiet:#f6f8f7;
-  --ink:#24323a; --muted:#5d6d74; --line:#cfdbd8;
-  --accent:#3a6fb0; --accent-d:#2a5389; --accent-s:#e3edf9;
+  --card:#ffffff; --quiet:#f6f7fa; --ink:#262b40; --muted:#636a80; --line:#d4d8e3;
   --todo:#e2574c; --todo-s:#fde9e7;
   --wait:#e8a90c; --wait-s:#fff4d1;
   --done:#2e9d5b; --done-s:#e1f5e8;
+  --t-morning:#fde0cc; --t-noon:#d6ecfa; --t-afternoon:#e9e2fa; --t-night:#2b3563;
+  /* part-of-day tokens (morning values; overridden per part below) */
+  --ground:#fff2e8; --ground-2:#fde3d1; --on-ground:#3a2b2e; --on-muted:#7d6466; --trail:#efcdb8;
+  --accent:#9b4f96; --accent-d:#7b3a77; --accent-s:#f5e3f2; --accent-ink:#ffffff;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
   --emoji:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
-  --tile:168px;
-  --r:18px;
+  --tile-base:168px; --tile:var(--tile-base); --r:18px;
   color-scheme:light;
 }
+:root[data-part="noon"]{--ground:#eaf6fe;--ground-2:#d4eaf9;--on-ground:#1f3347;--on-muted:#557089;--trail:#b9d8ee;
+  --accent:#1f74b0;--accent-d:#175a8a;--accent-s:#dcecf8;--accent-ink:#ffffff}
+:root[data-part="afternoon"]{--ground:#f4f0fb;--ground-2:#e6dff6;--on-ground:#2e2747;--on-muted:#6c6489;--trail:#d3c8ee;
+  --accent:#6a52bd;--accent-d:#523d9c;--accent-s:#ebe5fb;--accent-ink:#ffffff}
+:root[data-part="night"]{--ground:#1b2140;--ground-2:#252d55;--on-ground:#eef0ff;--on-muted:#aeb6df;--trail:#3a4478;
+  --accent:#93a6ff;--accent-d:#c3cdff;--accent-s:#323c6e;--accent-ink:#1b2140}
 html,body{height:100%}
-body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+html{background:var(--ground);transition:background-color .8s ease}
+body{background:var(--ground);color:var(--on-ground);font-family:var(--body);font-size:16px;line-height:1.45;transition:background-color .8s ease,color .8s ease;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 32px}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
+button,input,select{font:inherit}
+button{cursor:pointer;color:var(--ink)}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.e{font-family:var(--emoji);line-height:1}
 
-/* top bar */
-.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
-.bar h1{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,3.4vw,2.1rem);margin:0;line-height:1.1;text-wrap:balance;flex:1 1 220px;min-width:0}
-.bar h1 small{display:block;font-family:var(--body);font-weight:400;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+/* header */
+.bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px}
+.hello{flex:1 1 260px;min-width:0}
+.hello small{display:block;font-size:.8rem;color:var(--on-muted);letter-spacing:.07em;text-transform:uppercase}
+.hello h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,4vw,2.5rem);margin:0;line-height:1.1;text-wrap:balance;display:flex;align-items:center;gap:12px}
+.hello h1 .e{font-size:1.25em}
 .tools{display:flex;flex-wrap:wrap;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.95rem;min-height:44px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.95rem;min-height:44px}
 .btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent-d)}
-.btn[aria-pressed="true"]{background:var(--accent-s);border-color:var(--accent);color:var(--accent-d)}
-.btn .e{font-family:var(--emoji);font-size:1.1em;line-height:1}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn .e{font-size:1.1em}
 .seg{display:inline-flex;border:2px solid var(--line);border-radius:999px;background:var(--card);padding:3px}
 .seg button{border:0;background:none;border-radius:999px;padding:6px 12px;font-weight:700;font-size:.9rem;min-height:36px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 
-/* routine shelf: School / Home switch + one-tap routines */
-.shelf{display:flex;flex-direction:column;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:12px}
-.where{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.where button{display:flex;align-items:center;justify-content:center;gap:10px;border:3px solid var(--line);background:var(--quiet);border-radius:16px;min-height:60px;
-  font-family:var(--display);font-weight:600;font-size:1.35rem;color:var(--muted)}
-.where button .e{font-family:var(--emoji);font-size:1.9rem;line-height:1}
-.where button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-s);color:var(--accent-d)}
-.routines{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:thin}
-.routines button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;width:108px;border:2px solid var(--line);background:var(--card);border-radius:16px;
-  padding:8px 6px;font-weight:700;font-size:.85rem;line-height:1.15;min-height:92px}
-.routines button:hover{border-color:var(--accent)}
-.routines button .e{font-family:var(--emoji);font-size:2rem;line-height:1.2}
-.routines button[aria-current="true"]{border-color:var(--accent);background:var(--accent-s);color:var(--accent-d);box-shadow:inset 0 -4px 0 var(--accent)}
-.routines .lbl{align-self:center;flex:0 0 auto;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg)}
+/* parts of the day */
+.day{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tab{position:relative;border:4px solid transparent;border-radius:20px;padding:10px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  font-family:var(--display);font-weight:600;font-size:clamp(.92rem,2.4vw,1.2rem);line-height:1.1;color:var(--ink);transition:transform .2s,border-color .3s,box-shadow .3s}
+.tab .e{font-size:clamp(1.8rem,5vw,2.5rem)}
+.tab[data-p="morning"]{background:var(--t-morning)} .tab[data-p="noon"]{background:var(--t-noon)}
+.tab[data-p="afternoon"]{background:var(--t-afternoon)} .tab[data-p="night"]{background:var(--t-night);color:#eef0ff}
+.tab[aria-selected="true"]{border-color:var(--accent);box-shadow:0 6px 0 -1px var(--accent);transform:translateY(-2px)}
+.tab .prog{width:72%;height:7px;border-radius:4px;background:rgba(38,43,64,.12);overflow:hidden}
+.tab[data-p="night"] .prog{background:rgba(255,255,255,.18)}
+.tab .prog i{display:block;height:100%;background:var(--done);border-radius:4px;transition:width .5s}
+.tab .now{position:absolute;top:-11px;right:8px;background:var(--ink);color:#fff;border-radius:999px;font-family:var(--body);font-weight:700;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:1px 8px}
+.tab .all{position:absolute;top:-11px;left:8px;width:24px;height:24px;border-radius:50%;background:var(--done);display:grid;place-items:center;border:2px solid var(--card)}
+.tab .all svg{width:13px;height:13px}
 
-/* legend */
-.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.92rem;color:var(--muted)}
+/* routine trail */
+.trail{display:flex;overflow-x:auto;padding:14px 10px 6px;scrollbar-width:thin}
+.stop{flex:0 0 auto;position:relative;width:112px;display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:0;padding:0;
+  color:var(--on-ground);font-weight:700;font-size:.9rem;line-height:1.15;text-align:center}
+.stop::before{content:"";position:absolute;top:33px;right:50%;width:100%;height:7px;background:var(--trail);border-radius:4px;transition:background-color .4s}
+.stop:first-child::before{display:none}
+.stop.linked::before{background:var(--done)}
+.stop .dot{position:relative;z-index:1;width:72px;height:72px;border-radius:50%;background:var(--card);border:5px solid var(--trail);display:grid;place-items:center;font-size:2.1rem;transition:transform .25s,border-color .3s,box-shadow .3s}
+.stop.done .dot{border-color:var(--done)}
+.stop .tick{position:absolute;right:-4px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:var(--done);border:2px solid var(--card);display:grid;place-items:center}
+.stop .tick svg{width:14px;height:14px}
+.stop[aria-current="step"] .dot{border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 6px var(--accent-s)}
+.stop .count{font-size:.78rem;color:var(--on-muted);font-weight:700;font-variant-numeric:tabular-nums}
+.stop.add .dot{border-style:dashed;font-family:var(--display);font-size:2rem;color:var(--muted)}
+
+/* start banner */
+.start{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--card);color:var(--ink);border:3px solid var(--accent);border-radius:22px;padding:12px 16px}
+.start .e{font-size:2.6rem}
+.start p{margin:0;flex:1 1 200px;font-family:var(--display);font-weight:600;font-size:1.3rem;line-height:1.2}
+.start p small{display:block;font-family:var(--body);font-weight:700;font-size:.8rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+
+/* routine */
+.rhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px}
+.rhead h2{font-family:var(--display);font-weight:700;font-size:1.6rem;margin:0;display:flex;align-items:center;gap:10px}
+.rhead h2 .e{font-size:1.2em}
+.rhead h2 span.cnt{font-family:var(--body);font-size:.95rem;font-weight:700;color:var(--on-muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem;color:var(--on-muted)}
 .legend span{display:inline-flex;align-items:center;gap:7px}
-.legend i{width:22px;height:22px;border-radius:7px;border:4px solid;background:var(--card)}
+.legend i{width:20px;height:20px;border-radius:6px;border:4px solid;background:var(--card)}
 .legend .l-todo i{border-color:var(--todo)} .legend .l-wait i{border-color:var(--wait)} .legend .l-done i{border-color:var(--done)}
 
-/* board */
-.board{background:var(--ground-2);border-radius:24px;padding:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;min-height:200px}
+.board{background:var(--ground-2);border-radius:24px;padding:20px 18px;display:flex;flex-wrap:wrap;gap:16px 14px;align-items:flex-start;min-height:200px;transition:background-color .8s}
 .board.firstthen{justify-content:center;gap:22px}
 .cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
-.tile{position:relative;width:var(--tile);max-width:100%;aspect-ratio:1/1.12;background:var(--card);border:7px solid var(--todo);border-radius:var(--r);
-  display:flex;flex-direction:column;align-items:stretch;padding:8px 8px 6px;gap:4px;box-shadow:0 3px 0 rgba(36,50,58,.12);
+.tile{position:relative;width:var(--tile);max-width:100%;aspect-ratio:1/1.12;background:var(--card);color:var(--ink);border:7px solid var(--todo);border-radius:var(--r);
+  display:flex;flex-direction:column;align-items:stretch;padding:8px 8px 6px;gap:4px;box-shadow:0 3px 0 rgba(20,24,40,.14);
   transition:border-color .25s,transform .12s,background-color .25s;touch-action:manipulation;-webkit-user-select:none;user-select:none;text-align:center}
 .tile:active{transform:scale(.97)}
 .tile .pic{flex:1;display:grid;place-items:center;border-radius:10px;overflow:hidden;min-height:0}
@@ -90,16 +125,26 @@ button{cursor:pointer}
 .tile[data-s="done"] .badge{background:var(--done)}
 .badge svg{width:18px;height:18px}
 .tag{position:absolute;top:-13px;right:10px;background:var(--ink);color:#fff;font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.08em;border-radius:999px;padding:2px 10px;text-transform:uppercase}
-.tile.speaking{box-shadow:0 0 0 6px var(--accent-s),0 3px 0 rgba(36,50,58,.12)}
+.tile.speaking{box-shadow:0 0 0 6px var(--accent-s),0 3px 0 rgba(20,24,40,.14)}
+.ft-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ft-col h3{font-family:var(--display);font-size:1.7rem;margin:0}
+.ft-arrow{align-self:center;font-family:var(--display);font-size:3rem;color:var(--on-muted);line-height:1}
+.empty{color:var(--on-ground);padding:12px;max-width:52ch;margin:0}
+.nextbar{display:flex;justify-content:flex-end}
+.nextbar .btn{font-size:1.1rem;min-height:56px;padding:10px 20px}
 @media (prefers-reduced-motion:no-preference){
   .tile[data-s="wait"]{animation:breathe 2.4s ease-in-out infinite}
-  @keyframes breathe{50%{box-shadow:0 0 0 7px var(--wait-s),0 3px 0 rgba(36,50,58,.12)}}
+  @keyframes breathe{50%{box-shadow:0 0 0 7px var(--wait-s),0 3px 0 rgba(20,24,40,.14)}}
   .tile.pop{animation:pop .4s ease-out}
   @keyframes pop{40%{transform:scale(1.07)}}
+  .board.enter .cell{animation:slidein .45s ease-out both}
+  .board.enter .cell:nth-child(2){animation-delay:.05s}.board.enter .cell:nth-child(3){animation-delay:.1s}
+  .board.enter .cell:nth-child(4){animation-delay:.15s}.board.enter .cell:nth-child(5){animation-delay:.2s}
+  .board.enter .cell:nth-child(n+6){animation-delay:.25s}
+  @keyframes slidein{from{opacity:.2;transform:translateX(26px)}}
+  .stop[aria-current="step"] .dot{animation:bob 2.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:scale(1.12) translateY(-3px)}}
 }
-.ft-col{display:flex;flex-direction:column;align-items:center;gap:8px}
-.ft-col h2{font-family:var(--display);font-size:1.7rem;margin:0}
-.ft-arrow{align-self:center;font-family:var(--display);font-size:3rem;color:var(--muted);line-height:1}
 
 /* adult per-tile controls */
 .ctl{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:var(--tile)}
@@ -109,23 +154,24 @@ button{cursor:pointer}
 .ctl button[aria-pressed="true"].s-todo{background:var(--todo);color:#fff}
 .ctl button[aria-pressed="true"].s-wait{background:var(--wait);color:#fff}
 .ctl button[aria-pressed="true"].s-done{background:var(--done);color:#fff}
-.empty{color:var(--muted);padding:24px;max-width:46ch}
-.empty b{color:var(--ink)}
 
 /* adult panel */
-.panel{border:2px dashed var(--line);border-radius:20px;background:var(--quiet);padding:16px;display:flex;flex-direction:column;gap:18px}
+.panel{border:2px dashed var(--line);border-radius:20px;background:var(--quiet);color:var(--ink);padding:16px;display:flex;flex-direction:column;gap:20px}
 .panel h3{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0 0 8px}
 .panel p.hint{margin:0 0 8px;color:var(--muted);font-size:.9rem;max-width:68ch}
+.panel .btn[aria-pressed="true"]{background:var(--accent-s);border-color:var(--accent)}
+:root[data-part="night"] .panel .btn[aria-pressed="true"]{background:#e6e9ff}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.88rem;min-height:36px}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip .e{font-size:1.1em}
 .lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 .lib button{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.85rem;font-weight:700;line-height:1.15;min-height:96px}
 .lib button:hover{border-color:var(--accent)}
-.lib .e{font-family:var(--emoji);font-size:2rem;line-height:1.2}
+.lib .e{font-size:2rem;line-height:1.2}
 .field{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700;color:var(--muted);min-width:0}
-.field input,.field select{border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);font-weight:400;min-height:44px;width:100%}
+.field input,.field select{border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);color:var(--ink);font-weight:400;min-height:44px;width:100%}
 .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;align-items:end}
 .emopick{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .emopick button{font-family:var(--emoji);font-size:1.5rem;width:44px;height:44px;border:2px solid var(--line);background:var(--card);border-radius:10px;line-height:1}
@@ -135,17 +181,28 @@ button{cursor:pointer}
 .preview .mini img{width:100%;height:100%;object-fit:cover}
 .toggle{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem}
 .toggle input{width:22px;height:22px;accent-color:var(--accent)}
-.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;color:var(--ink);font-weight:700}
 
 /* celebration */
-.cheer{position:fixed;inset:0;background:rgba(36,50,58,.45);display:grid;place-items:center;z-index:20;padding:16px}
-.cheer .box{background:var(--card);border:8px solid var(--done);border-radius:28px;padding:28px 36px;text-align:center;max-width:420px;display:flex;flex-direction:column;gap:10px;align-items:center}
-.cheer .big{font-family:var(--emoji);font-size:5rem;line-height:1}
-.cheer h2{font-family:var(--display);font-size:2.2rem;margin:0}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 18px;font-weight:700;z-index:30}
-@media (max-width:520px){
-  :root{--tile:136px}
-  .board{padding:14px 10px;gap:12px;justify-content:center}
+.cheer{position:fixed;inset:0;background:rgba(20,24,40,.5);display:grid;place-items:center;z-index:20;padding:16px}
+.cheer .box{background:var(--card);color:var(--ink);border:8px solid var(--done);border-radius:28px;padding:26px 30px;text-align:center;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;align-items:center}
+.cheer .big{font-size:4.5rem}
+.cheer h2{font-family:var(--display);font-size:2rem;margin:0;line-height:1.1;text-wrap:balance}
+.cheer .next{display:flex;align-items:center;gap:14px;background:var(--quiet);border:3px solid var(--line);border-radius:20px;padding:10px 18px;width:100%;justify-content:center}
+.cheer .next .e{font-size:3rem}
+.cheer .next span{font-family:var(--display);font-weight:600;font-size:1.35rem;text-align:left;line-height:1.15}
+.cheer .next small{display:block;font-family:var(--body);font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.cheer .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.cheer .acts .primary{font-size:1.15rem;min-height:56px;padding:10px 24px}
+@media (prefers-reduced-motion:no-preference){ .cheer .box{animation:pop .45s ease-out} }
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 18px;font-weight:700;z-index:30;max-width:calc(100% - 32px);text-align:center}
+@media (max-width:560px){
+  :root{--tile:min(var(--tile-base), calc((100vw - 68px) / 2))}
+  .board{padding:16px 10px;gap:14px 12px;justify-content:center}
+  .day{gap:6px}
+  .tab{padding:8px 2px;border-radius:16px}
+  .stop{width:96px}
   .ft-arrow{transform:rotate(90deg)}
   .board.firstthen{flex-direction:column;align-items:center}
 }
@@ -153,7 +210,10 @@ button{cursor:pointer}
 
 <div class="wrap">
   <header class="bar">
-    <h1 id="title"><small>Visual schedule</small><span id="schedName">Arriving at school</span></h1>
+    <div class="hello">
+      <small id="today">Today</small>
+      <h1><span class="e" id="partIcon" aria-hidden="true">🌅</span><span id="greet">Good morning!</span></h1>
+    </div>
     <div class="tools">
       <button class="btn" id="readAll" type="button"><span class="e">🔊</span> Read it</button>
       <div class="seg" role="group" aria-label="Board view">
@@ -164,60 +224,80 @@ button{cursor:pointer}
     </div>
   </header>
 
-  <nav class="shelf" aria-label="Choose a routine">
-    <div class="where" role="group" aria-label="Where are we?">
-      <button type="button" data-where="School" aria-pressed="true"><span class="e" aria-hidden="true">🏫</span> School</button>
-      <button type="button" data-where="Home" aria-pressed="false"><span class="e" aria-hidden="true">🏠</span> Home</button>
-    </div>
-    <div class="routines" id="routines"></div>
-  </nav>
+  <nav class="day" id="day" role="tablist" aria-label="Parts of the day"></nav>
 
-  <div class="legend" aria-label="What the colors mean">
-    <span class="l-todo"><i></i>Not yet</span>
-    <span class="l-wait"><i></i>Waiting for child</span>
-    <span class="l-done"><i></i>Done</span>
+  <nav class="trail" id="trail" aria-label="Routines"></nav>
+
+  <div class="start" id="start" hidden>
+    <span class="e" id="startIcon" aria-hidden="true">🌞</span>
+    <p><small>First up</small><span id="startName">Wake up</span></p>
+    <button class="btn primary" id="startBtn" type="button">Let's start ▶</button>
   </div>
 
-  <main class="board" id="board" aria-live="polite"></main>
+  <section aria-labelledby="rname" style="display:flex;flex-direction:column;gap:12px">
+    <div class="rhead">
+      <h2 id="rname"><span class="e" id="rIcon" aria-hidden="true">🌞</span><span id="rTitle">Wake up</span><span class="cnt" id="rCount"></span></h2>
+      <div class="legend" aria-label="What the colors mean">
+        <span class="l-todo"><i></i>Not yet</span>
+        <span class="l-wait"><i></i>Waiting</span>
+        <span class="l-done"><i></i>Done</span>
+      </div>
+    </div>
+    <main class="board" id="board" aria-live="polite"></main>
+    <div class="nextbar" id="nextbar" hidden><button class="btn primary" id="nextBtn" type="button"></button></div>
+  </section>
 
   <section class="panel" id="panel" hidden aria-label="Adult tools">
-    <p class="hint" id="placeHint" style="margin:0"></p>
     <div class="split">
       <div>
-        <h3>Schedules</h3>
-        <p class="hint">Pick a saved schedule, start a ready-made one, or make a blank one.</p>
-        <div class="row">
-          <label class="field" style="flex:1 1 180px">Showing
-            <select id="schedSel"></select>
+        <h3>This routine</h3>
+        <div class="form">
+          <label class="field">Name
+            <input id="rNameIn" maxlength="32">
           </label>
-          <label class="field" style="flex:1 1 180px">Name
-            <input id="schedNameIn" maxlength="40">
+          <label class="field">Part of the day
+            <select id="rPartSel"></select>
           </label>
         </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="resetBtn" type="button"><span class="e">🔄</span> Start over</button>
-          <button class="btn" id="newBlank" type="button">+ Blank schedule</button>
-          <button class="btn" id="delSched" type="button">Delete schedule</button>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="rEarlier" type="button">◀ Earlier</button>
+          <button class="btn" id="rLater" type="button">Later ▶</button>
+          <button class="btn" id="rReset" type="button"><span class="e">🔄</span> Start over</button>
+          <button class="btn" id="rDel" type="button">Delete routine</button>
         </div>
-        <p class="hint" id="delConfirm" hidden style="margin-top:8px">Delete this schedule for good?
-          <button class="btn" id="delYes" type="button">Yes, delete</button>
-          <button class="btn" id="delNo" type="button">Keep it</button></p>
-        <h3 style="margin-top:14px">Ready-made</h3>
-        <div class="chips" id="templates"></div>
+        <div class="confirm" id="rDelConfirm" hidden>Delete this routine?
+          <button class="btn" id="rDelYes" type="button">Yes, delete</button>
+          <button class="btn" id="rDelNo" type="button">Keep it</button></div>
       </div>
+      <div>
+        <h3 id="partToolsH">Morning routines</h3>
+        <p class="hint">Add a ready-made routine or a blank one to this part of the day. Tap ◀ ▶ above to change the order.</p>
+        <div class="chips" id="readyChips"></div>
+        <div class="row">
+          <button class="btn" id="newBlank" type="button">+ Blank routine</button>
+          <button class="btn" id="dayReset" type="button"><span class="e">🌅</span> Start the whole day over</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="split">
       <div>
         <h3>Settings</h3>
         <div class="row" style="flex-direction:column;align-items:flex-start;gap:10px">
+          <label class="toggle"><input type="checkbox" id="followClock" checked> Open to the part of the day that matches the clock</label>
+          <label class="toggle"><input type="checkbox" id="newDay" checked> Start fresh every morning (all tiles back to red)</label>
           <label class="toggle"><input type="checkbox" id="tapCycles" checked> A tap changes the color (red → yellow → green)</label>
-          <label class="toggle"><input type="checkbox" id="speakOn" checked> Say the step out loud when tapped</label>
-          <label class="toggle"><input type="checkbox" id="cheerOn" checked> Celebrate when every step is done</label>
-          <div class="row">
-            <span class="field">Tile size</span>
-            <div class="seg" role="group" aria-label="Tile size">
-              <button type="button" data-size="s" aria-pressed="false">Small</button>
-              <button type="button" data-size="m" aria-pressed="true">Medium</button>
-              <button type="button" data-size="l" aria-pressed="false">Large</button>
-            </div>
+          <label class="toggle"><input type="checkbox" id="speakOn" checked> Say things out loud</label>
+          <label class="toggle"><input type="checkbox" id="cheerOn" checked> Celebrate and show what's next when a routine is done</label>
+        </div>
+      </div>
+      <div>
+        <h3>Size and voice</h3>
+        <div class="row" style="flex-direction:column;align-items:flex-start;gap:12px">
+          <div class="seg" role="group" aria-label="Tile size">
+            <button type="button" data-size="s" aria-pressed="false">Small tiles</button>
+            <button type="button" data-size="m" aria-pressed="true">Medium</button>
+            <button type="button" data-size="l" aria-pressed="false">Large</button>
           </div>
           <label class="field" style="width:100%;max-width:260px">Voice speed
             <input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="0.8">
@@ -228,15 +308,15 @@ button{cursor:pointer}
     </div>
 
     <div>
-      <h3>Add a step</h3>
-      <p class="hint">Tap a picture to add it to the end of the schedule. Use ◀ ▶ under a tile to move it.</p>
+      <h3>Add a step to this routine</h3>
+      <p class="hint">Tap a picture to add it to the end. Use ◀ ▶ under a tile to move it.</p>
       <div class="chips" id="cats"></div>
       <div class="lib" id="lib"></div>
     </div>
 
     <div>
       <h3>Make your own step</h3>
-      <p class="hint">Real photos of his own potty, plate, cubby or teacher often work best. Photos stay on this device.</p>
+      <p class="hint">Real photos of the child's own potty, plate, bed, cubby or teacher often work best. Photos stay on this device.</p>
       <div class="form">
         <label class="field">Word on the tile
           <input id="cLabel" maxlength="28" placeholder="Feed the fish">
@@ -255,115 +335,134 @@ button{cursor:pointer}
   </section>
 </div>
 
-<div class="cheer" id="cheer" hidden>
+<div class="cheer" id="cheer" hidden role="dialog" aria-modal="true" aria-labelledby="cheerH">
   <div class="box">
-    <div class="big">⭐</div>
-    <h2>All done!</h2>
-    <p id="cheerTxt" style="margin:0;color:var(--muted)">You did every step.</p>
-    <button class="btn primary" id="cheerClose" type="button">Yay!</button>
+    <div class="big e" id="cheerBig">⭐</div>
+    <h2 id="cheerH">All done!</h2>
+    <div class="next" id="cheerNext"><span class="e" id="cheerNextIcon">🥣</span><span><small id="cheerNextLbl">Next</small><b id="cheerNextName">Breakfast</b></span></div>
+    <div class="acts">
+      <button class="btn primary" id="cheerGo" type="button">Let's go ➜</button>
+      <button class="btn" id="cheerStay" type="button">Stay here</button>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
 (() => {
+/* ---------- pictures: [emoji, word on tile, what it says] ---------- */
 const LIB = {
-  "Arriving": [
-    ["🚗","Get out of car","Get out of the car"],["🚌","Get off bus","Get off the bus"],["🚶","Walk inside","Walk inside"],
-    ["👋","Say hello","Say hello"],["🎒","Hang up backpack","Hang up your backpack"],["🧥","Hang up coat","Hang up your coat"],
+  "Morning": [
+    ["🌞","Wake up","Wake up. Good morning!"],["🚽","Potty","Go potty"],["🚽","Flush","Flush the toilet"],["🧼","Wash hands","Wash your hands"],
+    ["💦","Wash face","Wash your face"],["👕","Get dressed","Get dressed"],["🧦","Socks on","Put on your socks"],["👟","Shoes on","Put on your shoes"],
+    ["🛏️","Make bed","Make your bed"],["🪑","Sit at table","Sit at the table"],["🥣","Breakfast","Eat your breakfast"],["🥛","Drink","Take a drink"],
+    ["🍽️","Plate to sink","Put your plate in the sink"],["🪥","Brush teeth","Brush your teeth"],["💇","Brush hair","Brush your hair"],
+    ["🎒","Get backpack","Get your backpack"],["🚗","Car seat","Get in your car seat"],["🚌","Ride the bus","Ride the bus"]],
+  "School": [
+    ["🚶","Walk inside","Walk inside"],["👋","Say hello","Say hello"],["🎒","Hang up backpack","Hang up your backpack"],["🧥","Hang up coat","Hang up your coat"],
     ["🍱","Put away lunch","Put away your lunchbox"],["🏷️","Find my name","Find your name"],["📁","Folder in basket","Put your folder in the basket"],
-    ["🪑","Sit at table","Sit at your table"]],
-  "Class": [
-    ["🧑‍🤝‍🧑","Circle time","Circle time. Sit on the rug"],["📅","Calendar","Calendar time"],["🎵","Sing songs","Sing songs"],
-    ["📖","Story time","Listen to the story"],["🧩","Centers","Centers"],["🎨","Art","Art time"],["🧱","Blocks","Play with blocks"],
-    ["✏️","Write my name","Write your name"],["✂️","Cut","Cut with scissors"],["📱","Tablet","Tablet time"],["👂","Listen","Listen to the teacher"],
-    ["✋","Raise hand","Raise your hand"],["🤫","Quiet voice","Use a quiet voice"],["🧹","Clean up","Clean up"],["🚸","Line up","Line up"]],
-  "Self-care": [
-    ["🚽","Bathroom","Go to the bathroom"],["🧻","Wipe","Wipe"],["🚽","Flush","Flush the toilet"],["👖","Pull up pants","Pull up your pants"],
-    ["🧼","Wash hands","Wash your hands"],["💨","Dry hands","Dry your hands"],["🚰","Drink water","Get a drink of water"],["🤧","Blow nose","Blow your nose"],
-    ["👟","Shoes on","Put on your shoes"]],
-  "Food": [
-    ["🍎","Snack","Snack time"],["🥪","Lunch","Lunch time"],["🍽️","Cafeteria","Go to the cafeteria"],["🥛","Milk","Drink your milk"],
-    ["🥫","Open it","Open your food"],["🙋","Ask for help","Ask for help"],["🗑️","Throw away trash","Throw away your trash"]],
-  "Places": [
-    ["🛝","Recess","Recess. Play on the playground"],["⚽","PE / gym","Go to PE"],["🎶","Music","Go to music"],["📚","Library","Go to the library"],
-    ["🏥","Nurse","Go to the nurse"],["😴","Rest time","Rest time. Lie down and rest"],["🏫","Classroom","Go back to the classroom"]],
-  "Going home": [
-    ["🎒","Pack backpack","Pack your backpack"],["🧥","Coat on","Put on your coat"],["⏳","Wait for ride","Wait for your ride"],
-    ["🚌","Ride the bus","Ride the bus"],["🚗","Car rider","Get in the car"],["👨‍👩‍👧","See family","See your family"],["🏠","Go home","Go home"]],
+    ["🧑‍🤝‍🧑","Circle time","Circle time. Sit on the rug"],["📅","Calendar","Calendar time"],["🎵","Sing songs","Sing songs"],["📖","Story time","Listen to the story"],
+    ["🧩","Centers","Centers"],["🎨","Art","Art time"],["🧱","Blocks","Play with blocks"],["✏️","Write my name","Write your name"],["✂️","Cut","Cut with scissors"],
+    ["👂","Listen","Listen to the teacher"],["✋","Raise hand","Raise your hand"],["🤫","Quiet voice","Use a quiet voice"],["🚸","Line up","Line up"],
+    ["🏫","Classroom","Go back to the classroom"],["🎶","Music","Go to music"],["⚽","PE / gym","Go to PE"],["📚","Library","Go to the library"],["🏥","Nurse","Go to the nurse"]],
+  "Noon": [
+    ["🚽","Bathroom","Go to the bathroom"],["🧻","Wipe","Wipe"],["👖","Pull up pants","Pull up your pants"],["💨","Dry hands","Dry your hands"],
+    ["🥪","Lunch","Lunch time"],["🍽️","Cafeteria","Go to the cafeteria"],["🍗","Eat my food","First, eat your food"],["🥫","Open it","Open your food"],
+    ["🥛","Milk","Drink your milk"],["🗑️","Throw away trash","Throw away your trash"],["🛝","Recess","Recess. Play on the playground"],
+    ["🚰","Drink water","Get a drink of water"],["🛌","Get my mat","Get your mat"],["😴","Rest time","Rest time. Lie down and rest"]],
+  "Afternoon": [
+    ["🧹","Clean up","Clean up"],["🎒","Pack backpack","Pack your backpack"],["🧥","Coat on","Put on your coat"],["⏳","Wait for ride","Wait for your ride"],
+    ["🚗","Car rider","Get in the car"],["👨‍👩‍👧","See family","See your family"],["🏠","Go home","Go home"],["🍎","Snack","Snack time"],
+    ["⏰","Timer","Set the timer"],["📺","TV","TV time"],["📱","Tablet","Tablet time"],["🛑","Tablet off","Tablet off. All done"],["🌳","Play outside","Play outside"],
+    ["🧩","Puzzles","Do a puzzle"],["🖍️","Color","Color a picture"],["🫧","Bubbles","Play with bubbles"],["🧸","Toys away","Put your toys away"],
+    ["🤝","Hold hands","Hold my hand"],["🛒","Store","Go to the store"],["🏞️","Park","Go to the park"],["🍔","Restaurant","Eat at a restaurant"],
+    ["👩‍⚕️","Doctor","Go to the doctor"],["🦷","Dentist","Go to the dentist"],["💇","Haircut","Get a haircut"],["👵","Grandma's house","Go to Grandma's house"]],
+  "Night": [
+    ["🍝","Dinner","Dinner time"],["🥦","Eat veggies","Eat your vegetables"],["🍪","Treat","Then, a treat!"],["🍦","Ice cream","Then, ice cream!"],
+    ["🧁","Dessert","Then, dessert!"],["🐶","Feed the pet","Feed the dog"],["🛁","Bath","Bath time"],["🧴","Lotion","Put on lotion"],
+    ["👚","Pajamas on","Put on your pajamas"],["🧺","Clothes in hamper","Put your clothes in the hamper"],["📖","Bedtime story","Read a bedtime story"],
+    ["🤗","Hugs","Hugs and kisses"],["💡","Lights off","Lights off"],["😴","Sleep","Time to sleep"]],
   "Calm & wait": [
     ["🌬️","Deep breaths","Take deep breaths"],["🧸","Calm corner","Go to the calm corner"],["🛋️","Break","Take a break"],["⏳","Wait","Wait"],
-    ["🤲","Hands to self","Hands to yourself"],["🙋","Help please","Help please"],["✅","All done","All done"],["⭐","Choice time","Choice time"]]
+    ["🤲","Hands to self","Hands to yourself"],["🙋","Help please","Help please"],["🤝","Share","Share with your friend"],["✅","All done","All done"],["⭐","Choice time","Choice time"]]
 };
-const LIB_HOME = {
-  "Potty": [
-    ["🚽","Potty","Go potty"],["👖","Pants down","Pull down your pants"],["🚽","Sit on potty","Sit on the potty"],["🧻","Wipe","Wipe"],
-    ["🚽","Flush","Flush the toilet"],["👖","Pull up pants","Pull up your pants"],["🧼","Wash hands","Wash your hands"],["💨","Dry hands","Dry your hands"],
-    ["🩲","Underwear on","Put on your underwear"]],
-  "Morning": [
-    ["🌞","Wake up","Wake up. Good morning!"],["🚽","Potty","Go potty"],["👕","Get dressed","Get dressed"],["🧦","Socks on","Put on your socks"],
-    ["🥣","Breakfast","Eat your breakfast"],["🪥","Brush teeth","Brush your teeth"],["💇","Brush hair","Brush your hair"],["👟","Shoes on","Put on your shoes"],
-    ["🎒","Get backpack","Get your backpack"],["🚗","Car seat","Get in your car seat"]],
-  "Mealtime": [
-    ["🧼","Wash hands","Wash your hands"],["🪑","Sit at table","Sit at the table"],["🍗","Eat my food","First, eat your food"],["🥦","Eat veggies","Eat your vegetables"],
-    ["🥣","Breakfast","Eat your breakfast"],["🍝","Dinner","Dinner time"],["🥛","Drink","Take a drink"],["🍪","Treat","Then, a treat!"],
-    ["🍦","Ice cream","Then, ice cream!"],["🧁","Dessert","Then, dessert!"],["🍽️","Plate to sink","Put your plate in the sink"],["🗑️","Throw away trash","Throw away your trash"]],
-  "Clean up": [
-    ["🧸","Toys away","Put your toys away"],["🗑️","Throw away trash","Throw away your trash"],["🧺","Clothes in hamper","Put your clothes in the hamper"],
-    ["🛏️","Make bed","Make your bed"],["👟","Shoes by door","Put your shoes by the door"],["🧼","Wash hands","Wash your hands"],["🐶","Feed the pet","Feed the dog"]],
-  "Bedtime": [
-    ["🛁","Bath","Bath time"],["🧴","Lotion","Put on lotion"],["👚","Pajamas on","Put on your pajamas"],["🪥","Brush teeth","Brush your teeth"],
-    ["🚽","Potty","Go potty"],["📖","Bedtime story","Read a bedtime story"],["🤗","Hugs","Hugs and kisses"],["💡","Lights off","Lights off"],["😴","Sleep","Time to sleep"]],
-  "Out & about": [
-    ["🚗","Car seat","Get in your car seat"],["🤝","Hold hands","Hold my hand"],["🛒","Store","Go to the store"],["🏞️","Park","Go to the park"],
-    ["🍔","Restaurant","Eat at a restaurant"],["👩‍⚕️","Doctor","Go to the doctor"],["🦷","Dentist","Go to the dentist"],["💇","Haircut","Get a haircut"],
-    ["👵","Grandma's house","Go to Grandma's house"],["🏠","Go home","Go home"]],
-  "Play & screens": [
-    ["⏰","Timer","Set the timer"],["📺","TV","TV time"],["📱","Tablet","Tablet time"],["🛑","Tablet off","Tablet off. All done"],
-    ["🌳","Play outside","Play outside"],["🧩","Puzzles","Do a puzzle"],["🖍️","Color","Color a picture"],["🫧","Bubbles","Play with bubbles"],["🤝","Share","Share with your friend"]]
-};
-const TPL_SCHOOL = {
-  "Arriving at school": [["🚗","Get out of car"],["🚶","Walk inside"],["👋","Say hello"],["🎒","Hang up backpack"],["🧼","Wash hands"],["🧑‍🤝‍🧑","Circle time"]],
-  "Bathroom": [["🚽","Bathroom"],["🧻","Wipe"],["👖","Pull up pants"],["🚽","Flush"],["🧼","Wash hands"],["💨","Dry hands"],["🏫","Classroom"]],
-  "Lunch": [["🚸","Line up"],["🧼","Wash hands"],["🍽️","Cafeteria"],["🥪","Lunch"],["🗑️","Throw away trash"],["🚸","Line up"]],
-  "Recess": [["🧥","Coat on"],["🚸","Line up"],["🛝","Recess"],["🚸","Line up"],["🚰","Drink water"],["🏫","Classroom"]],
-  "Going home": [["🧹","Clean up"],["🎒","Pack backpack"],["🧥","Coat on"],["🚸","Line up"],["⏳","Wait for ride"],["🏠","Go home"]]
-};
-const TPL_HOME = {
-  "Potty time": [["🚽","Potty"],["👖","Pants down"],["🚽","Sit on potty"],["🧻","Wipe"],["🚽","Flush"],["👖","Pull up pants"],["🧼","Wash hands"],["💨","Dry hands"]],
-  "Food first, then treat": [["🍗","Eat my food"],["🍪","Treat"],["🗑️","Throw away trash"]],
-  "Dinner time": [["🧼","Wash hands"],["🪑","Sit at table"],["🍝","Dinner"],["🥦","Eat veggies"],["🍦","Ice cream"],["🍽️","Plate to sink"],["🗑️","Throw away trash"]],
-  "Morning at home": [["🌞","Wake up"],["🚽","Potty"],["👕","Get dressed"],["🥣","Breakfast"],["🪥","Brush teeth"],["👟","Shoes on"],["🚗","Car seat"]],
-  "Clean up toys": [["⏰","Timer"],["🧸","Toys away"],["🗑️","Throw away trash"],["🧺","Clothes in hamper"],["🧼","Wash hands"]],
-  "Tablet time": [["⏰","Timer"],["📱","Tablet"],["🛑","Tablet off"],["🌳","Play outside"]],
-  "Going to the store": [["👟","Shoes on"],["🚗","Car seat"],["🤝","Hold hands"],["🛒","Store"],["🚗","Car seat"],["🏠","Go home"]],
-  "Bedtime": [["🛁","Bath"],["👚","Pajamas on"],["🪥","Brush teeth"],["🚽","Potty"],["📖","Bedtime story"],["💡","Lights off"]]
-};
-LIB_HOME["Calm & wait"] = LIB["Calm & wait"];
-const PLACES = {School:{lib:LIB, tpl:TPL_SCHOOL}, Home:{lib:LIB_HOME, tpl:TPL_HOME}};
-const TEMPLATES = {...TPL_SCHOOL, ...TPL_HOME};
-const ICON = {"Arriving at school":"🏫","Bathroom":"🚽","Lunch":"🥪","Recess":"🛝","Going home":"🎒",
-  "Potty time":"🚽","Food first, then treat":"🍪","Dinner time":"🍝","Morning at home":"🌞","Clean up toys":"🧸","Tablet time":"📱","Going to the store":"🛒","Bedtime":"😴"};
+const PIC = {}; Object.values(LIB).flat().forEach(([e,l,s]) => { if (!PIC[l]) PIC[l] = [e,s]; });
+
+/* ---------- parts of the day and their ready-made routines ---------- */
+const PARTS = [
+  {key:"morning", name:"Morning", icon:"🌅", greet:"Good morning!", cat:"Morning", routines:[
+    ["Wake up","🌞",["Wake up","Potty","Flush","Wash hands","Get dressed","Make bed"]],
+    ["Breakfast","🥣",["Sit at table","Breakfast","Drink","Plate to sink","Brush teeth","Brush hair"]],
+    ["Off to school","🎒",["Socks on","Shoes on","Get backpack","Car seat","Walk inside","Say hello"]],
+    ["Arriving at school","🏫",["Hang up backpack","Find my name","Wash hands","Circle time","Calendar"]]]},
+  {key:"noon", name:"Noon", icon:"☀️", greet:"Hello, lunch time!", cat:"Noon", routines:[
+    ["Bathroom","🚽",["Bathroom","Wipe","Flush","Pull up pants","Wash hands","Dry hands","Classroom"]],
+    ["Lunch","🥪",["Line up","Wash hands","Cafeteria","Open it","Eat my food","Throw away trash","Line up"]],
+    ["Recess","🛝",["Line up","Recess","Line up","Drink water","Classroom"]],
+    ["Rest time","😴",["Potty","Get my mat","Rest time","Deep breaths","Clean up"]]]},
+  {key:"afternoon", name:"Afternoon", icon:"🌤️", greet:"Good afternoon!", cat:"Afternoon", routines:[
+    ["Going home","🏠",["Clean up","Pack backpack","Coat on","Line up","Wait for ride","Car rider","See family"]],
+    ["Snack","🍎",["Wash hands","Sit at table","Snack","Throw away trash"]],
+    ["Play time","🧸",["Timer","Tablet","Tablet off","Play outside","Toys away"]],
+    ["Going to the store","🛒",["Shoes on","Car seat","Hold hands","Store","Car seat","Go home"]]]},
+  {key:"night", name:"Night", icon:"🌙", greet:"Good evening!", cat:"Night", routines:[
+    ["Dinner","🍝",["Wash hands","Sit at table","Eat my food","Eat veggies","Treat","Plate to sink","Throw away trash"]],
+    ["Bath time","🛁",["Potty","Bath","Lotion","Pajamas on","Clothes in hamper"]],
+    ["Bedtime","😴",["Brush teeth","Potty","Bedtime story","Hugs","Lights off","Sleep"]]]}
+];
+const PART = Object.fromEntries(PARTS.map(p => [p.key, p]));
+const ORDER = PARTS.map(p => p.key);
 const PICKS = ["🐟","🐶","🌳","🧃","🎂","🎈","🚂","🧦","🪥","🛁","👩‍🏫","👦","👧","❤️","🔔","🎁","🌞","🌧️","🪴","🧺","🖍️","📝","💻","🚪"];
-const SAY = {}; [...Object.values(LIB_HOME), ...Object.values(LIB)].flat().forEach(([e,l,s]) => { SAY[l] = s; });
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2,10);
-const mk = (e,l,s) => ({id:uid(), label:l, say:s || SAY[l] || l, emoji:e, img:null, status:"todo"});
-const placeOf = name => TPL_HOME[name] ? "Home" : "School";
-const fromTemplate = name => ({id:uid(), name, tpl:name, place:placeOf(name), tiles:TEMPLATES[name].map(([e,l]) => mk(e,l))});
+const mk = (e,l,s) => ({id:uid(), label:l, say:s || (PIC[l] && PIC[l][1]) || l, emoji:e || (PIC[l] && PIC[l][0]) || "⭐", img:null, status:"todo"});
+const routineFrom = (part, [name, icon, labels]) => ({id:uid(), name, icon, part, tpl:name, tiles:labels.map(l => mk(null, l))});
+const clockPart = (d = new Date()) => { const h = d.getHours(); return h >= 5 && h < 11 ? "morning" : h >= 11 && h < 14 ? "noon" : h >= 14 && h < 18 ? "afternoon" : "night"; };
+const todayKey = () => new Date().toDateString();
 
-const KEY = "step-by-step-schedule-v1";
-function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.schedules && s.schedules.length) return s; } catch(e){} return null; }
-let S = load() || (() => { const a = fromTemplate("Arriving at school"); a.tiles[0].status="done"; a.tiles[1].status="done"; a.tiles[2].status="wait";
-  return {schedules:[a, fromTemplate("Going home"), fromTemplate("Potty time"), fromTemplate("Food first, then treat")], current:a.id, view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8}; })();
-function save(){ try { const c = S.schedules.find(x => x.id === S.current); if (c){ S.lastBy = S.lastBy || {}; S.lastBy[c.place] = c.id; } localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
-S.place = S.place === "Home" ? "Home" : "School";
-S.schedules.forEach(x => { if (!x.place) x.place = placeOf(x.name); if (!x.tpl && TEMPLATES[x.name]) x.tpl = x.name; });
-const cur = () => S.schedules.find(x => x.id === S.current) || S.schedules[0];
-let adult = false;
+/* ---------- state ---------- */
+const KEY = "step-by-step-day-v2", OLD = "step-by-step-schedule-v1";
+function read(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+function fresh(){
+  const s = {schedules:[], view:"all", size:"m", tapCycles:true, speak:true, cheer:true, rate:0.8, followClock:true, newDay:true, day:todayKey()};
+  PARTS.forEach(p => p.routines.forEach(r => s.schedules.push(routineFrom(p.key, r))));
+  const old = read(OLD);
+  if (old && Array.isArray(old.schedules)){
+    ["view","size","tapCycles","speak","cheer","rate"].forEach(k => { if (old[k] !== undefined) s[k] = old[k]; });
+    old.schedules.filter(x => !x.tpl && x.tiles && x.tiles.length).forEach(x => s.schedules.push({id:uid(), name:x.name, icon:(x.tiles[0] && x.tiles[0].emoji) || "⭐", part:"afternoon", tiles:x.tiles}));
+  }
+  s.part = clockPart();
+  return s;
+}
+let S = read(KEY);
+if (!S || !Array.isArray(S.schedules)) S = fresh();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
 
-/* speech */
+const inPart = p => S.schedules.filter(x => x.part === p);
+const cur = () => S.schedules.find(x => x.id === S.current && x.part === S.part) || null;
+const isDone = r => !!r && r.tiles.length > 0 && r.tiles.every(t => t.status === "done");
+const doneCount = r => r.tiles.filter(t => t.status === "done").length;
+const firstOpen = p => { const rs = inPart(p); return rs.find(r => !isDone(r)) || rs[0] || null; };
+function nextAfter(r){
+  const rs = inPart(r.part), i = rs.indexOf(r);
+  const later = rs.slice(i + 1).find(x => !isDone(x));
+  if (later) return {r:later, part:r.part};
+  for (let k = ORDER.indexOf(r.part) + 1; k < ORDER.length; k++){ const n = firstOpen(ORDER[k]); if (n) return {r:n, part:ORDER[k]}; }
+  return null;
+}
+function checkDay(){
+  const t = todayKey();
+  if (S.day !== t){
+    if (S.newDay) S.schedules.forEach(r => r.tiles.forEach(x => x.status = "todo"));
+    S.day = t; started = false;
+    if (S.followClock) goPart(clockPart(), false);
+    save(); render(true);
+  }
+}
+let adult = false, started = false, lastShown = null;
+
+/* ---------- speech ---------- */
 function speak(text, el){
   if (!S.speak || !("speechSynthesis" in window)) return;
   try {
@@ -373,16 +472,21 @@ function speak(text, el){
     speechSynthesis.speak(u);
   } catch(e){}
 }
+const lc = s => s.charAt(0).toLowerCase() + s.slice(1);
 
-/* rendering */
+/* ---------- rendering ---------- */
 const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const HOUR = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></svg>';
 const STATE_WORD = {todo:"not yet", wait:"waiting", done:"done"};
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function emoCount(em){
+  if (window.Intl && Intl.Segmenter) return [...new Intl.Segmenter().segment(em)].length;
+  return Math.max(1, (em.match(/\p{Extended_Pictographic}/gu) || []).length - (em.match(/‍/g) || []).length);
+}
 function picHTML(t){
   if (t.img) return `<img src="${t.img}" alt="">`;
-  const em = t.emoji || "⭐", n = window.Intl && Intl.Segmenter ? [...new Intl.Segmenter().segment(em)].length : (em.match(/\p{Extended_Pictographic}/gu) || []).length - (em.match(/\u200d/g) || []).length;
-  return `<span class="emo${n > 1 ? " two" : ""}" aria-hidden="true">${esc(t.emoji || "⭐")}</span>`;
+  const em = t.emoji || "⭐";
+  return `<span class="emo${emoCount(em) > 1 ? " two" : ""}" aria-hidden="true">${esc(em)}</span>`;
 }
 function tileHTML(t, i, tag){
   const badge = t.status === "done" ? CHECK : t.status === "wait" ? HOUR : (i + 1);
@@ -400,142 +504,243 @@ function ctlHTML(t, i, n){
     <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button>
     <button type="button" data-act="del" aria-label="Remove step">🗑</button></div>`;
 }
-function renderShelf(){
-  const sc = cur(), P = S.place;
-  document.querySelectorAll("[data-where]").forEach(b => b.setAttribute("aria-pressed", b.dataset.where === P));
-  const mine = S.schedules.filter(x => x.place === P && !(x.tpl && PLACES[P].tpl[x.tpl]));
-  const btn = (key, name, icon, on) => `<button type="button" ${key} aria-current="${on}"><span class="e" aria-hidden="true">${icon}</span>${esc(name)}</button>`;
-  $("routines").innerHTML =
-    Object.keys(PLACES[P].tpl).map(n => btn(`data-r="${esc(n)}"`, n, ICON[n] || "⭐", sc.tpl === n && sc.place === P)).join("") +
-    mine.map(x => btn(`data-sid="${x.id}"`, x.name, x.tiles[0] ? (x.tiles[0].img ? "📷" : x.tiles[0].emoji) : "⭐", x.id === sc.id)).join("");
-}
-function render(){
-  renderShelf();
-  const sc = cur(), tiles = sc.tiles, board = $("board");
-  $("schedName").textContent = sc.name;
-  document.documentElement.style.setProperty("--tile", {s:"128px", m:"168px", l:"220px"}[S.size] || "168px");
+const dateFmt = new Intl.DateTimeFormat(undefined, {weekday:"long", month:"long", day:"numeric"});
+
+function render(animate){
+  const P = PART[S.part], r = cur(), now = clockPart();
+  document.documentElement.dataset.part = S.part;
+  document.documentElement.style.setProperty("--tile-base", {s:"128px", m:"168px", l:"220px"}[S.size] || "168px");
+  $("today").textContent = dateFmt.format(new Date());
+  $("partIcon").textContent = P.icon;
+  const allDay = S.schedules.length && S.schedules.every(isDone);
+  $("greet").textContent = allDay ? "All done for today!" : P.greet;
+
+  // parts-of-day tabs
+  $("day").innerHTML = PARTS.map(p => {
+    const rs = inPart(p.key), d = rs.filter(isDone).length, pct = rs.length ? Math.round(d / rs.length * 100) : 0;
+    return `<button type="button" class="tab" role="tab" data-p="${p.key}" aria-selected="${p.key === S.part}" aria-label="${p.name}, ${d} of ${rs.length} routines done">
+      ${p.key === now ? '<span class="now">Now</span>' : ""}${rs.length && d === rs.length ? `<span class="all">${CHECK}</span>` : ""}
+      <span class="e" aria-hidden="true">${p.icon}</span>${p.name}<span class="prog" aria-hidden="true"><i style="width:${pct}%"></i></span></button>`;
+  }).join("");
+
+  // routine trail
+  const rs = inPart(S.part);
+  $("trail").innerHTML = rs.map((x, i) => {
+    const d = isDone(x), linked = i > 0 && isDone(rs[i-1]);
+    return `<button type="button" class="stop${d ? " done" : ""}${linked ? " linked" : ""}" data-r="${x.id}" ${x === r ? 'aria-current="step"' : ""}>
+      <span class="dot"><span class="e" aria-hidden="true">${esc(x.icon || "⭐")}</span>${d ? `<span class="tick">${CHECK}</span>` : ""}</span>
+      ${esc(x.name)}<span class="count">${doneCount(x)} of ${x.tiles.length}</span></button>`;
+  }).join("") + (adult ? `<button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button>` : "");
+
+  // start banner
+  const showStart = !started && r && !doneCount(r) && !adult;
+  $("start").hidden = !showStart;
+  if (showStart){ $("startIcon").textContent = r.icon || "⭐"; $("startName").textContent = r.name; }
+
+  // routine head + board
+  $("rIcon").textContent = r ? (r.icon || "⭐") : P.icon;
+  $("rTitle").textContent = r ? r.name : `${P.name} routines`;
+  $("rCount").textContent = r ? `${doneCount(r)} of ${r.tiles.length} done` : "";
   $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
-  board.classList.toggle("firstthen", S.view === "ft");
-  const nowI = tiles.findIndex(t => t.status !== "done");
-  if (!tiles.length){
-    board.innerHTML = `<p class="empty"><b>This schedule has no steps yet.</b> Turn on <b>Adult</b>, then tap pictures under “Add a step”.</p>`;
-  } else if (S.view === "ft"){
-    const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
-    let h = `<div class="ft-col"><h2>First</h2><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`;
-    if (b < tiles.length) h += `<div class="ft-arrow" aria-hidden="true">➜</div><div class="ft-col"><h2>Then</h2><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`;
-    board.innerHTML = h;
+  const board = $("board");
+  board.classList.toggle("firstthen", S.view === "ft" && !!r && r.tiles.length > 0);
+  if (!r){
+    board.innerHTML = `<p class="empty"><b>No routines here yet.</b> Tap <b>Adult</b>, then add a ready-made or blank routine for the ${P.name.toLowerCase()}.</p>`;
+  } else if (!r.tiles.length){
+    board.innerHTML = `<p class="empty"><b>This routine has no steps yet.</b> Tap <b>Adult</b>, then tap pictures under “Add a step”.</p>`;
   } else {
-    board.innerHTML = tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`).join("");
+    const tiles = r.tiles, nowI = tiles.findIndex(t => t.status !== "done");
+    if (S.view === "ft"){
+      const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
+      let h = `<div class="ft-col"><h3>First</h3><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`;
+      if (b < tiles.length) h += `<div class="ft-arrow" aria-hidden="true">➜</div><div class="ft-col"><h3>Then</h3><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`;
+      board.innerHTML = h;
+    } else {
+      board.innerHTML = tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, nowI < 0 ? "" : i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`).join("");
+    }
   }
+  const key = S.part + ":" + (r ? r.id : "");
+  if (animate || key !== lastShown){ board.classList.remove("enter"); void board.offsetWidth; board.classList.add("enter"); }
+  lastShown = key;
+
+  // next button
+  const nx = r && isDone(r) ? nextAfter(r) : null;
+  $("nextbar").hidden = !nx;
+  if (nx) $("nextBtn").innerHTML = `Next: <span class="e">${esc(nx.r.icon || "⭐")}</span> ${esc(nx.r.name)}${nx.part !== S.part ? ` (${PART[nx.part].name})` : ""} ➜`;
+
   // adult panel
   $("panel").hidden = !adult;
   $("adultBtn").setAttribute("aria-pressed", adult);
   $("adultBtn").innerHTML = adult ? '<span class="e">🔓</span> Done editing' : '<span class="e">🔒</span> Adult';
-  if (adult){
-    $("schedSel").innerHTML = ["School","Home"].map(P => `<optgroup label="${P}">` + S.schedules.filter(x => x.place === P).map(x => `<option value="${x.id}" ${x.id === sc.id ? "selected" : ""}>${esc(x.name)}</option>`).join("") + "</optgroup>").join("");
-    if (document.activeElement !== $("schedNameIn")) $("schedNameIn").value = sc.name;
-    $("tapCycles").checked = S.tapCycles; $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
-    document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
-  }
+  if (adult) renderPanel(r);
 }
 
-/* interactions */
+function renderPanel(r){
+  const P = PART[S.part], rs = inPart(S.part), i = r ? rs.indexOf(r) : -1;
+  if (document.activeElement !== $("rNameIn")) $("rNameIn").value = r ? r.name : "";
+  $("rPartSel").innerHTML = PARTS.map(p => `<option value="${p.key}" ${p.key === S.part ? "selected" : ""}>${p.icon} ${p.name}</option>`).join("");
+  ["rNameIn","rPartSel","rReset","rDel"].forEach(id => $(id).disabled = !r);
+  $("rEarlier").disabled = i <= 0; $("rLater").disabled = i < 0 || i >= rs.length - 1;
+  $("partToolsH").textContent = `${P.name} routines`;
+  $("readyChips").innerHTML = P.routines.map(([n, ic]) => {
+    const have = rs.some(x => x.tpl === n);
+    return `<button type="button" class="chip" data-ready="${esc(n)}" aria-pressed="${have}"><span class="e">${ic}</span> ${esc(n)}${have ? " ✓" : ""}</button>`;
+  }).join("");
+  $("followClock").checked = S.followClock; $("newDay").checked = S.newDay; $("tapCycles").checked = S.tapCycles;
+  $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
+  document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
+  renderLib();
+}
+
+/* ---------- moving through the day ---------- */
+function goPart(p, announce){
+  S.part = p; const r = firstOpen(p); S.current = r ? r.id : null; save(); render(true);
+  if (announce){ const P = PART[p]; speak(r ? `${P.name}. ${isDone(r) ? "" : "First, " + lc(r.name) + "."}` : P.name); }
+  if (r) scrollStop();
+}
+function goRoutine(id, announce){
+  const r = S.schedules.find(x => x.id === id); if (!r) return;
+  S.part = r.part; S.current = r.id; started = true; save(); render(true);
+  if (announce) speak(isDone(r) ? `${r.name}. All done.` : `${r.name}. ${r.tiles[0] ? "First, " + lc(r.tiles.find(t => t.status !== "done").say) + "." : ""}`);
+  scrollStop();
+}
+function scrollStop(){ const s = document.querySelector('.stop[aria-current="step"]'); if (s && s.scrollIntoView) s.scrollIntoView({behavior:"smooth", block:"nearest", inline:"center"}); }
+
+$("day").onclick = e => { const t = e.target.closest(".tab"); if (t) goPart(t.dataset.p, true); };
+$("day").onkeydown = e => {
+  if (!["ArrowLeft","ArrowRight"].includes(e.key)) return;
+  const k = (ORDER.indexOf(S.part) + (e.key === "ArrowRight" ? 1 : ORDER.length - 1)) % ORDER.length;
+  goPart(ORDER[k], true); document.querySelector(`.tab[data-p="${ORDER[k]}"]`).focus();
+};
+$("trail").onclick = e => {
+  if (e.target.closest("#trailAdd")) return addBlank();
+  const s = e.target.closest("[data-r]"); if (s) goRoutine(s.dataset.r, true);
+};
+$("startBtn").onclick = () => {
+  const r = cur(); started = true; render();
+  if (r) speak(`${PART[S.part].greet} First, ${lc(r.name)}. ${r.tiles[0] ? lc(r.tiles[0].say) + "." : ""}`);
+};
+$("nextBtn").onclick = () => { const r = cur(), nx = r && nextAfter(r); if (nx) goRoutine(nx.r.id, true); };
+
+/* ---------- tiles ---------- */
 const NEXT = {todo:"wait", wait:"done", done:"todo"};
 function setStatus(id, s, fromTap){
-  const sc = cur(), t = sc.tiles.find(x => x.id === id); if (!t) return;
-  const wasAllDone = sc.tiles.every(x => x.status === "done");
-  t.status = s; save(); render();
+  const r = cur(); if (!r) return; const t = r.tiles.find(x => x.id === id); if (!t) return;
+  const was = isDone(r);
+  t.status = s; started = true; save(); render();
   const el = document.querySelector(`.tile[data-id="${id}"]`);
-  if (el){ el.classList.add("pop"); }
-  if (fromTap) speak(s === "done" ? `${t.say}. All done!` : t.say, el);
-  if (S.cheer && !wasAllDone && sc.tiles.length && sc.tiles.every(x => x.status === "done")) setTimeout(celebrate, 700);
+  if (el) el.classList.add("pop");
+  if (fromTap) speak(s === "done" ? `${t.say}. Done!` : t.say, el);
+  if (!was && isDone(r) && S.cheer) setTimeout(() => celebrate(r), 650);
 }
-function celebrate(){
-  $("cheerTxt").textContent = `You finished ${cur().name.toLowerCase()}.`;
-  $("cheer").hidden = false; $("cheerClose").focus();
-  setTimeout(() => speak("All done! Great job!"), 300);
+let cheerTarget = null;
+function celebrate(r){
+  const nx = nextAfter(r); cheerTarget = nx;
+  const partDone = inPart(r.part).every(isDone);
+  $("cheerBig").textContent = !nx ? "🌙" : partDone ? PART[nx.part].icon : "⭐";
+  $("cheerH").textContent = !nx ? "All done for today!" : partDone ? `${PART[r.part].name} is all done!` : `${r.name} is all done!`;
+  $("cheerNext").hidden = !nx;
+  $("cheerStay").hidden = !nx;
+  if (nx){
+    $("cheerNextIcon").textContent = nx.r.icon || "⭐";
+    $("cheerNextLbl").textContent = nx.part !== r.part ? `Next · ${PART[nx.part].name}` : "Next";
+    $("cheerNextName").textContent = nx.r.name;
+    $("cheerGo").textContent = "Let's go ➜";
+  } else $("cheerGo").textContent = "Good night";
+  $("cheer").hidden = false; $("cheerGo").focus();
+  setTimeout(() => speak(!nx ? "All done for today! Good night." : `${$("cheerH").textContent} Great job! Next, ${lc(nx.r.name)}.`), 250);
 }
-$("cheerClose").onclick = () => { $("cheer").hidden = true; };
+$("cheerGo").onclick = () => { $("cheer").hidden = true; if (cheerTarget) goRoutine(cheerTarget.r.id, true); };
+$("cheerStay").onclick = () => { $("cheer").hidden = true; };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("cheer").hidden) $("cheer").hidden = true; });
 
 $("board").addEventListener("click", e => {
+  const r = cur(); if (!r) return;
   const ctl = e.target.closest(".ctl button");
   if (ctl){
-    const id = ctl.parentElement.dataset.id, act = ctl.dataset.act, sc = cur(), i = sc.tiles.findIndex(x => x.id === id);
+    const id = ctl.parentElement.dataset.id, act = ctl.dataset.act, i = r.tiles.findIndex(x => x.id === id);
     if (["todo","wait","done"].includes(act)) return setStatus(id, act, false);
-    if (act === "left" && i > 0) [sc.tiles[i-1], sc.tiles[i]] = [sc.tiles[i], sc.tiles[i-1]];
-    if (act === "right" && i < sc.tiles.length - 1) [sc.tiles[i+1], sc.tiles[i]] = [sc.tiles[i], sc.tiles[i+1]];
-    if (act === "del") sc.tiles.splice(i, 1);
+    if (act === "left" && i > 0) [r.tiles[i-1], r.tiles[i]] = [r.tiles[i], r.tiles[i-1]];
+    if (act === "right" && i < r.tiles.length - 1) [r.tiles[i+1], r.tiles[i]] = [r.tiles[i], r.tiles[i+1]];
+    if (act === "del") r.tiles.splice(i, 1);
     save(); render(); return;
   }
   const tile = e.target.closest(".tile"); if (!tile) return;
-  const t = cur().tiles.find(x => x.id === tile.dataset.id);
+  const t = r.tiles.find(x => x.id === tile.dataset.id);
   if (S.tapCycles) setStatus(t.id, NEXT[t.status], true);
-  else speak(t.say, tile);
+  else { started = true; speak(t.say, tile); }
 });
 
-function openRoutine(name){
-  let s = S.schedules.find(x => x.tpl === name);
-  if (!s){ s = fromTemplate(name); S.schedules.push(s); }
-  S.current = s.id; save(); render();
-}
-document.querySelectorAll("[data-where]").forEach(b => b.onclick = () => {
-  if (S.place === b.dataset.where) return;
-  save();
-  S.place = b.dataset.where; cat = Object.keys(PLACES[S.place].lib)[0];
-  const last = S.schedules.filter(x => x.place === S.place).pop();
-  if (S.lastBy && S.lastBy[S.place] && S.schedules.some(x => x.id === S.lastBy[S.place])) S.current = S.lastBy[S.place];
-  else if (last) S.current = last.id;
-  else { save(); renderLib(); return openRoutine(Object.keys(PLACES[S.place].tpl)[0]); }
-  save(); renderLib(); render();
-});
-$("routines").onclick = e => {
-  const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.r) openRoutine(b.dataset.r); else { S.current = b.dataset.sid; save(); render(); }
-  const t = cur(); speak(t.name);
-};
 $("readAll").onclick = () => {
-  const ts = cur().tiles; if (!ts.length) return;
-  const i = ts.findIndex(t => t.status !== "done");
-  if (S.view === "ft" && i >= 0) speak(`First, ${ts[i].say}.` + (ts[i+1] ? ` Then, ${ts[i+1].say}.` : ""));
-  else speak(ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + t.say).join(". ") + ".");
+  const r = cur(); if (!r || !r.tiles.length) return speak(PART[S.part].greet);
+  const ts = r.tiles, i = ts.findIndex(t => t.status !== "done");
+  if (S.view === "ft" && i >= 0) speak(`First, ${lc(ts[i].say)}.` + (ts[i+1] ? ` Then, ${lc(ts[i+1].say)}.` : ""));
+  else speak(`${r.name}. ` + ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + lc(t.say)).join(". ") + ".");
 };
-$("vAll").onclick = () => { S.view = "all"; save(); render(); };
-$("vFT").onclick = () => { S.view = "ft"; save(); render(); };
+$("vAll").onclick = () => { S.view = "all"; save(); render(true); };
+$("vFT").onclick = () => { S.view = "ft"; save(); render(true); };
 $("adultBtn").onclick = () => { adult = !adult; render(); if (adult) $("panel").scrollIntoView({behavior:"smooth", block:"nearest"}); };
 
-/* adult panel */
-$("schedSel").onchange = e => { S.current = e.target.value; const p = cur().place; if (p !== S.place){ S.place = p; cat = Object.keys(PLACES[p].lib)[0]; renderLib(); } save(); render(); };
-$("schedNameIn").oninput = e => { cur().name = e.target.value.trim() || "My schedule"; save(); render(); };
-$("resetBtn").onclick = () => { cur().tiles.forEach(t => t.status = "todo"); save(); render(); toast("Every step is back to red."); };
-$("newBlank").onclick = () => { const s = {id:uid(), name:"My schedule", place:S.place, tiles:[]}; S.schedules.push(s); S.current = s.id; save(); render(); $("schedNameIn").focus(); $("schedNameIn").select(); };
-$("delSched").onclick = () => { $("delConfirm").hidden = false; };
-$("delNo").onclick = () => { $("delConfirm").hidden = true; };
-$("delYes").onclick = () => {
-  S.schedules = S.schedules.filter(x => x.id !== S.current);
-  const same = S.schedules.filter(x => x.place === S.place);
-  if (!S.schedules.length || !same.length){ const n = fromTemplate(Object.keys(PLACES[S.place].tpl)[0]); S.schedules.push(n); S.current = n.id; }
-  else S.current = same[0].id; $("delConfirm").hidden = true; save(); render(); toast("Schedule deleted.");
+/* ---------- adult tools ---------- */
+function addBlank(){
+  const r = {id:uid(), name:"My routine", icon:"⭐", part:S.part, tiles:[]};
+  S.schedules.push(r); S.current = r.id; save(); render(true); $("rNameIn").focus(); $("rNameIn").select();
+}
+$("newBlank").onclick = addBlank;
+$("rNameIn").oninput = e => { const r = cur(); if (!r) return; r.name = e.target.value.trim() || "My routine"; delete r.tpl; save(); render(); };
+$("rPartSel").onchange = e => {
+  const r = cur(); if (!r) return; r.part = e.target.value; S.part = r.part;
+  S.schedules = S.schedules.filter(x => x !== r).concat(r); S.current = r.id; save(); render(true);
+  toast(`Moved to ${PART[r.part].name}.`);
 };
-
-$("templates").onclick = e => { const b = e.target.closest("[data-t]"); if (!b) return;
-  openRoutine(b.dataset.t); toast(`Showing “${b.dataset.t}”.`); };
+function moveRoutine(dir){
+  const r = cur(); if (!r) return; const rs = inPart(S.part), i = rs.indexOf(r), other = rs[i + dir]; if (!other) return;
+  const a = S.schedules.indexOf(r), b = S.schedules.indexOf(other);
+  [S.schedules[a], S.schedules[b]] = [S.schedules[b], S.schedules[a]]; save(); render();
+}
+$("rEarlier").onclick = () => moveRoutine(-1);
+$("rLater").onclick = () => moveRoutine(1);
+$("rReset").onclick = () => { const r = cur(); if (!r) return; r.tiles.forEach(t => t.status = "todo"); save(); render(true); toast("Every step is back to red."); };
+$("rDel").onclick = () => { $("rDelConfirm").hidden = false; };
+$("rDelNo").onclick = () => { $("rDelConfirm").hidden = true; };
+$("rDelYes").onclick = () => {
+  const r = cur(); $("rDelConfirm").hidden = true; if (!r) return;
+  S.schedules = S.schedules.filter(x => x !== r); const n = firstOpen(S.part); S.current = n ? n.id : null;
+  save(); render(true); toast(`Deleted “${r.name}”.`);
+};
+$("readyChips").onclick = e => {
+  const b = e.target.closest("[data-ready]"); if (!b) return;
+  const name = b.dataset.ready, have = inPart(S.part).find(x => x.tpl === name);
+  if (have) return goRoutine(have.id, false);
+  const def = PART[S.part].routines.find(x => x[0] === name), r = routineFrom(S.part, def);
+  // keep the ready-made order: insert before the next ready-made routine that is present
+  const names = PART[S.part].routines.map(x => x[0]), after = names.slice(names.indexOf(name) + 1);
+  const nextR = S.schedules.find(x => x.part === S.part && after.includes(x.tpl));
+  S.schedules.splice(nextR ? S.schedules.indexOf(nextR) : S.schedules.length, 0, r);
+  S.current = r.id; save(); render(true); toast(`Added “${name}”.`);
+};
+$("dayReset").onclick = () => { S.schedules.forEach(r => r.tiles.forEach(t => t.status = "todo")); started = false; goPart(S.followClock ? clockPart() : "morning", false); toast("A fresh day. Every tile is red again."); };
+$("followClock").onchange = e => { S.followClock = e.target.checked; save(); };
+$("newDay").onchange = e => { S.newDay = e.target.checked; save(); };
 $("tapCycles").onchange = e => { S.tapCycles = e.target.checked; save(); };
 $("speakOn").onchange = e => { S.speak = e.target.checked; save(); };
 $("cheerOn").onchange = e => { S.cheer = e.target.checked; save(); };
 $("rate").onchange = e => { S.rate = +e.target.value; save(); speak("This is how I sound."); };
 document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size = b.dataset.size; save(); render(); });
 
-let cat = Object.keys(PLACES[S.place].lib)[0];
+let cat = null;
 function renderLib(){
-  const L = PLACES[S.place].lib;
-  $("placeHint").textContent = `Showing ${S.place.toLowerCase()} pictures and routines. Switch with the School / Home buttons at the top.`;
-  $("templates").innerHTML = Object.keys(PLACES[S.place].tpl).map(n => `<button type="button" class="chip" data-t="${esc(n)}">${esc(n)}</button>`).join("");
-  $("cats").innerHTML = Object.keys(L).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
-  $("lib").innerHTML = L[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
+  if (!cat || !LIB[cat]) cat = PART[S.part].cat;
+  $("cats").innerHTML = Object.keys(LIB).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
+  $("lib").innerHTML = LIB[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
 }
 $("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
-$("lib").onclick = e => { const b = e.target.closest("[data-i]"); if (!b) return;
-  const [em,l,s] = PLACES[S.place].lib[cat][+b.dataset.i]; cur().tiles.push(mk(em,l,s)); save(); render(); toast(`Added “${l}”.`); };
+$("lib").onclick = e => {
+  const b = e.target.closest("[data-i]"); if (!b) return; const r = cur();
+  if (!r){ toast("Add a routine first."); return; }
+  const [em,l,s] = LIB[cat][+b.dataset.i]; r.tiles.push(mk(em,l,s)); if (r.icon === "⭐" && r.tiles.length === 1) r.icon = em;
+  save(); render(); toast(`Added “${l}”.`);
+};
 
 /* custom step */
 let cEmoji = PICKS[0], cImg = null;
@@ -545,26 +750,33 @@ $("emopick").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) re
   $("emopick").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); miniPreview(); $("cMsg").textContent = "Picture picked."; };
 $("cPhoto").onchange = e => {
   const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = () => { const img = new Image(); img.onload = () => {
+  const rd = new FileReader();
+  rd.onload = () => { const img = new Image(); img.onload = () => {
       const side = 360, c = document.createElement("canvas"), m = Math.min(img.width, img.height);
       c.width = c.height = side;
       c.getContext("2d").drawImage(img, (img.width - m)/2, (img.height - m)/2, m, m, 0, 0, side, side);
       cImg = c.toDataURL("image/jpeg", 0.8); miniPreview(); $("cMsg").textContent = "Photo ready. It is cropped to a square.";
-    }; img.onerror = () => { $("cMsg").textContent = "That file isn't a picture this browser can open. Try a JPG or PNG."; }; img.src = r.result; };
-  r.readAsDataURL(f);
+    }; img.onerror = () => { $("cMsg").textContent = "That file isn't a picture this browser can open. Try a JPG or PNG."; }; img.src = rd.result; };
+  rd.readAsDataURL(f);
 };
 $("cAdd").onclick = () => {
-  const l = $("cLabel").value.trim();
+  const l = $("cLabel").value.trim(), r = cur();
+  if (!r){ $("cMsg").textContent = "Add a routine first."; return; }
   if (!l){ $("cMsg").textContent = "Type the word for the tile first."; $("cLabel").focus(); return; }
   const t = mk(cEmoji, l, $("cSay").value.trim() || l); t.img = cImg;
-  cur().tiles.push(t); save(); render();
+  r.tiles.push(t); save(); render();
   $("cLabel").value = ""; $("cSay").value = ""; $("cPhoto").value = ""; cImg = null; miniPreview();
   $("cMsg").textContent = `Added “${l}”.`;
 };
 
-let tt; function toast(m){ const el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2200); }
+let tt; function toast(m){ const el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2400); }
 
-renderLib(); render();
+/* ---------- start ---------- */
+if (S.day !== todayKey()){ if (S.newDay) S.schedules.forEach(r => r.tiles.forEach(x => x.status = "todo")); S.day = todayKey(); }
+if (S.followClock || !PART[S.part]) S.part = clockPart();
+if (!cur()){ const r = firstOpen(S.part); S.current = r ? r.id : null; }
+save(); render(true); scrollStop();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
+setInterval(checkDay, 5 * 60 * 1000);
 })();
 </script>
