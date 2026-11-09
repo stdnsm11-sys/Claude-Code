@@ -28,7 +28,7 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 | Rubber-band matchmaking | Opponents scale to your team rating |
 | Offers timed to losses | "SO CLOSE!" pack offer after a narrow loss |
 | Fake urgency | Countdown resets at 0 and on reload |
-| Deceptive prize wheel | GALAXY slice is drawn huge but its odds are 0.2%; wheel lands next to it |
+| Tricky prize wheel | All 8 slices look equal, but the GALAXY card hits 0.2% of the time; the wheel often stops right next to it |
 | Fabricated social proof | "Live Pulls" feed only shows jackpots |
 | Power creep / seasons | Every 8 matches a new season makes your cards weaker |
 | Engineered grind | ~40 wins to earn one pack with coins |
@@ -42,10 +42,12 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 ### Prize Arcade (🎰 tab): casino games inside the sports game
 Bets use game coins; Gems can be exchanged for coins (◆ 100 → ● 1,000).
 
+The Arcade and the Lucky Wheel are styled after the casino-style mini-games in the 2019 basketball-game controversy (purple/chrome neon look, 8-slice prize wheel with pack and coin icons, teal pachinko board with spinning bumpers and colored bins, a gem "Match 3" slot machine with a pull lever). They use Hoop Vault's own name, logo and fictional players, not any real game's or league's trademarks.
+
 | Game | Tricks it demonstrates |
 |---|---|
 | **Slot machine** | Losses disguised as wins (0.5× payouts celebrated as "WIN!"), engineered near-misses (two jackpot symbols + one just off the line, shown far more often than chance), STOP buttons that do nothing (illusion of control), AUTO ×10 autoplay. Long-run payback ≈ 71%. |
-| **Plinko** | "Aim" buttons that don't change anything, flashy 10× edge bins that are almost never hit (0.1%), "one peg from 10×" near-misses, DROP ×10. Long-run payback ≈ 74%. |
+| **Plinko** | "Aim" buttons that don't change anything, flashy 10× edge bins that are almost never hit (0.1%), "one peg from 10×" near-misses, DROP ×10. Long-run payback ≈ 79%. |
 | **Roulette** | HOT/COLD number boards and "RED IS DUE!" messages (gambler's fallacy), a DOUBLE UP button after every loss (loss-chasing / Martingale), the green 0 house edge. Payback 97.3%. |
 | **Across the Arcade** | Free welcome credits, BET MAX pre-selected, currency layering (dollars → gems → coins), celebration effects, house edge. The Reality Check tracks coins bet vs. paid back. |
 

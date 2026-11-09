@@ -118,8 +118,12 @@ h1,h2,h3,.disp{font-family:"Bebas Neue",Impact,sans-serif;letter-spacing:.04em;f
 @keyframes flip{from{transform:rotateY(90deg)}to{transform:rotateY(0)}}
 
 /* wheel */
-.wheelwrap{position:relative;width:300px;height:300px;margin:10px auto}
-.wheelwrap svg{width:100%;height:100%;transition:transform 4.2s cubic-bezier(.17,.67,.12,1)}
+.wheelwrap{position:relative;width:340px;max-width:100%;aspect-ratio:1;margin:34px auto 10px}
+.wheelwrap svg{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.17,.67,.12,1);filter:drop-shadow(0 0 18px #b04dff88)}
+.hexptr{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:96px;height:52px;z-index:2;
+  background:linear-gradient(180deg,#e9e9f2,#8d8fa3);clip-path:polygon(12% 0,88% 0,100% 45%,50% 100%,0 45%);display:flex;align-items:flex-start;justify-content:center;padding-top:5px}
+.hexptr::before{content:"";width:78px;height:36px;background:linear-gradient(180deg,#7a2cff,#3b0d7a);clip-path:polygon(12% 0,88% 0,100% 45%,50% 100%,0 45%)}
+.hexptr::after{content:"";position:absolute;bottom:9px;width:14px;height:14px;background:#e04dff;transform:rotate(45deg);box-shadow:0 0 10px #e04dff}
 .pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid #fff;z-index:2;filter:drop-shadow(0 2px 2px #000)}
 
 /* insight tags + toasts */
@@ -142,20 +146,44 @@ td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .betrow button.max{box-shadow:0 0 12px #ffc93c66}
 .teachonly{display:none}
 body.insight .teachonly{display:block}
-.machine{background:linear-gradient(180deg,#3a0d2a,#16081f);border:3px solid var(--coin);border-radius:18px;padding:16px;text-align:center;box-shadow:inset 0 0 30px #000}
-.reels{display:flex;justify-content:center;gap:8px;position:relative;margin:0 auto 12px;max-width:340px}
-.reel{flex:1;background:#fff;border-radius:10px;overflow:hidden;border:3px solid #222;display:grid;grid-template-rows:repeat(3,64px)}
-.reel div{display:flex;align-items:center;justify-content:center;font-size:40px;line-height:1}
-.reel div:nth-child(1),.reel div:nth-child(3){opacity:.45}
-.reel.spin div{filter:blur(1.5px)}
-.payline{position:absolute;left:-6px;right:-6px;top:50%;height:3px;background:var(--hot);transform:translateY(-50%);box-shadow:0 0 8px var(--hot);pointer-events:none}
+/* slot cabinet: chrome body, magenta neon trim, marquee, side "match 3" panels, lever */
+.cab{position:relative;background:linear-gradient(90deg,#8d909f,#e9ebf1 18%,#b9bcc8 50%,#eef0f5 82%,#8d909f);border-radius:22px 22px 12px 12px;padding:12px 12px 14px;margin-right:34px;box-shadow:0 10px 30px #000a}
+.cabin{background:radial-gradient(120% 90% at 50% 0,#4b1a7d,#1a0933 70%);border-radius:14px;padding:10px;border:3px solid #ff4fd8;box-shadow:0 0 14px #ff4fd8,inset 0 0 18px #ff4fd855}
+.marquee{position:relative;margin:0 auto 10px;max-width:420px;height:74px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+  background:linear-gradient(115deg,#2a0b52 0 30%,#7a2cff 30% 34%,#2a0b52 34% 66%,#7a2cff 66% 70%,#2a0b52 70%);border:2px solid #b98cff;box-shadow:inset 0 0 20px #000}
+.marquee b{font-family:"Bebas Neue",Impact,sans-serif;font-weight:400;font-size:46px;letter-spacing:.04em;color:#fff;font-style:italic;transform:skew(-10deg);
+  text-shadow:0 0 2px #fff,0 3px 0 #7a2cff,0 0 18px #e04dff}
+.marquee small{position:absolute;bottom:4px;right:10px;font-weight:800;font-size:10px;color:#e9d6ff;background:#7a2cff;border-radius:4px;padding:1px 5px}
+.slotbody{display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:10px;align-items:stretch}
+@media (max-width:640px){.slotbody{grid-template-columns:1fr 1fr}.slotbody .reelbox{grid-column:1/-1;order:-1}}
+.side{background:#120624;border:2px solid #6d3bd8;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:5px}
+.sidehd{font-family:"Bebas Neue",Impact,sans-serif;font-size:17px;color:#fff;text-align:center;letter-spacing:.06em}
+.payrow{background:linear-gradient(180deg,#8c3cff,#5a19c4);border-radius:5px;padding:3px 4px;text-align:center;color:#fff;font-weight:800;font-size:11px}
+.payrow .gs{display:flex;justify-content:center;gap:1px;margin-bottom:1px}
+.payrow svg{width:18px;height:18px}
+.prizecard{margin:0 auto;width:100%;max-width:120px}
+.prizecard .card{min-height:150px}
+.reelbox{position:relative;background:#0b0418;border-radius:10px;padding:8px;border:2px solid #3a1d6e}
+.reels{display:flex;justify-content:center;gap:8px;position:relative}
+.reel{flex:1;border-radius:8px;overflow:hidden;display:grid;grid-template-rows:repeat(3,70px);
+  background:linear-gradient(180deg,#8f8f9c,#fff 28%,#fff 72%,#8f8f9c);box-shadow:inset 0 0 8px #0006}
+.reel div{display:flex;align-items:center;justify-content:center}
+.reel svg{width:56px;height:56px;filter:drop-shadow(0 2px 2px #0005)}
+.reel div:nth-child(1) svg,.reel div:nth-child(3) svg{opacity:.55;transform:scale(.85,.7)}
+.reel.spin svg{filter:blur(2px)}
+.payline{position:absolute;left:-4px;right:-4px;top:50%;height:2px;background:#ff4fd8;transform:translateY(-50%);box-shadow:0 0 8px #ff4fd8;pointer-events:none;opacity:.8}
+.lever{position:absolute;right:-34px;top:70px;width:34px;height:150px;cursor:pointer;background:none;padding:0;border-radius:0}
+.lever::before{content:"";position:absolute;left:0;top:70px;width:16px;height:46px;background:linear-gradient(90deg,#777,#ddd,#777);border-radius:0 6px 6px 0}
+.lever i{position:absolute;left:12px;top:0;width:8px;height:96px;background:linear-gradient(90deg,#888,#f4f4f8,#888);border-radius:4px;transform-origin:50% 92%;transition:transform .25s}
+.lever i::before{content:"";position:absolute;top:-14px;left:-9px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7b6ff,#8a2be2 55%,#3b0d7a)}
+.lever.pull i{transform:scaleY(-.55)}
 .ctrl{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .amsg{min-height:46px;font-weight:800;font-size:18px;margin-top:10px}
 .win-flash{animation:winf .25s 6 alternate}
 @keyframes winf{to{box-shadow:0 0 0 6px var(--coin),0 0 40px var(--coin);filter:brightness(1.35)}}
 .paytable{font-size:12px;color:var(--muted);margin-top:10px}
 .paytable td{padding:3px 6px}
-#plinko{display:block;width:100%;max-width:460px;height:auto;margin:0 auto;background:#120c2b;border-radius:14px;border:2px solid #6d4bd8}
+#plinko{display:block;width:100%;max-width:460px;height:auto;margin:0 auto;background:#0d0d18;border-radius:10px;box-shadow:0 0 0 3px #2a2a3a,0 0 22px #43e0ff55}
 .rwrap{position:relative;width:280px;max-width:100%;aspect-ratio:1;margin:0 auto}
 .rwrap svg{width:100%;height:100%;transition:transform 4.5s cubic-bezier(.12,.7,.1,1)}
 .rgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:8px}
@@ -283,7 +311,7 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
       <section data-pane="wheel" class="hide">
         <h2>Lucky Wheel <span class="itag" data-t="wheel">Deceptive wheel</span></h2>
         <p class="small muted">One free spin every day. Extra spins just ◆ 100! <span class="itag" data-t="appointment">Appointment mechanic</span></p>
-        <div class="wheelwrap"><div class="pointer"></div><svg id="wheel" viewBox="-110 -110 220 220"></svg></div>
+        <div class="wheelwrap"><div class="hexptr"></div><svg id="wheel" viewBox="-120 -120 240 240"></svg></div>
         <div style="text-align:center">
           <button class="btn primary" id="spinBtn">SPIN</button>
           <div id="wheelMsg" style="margin-top:10px;font-weight:800;min-height:24px"></div>
@@ -309,23 +337,28 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
         </div>
 
         <div data-apane="slots">
-          <div class="machine" id="slotMachine">
-            <div class="disp" style="font-size:30px;color:var(--coin)">GALAXY JACKPOT 🌌 <span class="itag" data-t="virtualreel">Engineered near-misses</span></div>
-            <div class="reels" id="reels"><div class="reel" id="reel0"></div><div class="reel" id="reel1"></div><div class="reel" id="reel2"></div><div class="payline"></div></div>
-            <div class="ctrl">
-              <button class="btn primary" id="slotSpin" style="font-size:18px;padding:12px 28px">SPIN</button>
-              <button class="btn" data-stop="0">STOP 1</button><button class="btn" data-stop="1">STOP 2</button><button class="btn" data-stop="2">STOP 3</button>
-              <button class="btn" id="autoSpin">AUTO ×10</button>
+          <div class="cab" id="slotMachine">
+            <div class="cabin">
+              <div class="marquee"><b>TRIPLE DOUBLE</b><small>HV</small></div>
+              <div class="slotbody">
+                <div class="side" id="payLeft"><div class="sidehd">MATCH 3 GEMS</div></div>
+                <div class="reelbox"><div class="reels" id="reels"><div class="reel" id="reel0"></div><div class="reel" id="reel1"></div><div class="reel" id="reel2"></div><div class="payline"></div></div></div>
+                <div class="side"><div class="sidehd">MATCH 3 GEMS</div><div class="prizecard" id="prizeCard"></div><div class="payrow" id="payRight"></div></div>
+              </div>
             </div>
-            <div class="small" style="margin-top:6px"><span class="itag" data-t="control">Illusion of control</span><span class="itag" data-t="autoplay">Autoplay</span><span class="itag" data-t="ldw">Loss disguised as win</span></div>
-            <div class="amsg" id="slotMsg"></div>
+            <button class="lever" id="lever" aria-label="Pull the lever to spin"><i></i></button>
           </div>
-          <table class="paytable"><tr><td>🌌🌌🌌</td><td>100× + Galaxy card</td><td>💎💎💎</td><td>25×</td><td>🏆🏆🏆</td><td>10×</td></tr>
-            <tr><td>👟👟👟</td><td>5×</td><td>🏀🏀🏀</td><td>3×</td><td>any 🏀🏀</td><td>1.5×</td></tr><tr><td>any 🏀</td><td>0.5×</td><td colspan="4"></td></tr></table>
+          <div class="ctrl" style="margin-top:12px">
+            <button class="btn primary" id="slotSpin" style="font-size:18px;padding:12px 28px">SPIN</button>
+            <button class="btn" data-stop="0">STOP 1</button><button class="btn" data-stop="1">STOP 2</button><button class="btn" data-stop="2">STOP 3</button>
+            <button class="btn" id="autoSpin">AUTO ×10</button>
+          </div>
+          <div class="small" style="margin-top:6px;text-align:center"><span class="itag" data-t="virtualreel">x</span><span class="itag" data-t="control">x</span><span class="itag" data-t="autoplay">x</span><span class="itag" data-t="ldw">x</span></div>
+          <div class="amsg" id="slotMsg" style="text-align:center"></div>
         </div>
 
         <div data-apane="plinko" class="hide">
-          <canvas id="plinko" width="460" height="440"></canvas>
+          <canvas id="plinko" width="460" height="580"></canvas>
           <div class="ctrl" style="margin-top:10px">
             <button class="btn" data-aim="-1">◀ Aim left</button><button class="btn" data-aim="0">Center</button><button class="btn" data-aim="1">Aim right ▶</button>
           </div>
@@ -444,9 +477,9 @@ const TACTICS = {
   fomo:{g:"SPEND",t:"Fake countdown",d:"The timer starts over at zero or when you reload the page.",
     p:"A ticking clock makes you rush instead of think.",
     c:"Online casinos use 'today only' bonuses.",r:"Reload the page. If the timer resets, the deadline is fake."},
-  wheel:{g:"STAY",t:"Tricky prize wheel",d:"The GALAXY slice looks huge, but you only win it 2 times in 1,000 spins.",
-    p:"Your eyes think a big slice means a big chance. It doesn't.",
-    c:"This is a real casino prize wheel.",r:"Slice size is just decoration. Only the real odds matter."},
+  wheel:{g:"STAY",t:"Tricky prize wheel",d:"All 8 slices are the same size, but you only win the GALAXY card 2 times in 1,000 spins. Packs are rare too.",
+    p:"Same-size slices make every prize look just as likely. They aren't.",
+    c:"This is a real casino prize wheel.",r:"How the wheel looks means nothing. Only the real odds matter."},
   social:{g:"SPEND",t:"Fake winners list",d:"The 'Live Pulls' list is made up and only shows big wins.",
     p:"Seeing lots of winners makes winning seem common.",
     c:"Winning slot machines ring loudly. Losing ones are silent.",r:"You only see the winners, never the thousands who lost."},
@@ -789,28 +822,47 @@ function newSeason(){
 }
 
 // ---------- Wheel ----------
-// Visual slice sizes (degrees) vs actual probability: deliberately mismatched.
+// 8 slices that all LOOK the same size; the real chances are very different.
+const coinPrize=n=>()=>{S.coins+=n;return `${fmt(n)} Coins`};
+const gemPrize=n=>()=>{S.gems+=n;return `${n} Gems`};
 const WHEEL=[
-  {label:"GALAXY!",deg:70,p:.002,color:"#7a2cff",prize:()=>{const c=mk("galaxy");S.cards.push(c);S.galaxy++;return `GALAXY ${c.ovr} ${c.name}!`}},
-  {label:"◆ 50",deg:50,p:.30,color:"#169bc4",prize:()=>{S.gems+=50;return "50 Gems"}},
-  {label:"● 100",deg:50,p:.45,color:"#e0a300",prize:()=>{S.coins+=100;return "100 Coins"}},
-  {label:"DIAMOND",deg:60,p:.008,color:"#26b6d8",prize:()=>{const c=mk("diamond");S.cards.push(c);return `Diamond ${c.ovr} ${c.name}`}},
-  {label:"● 250",deg:40,p:.20,color:"#c48a00",prize:()=>{S.coins+=250;return "250 Coins"}},
-  {label:"PACK",deg:90,p:.04,color:"#d81b4f",prize:()=>{setTimeout(()=>openPack("standard",{}),900);return "a Standard Pack!"}},
+  {label:"250",icon:"coins",bg:"grey",p:.32,prize:coinPrize(250)},
+  {label:"20",icon:"token",bg:"gold",p:.14,prize:gemPrize(20)},
+  {label:"PACK",icon:"pack",bg:"purple",p:.03,prize:()=>{setTimeout(()=>openPack("standard",{}),900);return "a Standard Pack!"}},
+  {label:"1000",icon:"coins",bg:"grey",p:.03,prize:coinPrize(1000)},
+  {label:"GALAXY",icon:"card",bg:"purple",p:.002,prize:()=>{const c=mk("galaxy");S.cards.push(c);S.galaxy++;return `GALAXY ${c.ovr} ${c.name}!`}},
+  {label:"500",icon:"coins",bg:"grey",p:.10,prize:coinPrize(500)},
+  {label:"10",icon:"token",bg:"gold",p:.374,prize:gemPrize(10)},
+  {label:"PREMIUM",icon:"pack",bg:"purple",p:.004,prize:()=>{setTimeout(()=>openPack("premium",{}),900);return "a Premium Pack!"}},
 ];
+const GAL_I=4, SEG=45;
+function wheelIcon(kind){
+  if(kind==="coins") return `<g><ellipse cx="-6" cy="10" rx="13" ry="5" fill="#9aa0ad"/><rect x="-19" y="-4" width="26" height="14" fill="#c9ced8"/><ellipse cx="-6" cy="-4" rx="13" ry="5" fill="#eef1f6"/>
+    <circle cx="8" cy="2" r="13" fill="#d8dce5" stroke="#d4a017" stroke-width="3"/><text x="8" y="6" font-size="10" font-weight="800" text-anchor="middle" fill="#5b2a9e">HV</text></g>`;
+  if(kind==="token") return `<g><polygon points="-16,-11 16,-11 22,0 16,11 -16,11 -22,0" fill="#c8742c" stroke="#ffcf8a" stroke-width="2"/><text y="4" font-size="11" font-weight="800" text-anchor="middle" fill="#fff3dc">◆</text></g>`;
+  if(kind==="pack") return `<g transform="rotate(-12)"><rect x="-13" y="-19" width="26" height="38" rx="3" fill="#fff" stroke="#ccc"/><rect x="-13" y="-19" width="26" height="11" rx="3" fill="#e2263f"/>
+    <circle cy="5" r="7" fill="#f28c28"/><path d="M-7 5h14M0 -2v14" stroke="#7a3a00" stroke-width="1.2"/><text y="-11" font-size="6" font-weight="800" text-anchor="middle" fill="#fff">5 CARDS</text></g>`;
+  return `<g transform="rotate(8)"><rect x="-13" y="-19" width="26" height="38" rx="3" fill="url(#galgrad)" stroke="#ffb3f5" stroke-width="1.5"/><text y="-6" font-size="9" font-weight="800" text-anchor="middle" fill="#fff">97</text><circle cy="7" r="6" fill="#ffffff55"/></g>`;
+}
 function drawWheel(){
-  let a=0, html="";
-  WHEEL.forEach(s=>{
-    s.start=a; s.end=a+s.deg;
-    const r=100, a0=(a-90)*Math.PI/180, a1=(a+s.deg-90)*Math.PI/180;
-    const large=s.deg>180?1:0;
-    html+=`<path d="M0 0 L${r*Math.cos(a0)} ${r*Math.sin(a0)} A${r} ${r} 0 ${large} 1 ${r*Math.cos(a1)} ${r*Math.sin(a1)} Z" fill="${s.color}" stroke="#0b0b14" stroke-width="2"/>`;
-    const mid=(a+s.deg/2-90)*Math.PI/180;
-    html+=`<text x="${62*Math.cos(mid)}" y="${62*Math.sin(mid)}" fill="#fff" font-size="12" font-weight="800" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a+s.deg/2} ${62*Math.cos(mid)} ${62*Math.sin(mid)})">${s.label}</text>`;
-    a+=s.deg;
+  const R=100, BG={grey:["#4a4d5c","#2a2c36"],gold:["#c99a1a","#5b4208"],purple:["#7a2cff","#2b0c66"]};
+  let h=`<defs><linearGradient id="galgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb3f5"/><stop offset=".55" stop-color="#7a2cff"/><stop offset="1" stop-color="#1a0b4a"/></linearGradient>`;
+  Object.entries(BG).forEach(([k,c])=>h+=`<radialGradient id="wg-${k}" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(${R})"><stop offset=".2" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></radialGradient>`);
+  h+=`</defs><circle r="116" fill="#15151f" stroke="#b04dff" stroke-width="3"/><circle r="108" fill="#22222e"/>`;
+  for(let i=0;i<24;i++){ const a=i*15*Math.PI/180; h+=`<circle cx="${112*Math.sin(a)}" cy="${-112*Math.cos(a)}" r="2" fill="${i%2?"#e04dff":"#fff"}"/>`; }
+  WHEEL.forEach((s,i)=>{
+    s.start=i*SEG-SEG/2; s.end=s.start+SEG;
+    const a0=(s.start-90)*Math.PI/180, a1=(s.end-90)*Math.PI/180;
+    h+=`<path d="M0 0 L${R*Math.cos(a0)} ${R*Math.sin(a0)} A${R} ${R} 0 0 1 ${R*Math.cos(a1)} ${R*Math.sin(a1)} Z" fill="url(#wg-${s.bg})"/>`;
+    h+=`<g transform="rotate(${i*SEG})"><g transform="translate(0,-60)">${wheelIcon(s.icon)}</g>
+      <text y="-86" font-size="${s.label.length>4?9:12}" font-weight="800" text-anchor="middle" fill="#fff" font-family="Inter,sans-serif">${s.label}</text></g>`;
   });
-  html+=`<circle r="14" fill="#0b0b14" stroke="#fff" stroke-width="3"/>`;
-  $("wheel").innerHTML=html;
+  WHEEL.forEach((s,i)=>{ const a=(s.start-90)*Math.PI/180; h+=`<line x1="0" y1="0" x2="${R*Math.cos(a)}" y2="${R*Math.sin(a)}" stroke="#c9ccd6" stroke-width="3"/>`; });
+  h+=`<circle r="${R}" fill="none" stroke="#c9ccd6" stroke-width="4"/>
+    <polygon points="0,-26 22.5,-13 22.5,13 0,26 -22.5,13 -22.5,-13" fill="#b9bcc8" stroke="#eef0f5" stroke-width="2"/>
+    <polygon points="0,-19 16.5,-9.5 16.5,9.5 0,19 -16.5,9.5 -16.5,-9.5" fill="#d23cff"/>
+    <text y="5" font-size="14" font-weight="800" text-anchor="middle" fill="#fff" font-family="Inter,sans-serif">HV</text>`;
+  $("wheel").innerHTML=h;
 }
 let wheelRot=0, spinning=false;
 $("spinBtn").onclick=()=>{
@@ -818,22 +870,24 @@ $("spinBtn").onclick=()=>{
   if(!S.freeSpin){ if(S.gems<100){ toast("Need ◆ 100 to spin."); goTab("store"); return; } S.gems-=100; }
   S.freeSpin=false; S.spinDay=today(); spinning=true; tactic("wheel"); tactic("appointment");
   // choose by REAL probability
-  let r=Math.random(),acc=0,res=WHEEL[2];
-  for(const s of WHEEL){ acc+=s.p; if(r<acc){res=s;break;} }
-  // land inside chosen slice; if it borders GALAXY, land right next to the border (near miss)
-  let land;
-  const gal=WHEEL[0];
-  if(res!==gal && (res.start===gal.end || res.end===360)) land = res.start===gal.end ? res.start+2 : res.end-2;
-  else land = res.start + res.deg*(0.2+Math.random()*0.6);
-  const target = 360*6 + (360-land);
-  wheelRot = wheelRot - (wheelRot%360) + target;
+  let r=Math.random(),acc=0,ri=6;
+  for(let i=0;i<WHEEL.length;i++){ acc+=WHEEL[i].p; if(r<acc){ri=i;break;} }
+  const res=WHEEL[ri], gal=WHEEL[GAL_I];
+  // if the result is next to GALAXY, stop right at the border (near miss)
+  let land, near=false;
+  if(ri===GAL_I-1){ land=res.end-2; near=true; }
+  else if(ri===GAL_I+1){ land=res.start+2; near=true; }
+  else land=res.start+SEG*(0.2+Math.random()*0.6);
+  const target=360*6+((360-land)%360);
+  wheelRot=wheelRot-(wheelRot%360)+target;
   $("wheel").style.transform=`rotate(${wheelRot}deg)`;
   $("wheelMsg").textContent="";
   setTimeout(()=>{
     const txt=res.prize(); spinning=false;
-    $("wheelMsg").innerHTML = `You won ${txt}` + (res!==gal && (Math.abs(land-gal.end)<4 || Math.abs(land-360)<4) ? "<br><span style='color:var(--galaxy)'>SO CLOSE to Galaxy!</span>":"");
+    $("wheelMsg").innerHTML=`You won ${txt}`+(near?"<br><span style='color:var(--galaxy)'>SO CLOSE to the GALAXY card!</span>":"");
+    if(near) tactic("nearmiss");
     log(`Wheel: ${txt}`); save(); render();
-  },4300);
+  },4700);
   render();
 };
 
@@ -889,7 +943,7 @@ $("atabs").addEventListener("click",e=>{
   const b=e.target.closest("[data-a]"); if(!b) return;
   document.querySelectorAll("#atabs button").forEach(x=>x.classList.toggle("act",x===b));
   document.querySelectorAll("[data-apane]").forEach(p=>p.classList.toggle("hide",p.dataset.apane!==b.dataset.a));
-  if(b.dataset.a==="plinko") drawPlinko();
+  if(b.dataset.a==="plinko") startPlinko();
   if(b.dataset.a==="roulette"){ renderRoulette(); if(S.rhist.length>=3) tactic("fallacy"); }
 });
 $("betrow").addEventListener("click",e=>{ const b=e.target.closest("[data-bet]"); if(!b) return; S.bet=+b.dataset.bet; save(); renderArcadeStats(); if(S.bet===1000) tactic("betmax"); });
@@ -912,14 +966,31 @@ function payOut(amount,el){
   if(amount>0 && el){ el.classList.remove("win-flash"); void el.offsetWidth; el.classList.add("win-flash"); setTimeout(()=>el.classList.remove("win-flash"),1600); tactic("sensory"); }
 }
 
-// ----- Slots -----
-const SYM=[{s:"🏀",w:30},{s:"👟",w:22},{s:"🏆",w:18},{s:"🧱",w:20},{s:"💎",w:7},{s:"🌌",w:3}];
-const TRIPLE={"🌌":100,"💎":25,"🏆":10,"👟":5,"🏀":3,"🧱":0};
+// ----- Slots ("match 3 gems") -----
+const GEMC={cyan:["#c9fbff","#25c6e8","#0b6f96"],blue:["#b9c8ff","#3d5cf0","#16237e"],red:["#ffc0c8","#e3263f","#7a0a1c"],
+  purple:["#ecd2ff","#9b4dff","#46118f"],pink:["#ffd6f0","#ff4fb8","#9b1663"],grey:["#e2e2ea","#5c5f70","#24252f"]};
+const SYM=[{s:"cyan",w:30},{s:"blue",w:22},{s:"red",w:18},{s:"grey",w:20},{s:"purple",w:7},{s:"pink",w:3}];
+const TRIPLE={pink:100,purple:25,red:10,blue:5,cyan:3,grey:0};
 const symW=SYM.reduce((a,x)=>a+x.w,0);
-function rollSym(){ let r=Math.random()*symW; for(const x of SYM){ if((r-=x.w)<0) return x.s; } return "🧱"; }
-function slotMult(l){ if(l[0]===l[1]&&l[1]===l[2]) return TRIPLE[l[0]]; const b=l.filter(x=>x==="🏀").length; return b===2?1.5:b===1?0.5:0; }
+function gemSVG(t){
+  const oct=r=>Array.from({length:8},(_,i)=>{const a=(i*45+22.5)*Math.PI/180;return `${(r*Math.cos(a)).toFixed(1)},${(r*Math.sin(a)).toFixed(1)}`;}).join(" ");
+  return `<svg viewBox="-50 -50 100 100" aria-hidden="true"><polygon points="${oct(47)}" fill="url(#gg-${t})" stroke="${GEMC[t][2]}" stroke-width="3"/>
+    <polygon points="${oct(26)}" fill="${GEMC[t][0]}" opacity=".55"/><polygon points="${oct(26)}" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
+    <path d="M-17 -40 L17 -40 L10 -24 L-10 -24Z" fill="#fff" opacity=".45"/></svg>`;
+}
+document.body.insertAdjacentHTML("beforeend",`<svg width="0" height="0" style="position:absolute"><defs>${Object.entries(GEMC).map(([k,c])=>
+  `<linearGradient id="gg-${k}" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>`).join("")}</defs></svg>`);
+function rollSym(){ let r=Math.random()*symW; for(const x of SYM){ if((r-=x.w)<0) return x.s; } return "grey"; }
+function slotMult(l){ if(l[0]===l[1]&&l[1]===l[2]) return TRIPLE[l[0]]; const b=l.filter(x=>x==="cyan").length; return b===2?1.5:b===1?0.5:0; }
 const SLOT_RTP=(()=>{ let e=0; for(const a of SYM)for(const b of SYM)for(const c of SYM) e+=a.w*b.w*c.w/symW**3*slotMult([a.s,b.s,c.s]); return e; })();
-function setReel(i,col){ $("reel"+i).innerHTML=col.map(x=>`<div>${x}</div>`).join(""); }
+const three=t=>`<div class="gs">${gemSVG(t)}${gemSVG(t)}${gemSVG(t)}</div>`;
+$("payLeft").insertAdjacentHTML("beforeend",
+  [["purple","× 25"],["red","× 10"],["blue","× 5"],["cyan","× 3"]].map(([t,l])=>`<div class="payrow">${three(t)}● ${l}</div>`).join("")+
+  `<div class="payrow"><div class="gs">${gemSVG("cyan")}${gemSVG("cyan")}</div>× 1.5 · any one ${gemSVG("cyan")} × 0.5</div>`);
+const JACKPOT_CARD={id:"jp",tier:"galaxy",season:1,name:"Rashad Whitfield",pos:"SF",ovr:97};
+$("prizeCard").innerHTML=cardHTML(JACKPOT_CARD);
+$("payRight").innerHTML=`${three("pink")}GALAXY card + ● × 100`;
+function setReel(i,col){ $("reel"+i).innerHTML=col.map(x=>`<div>${gemSVG(x)}</div>`).join(""); }
 for(let i=0;i<3;i++) setReel(i,[rollSym(),rollSym(),rollSym()]);
 let slotBusy=false, stopFns=[];
 function slotSpin(){
@@ -932,13 +1003,13 @@ function slotSpin(){
     const cols=line.map(m=>[rollSym(),m,rollSym()]);
     let near=false;
     if(mult===0 && Math.random()<0.35){ // engineered near-miss: same 0 payout, but looks "so close"
-      near=true; const filler=pick(["👟","🏆","🧱","💎"]);
-      cols[0][1]="🌌"; cols[1][1]="🌌"; cols[2][1]=filler; cols[2][0]="🌌"; line=[cols[0][1],cols[1][1],cols[2][1]];
+      near=true; const filler=pick(["blue","red","grey","purple"]);
+      cols[0][1]="pink"; cols[1][1]="pink"; cols[2][1]=filler; cols[2][0]="pink"; line=[cols[0][1],cols[1][1],cols[2][1]];
     }
     let stopped=0; stopFns=[];
     cols.forEach((col,i)=>{
       $("reel"+i).classList.add("spin");
-      const iv=setInterval(()=>setReel(i,[rollSym(),rollSym(),rollSym()]),70);
+      const iv=setInterval(()=>setReel(i,[rollSym(),rollSym(),rollSym()]),80);
       let fin=false;
       const stop=()=>{ if(fin) return; fin=true; clearInterval(iv); clearTimeout(to); $("reel"+i).classList.remove("spin"); setReel(i,col); if(++stopped===3) finish(); };
       const to=setTimeout(stop,800+i*450);
@@ -948,7 +1019,7 @@ function slotSpin(){
       const win=Math.round(bet*mult);
       if(mult===100){ const c=mk("galaxy"); S.cards.push(c); S.galaxy++; }
       payOut(win, win>0?$("slotMachine"):null);
-      if(mult===0) $("slotMsg").innerHTML = near?`<span style="color:var(--galaxy)">SO CLOSE to the GALAXY JACKPOT! 😱</span>`:"No win. Spin again!";
+      if(mult===0) $("slotMsg").innerHTML = near?`<span style="color:var(--galaxy)">SO CLOSE to the GALAXY card! 😱</span>`:"No win. Spin again!";
       else if(mult<1) $("slotMsg").innerHTML=`🎉 WIN! +● ${fmt(win)} 🎉`;
       else $("slotMsg").innerHTML=`🎉🎉 BIG WIN! +● ${fmt(win)}${mult===100?" + GALAXY CARD!":""} 🎉🎉`;
       log(`Slots: bet ${fmt(bet)}, got back ${fmt(win)}`);
@@ -959,6 +1030,7 @@ function slotSpin(){
   });
 }
 $("slotSpin").onclick=()=>slotSpin();
+$("lever").onclick=()=>{ const l=$("lever"); l.classList.add("pull"); setTimeout(()=>l.classList.remove("pull"),350); slotSpin(); };
 document.querySelectorAll("[data-stop]").forEach(b=>b.onclick=()=>{ const f=stopFns[+b.dataset.stop]; if(slotBusy&&f) f(); tactic("control"); });
 $("autoSpin").onclick=async()=>{
   tactic("autoplay"); const btn=$("autoSpin"); btn.disabled=true;
@@ -966,40 +1038,78 @@ $("autoSpin").onclick=async()=>{
   btn.disabled=false; btn.textContent="AUTO ×10";
 };
 
-// ----- Plinko -----
-const PROWS=10, PMULT=[10,4,2,0.8,0.5,0.3,0.5,0.8,2,4,10];
+// ----- Plinko (pachinko-style board) -----
+const PROWS=8, PMULT=[10,3,1,0.5,0.3,0.5,1,3,10];
 const PLINKO_RTP=(()=>{ let e=0,c=1; for(let k=0;k<=PROWS;k++){ e+=c/2**PROWS*PMULT[k]; c=c*(PROWS-k)/(k+1);} return e; })();
 const pc=$("plinko"), px=pc.getContext("2d");
-const PW=460, PGAP=38, PTOP=40, PROWH=32, PCX=PW/2, PBIN=PTOP+PROWS*PROWH+10;
+const PW=460, PH=580, BL=22, BR=438, PBW=(BR-BL)/(PROWS+1), PCX=PW/2, PTOP=150, PROWH=42, PBIN=PTOP+PROWS*PROWH+14;
+const CROSSES=[[PCX-PBW*2,PTOP+PROWH*1.5],[PCX+PBW*2,PTOP+PROWH*1.5],[PCX-PBW*1,PTOP+PROWH*4.5],[PCX+PBW*1,PTOP+PROWH*4.5]];
+const BINCOL=["#ffd23f","#ff4f7b","#3f8cff","#ff4f7b","#ffd23f","#ff4f7b","#3f8cff","#ff4f7b","#ffd23f"];
 let balls=[], plinkoRAF=null, aim=0, lastBin=-1, lastBinT=0;
-function pegXY(r,k){ return [PCX+(k-r/2)*PGAP, PTOP+r*PROWH]; }
+// teal crackle texture, drawn once
+const tex=document.createElement("canvas"); tex.width=BR-BL; tex.height=PBIN-90;
+(()=>{ const t=tex.getContext("2d"), g=t.createLinearGradient(0,0,tex.width,tex.height);
+  g.addColorStop(0,"#25b3ae"); g.addColorStop(.5,"#168f93"); g.addColorStop(1,"#20a6a3"); t.fillStyle=g; t.fillRect(0,0,tex.width,tex.height);
+  for(let i=0;i<900;i++){ t.strokeStyle=Math.random()<.5?"rgba(255,255,255,.10)":"rgba(0,40,50,.18)"; t.lineWidth=Math.random()*1.4;
+    const x=Math.random()*tex.width,y=Math.random()*tex.height,a=Math.random()*6.3,l=4+Math.random()*16;
+    t.beginPath(); t.moveTo(x,y); t.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l); t.stroke(); } })();
+function pegXY(r,k){ return [PCX+(k-r/2)*PBW, PTOP+r*PROWH]; }
+const PEGS=[]; for(let r=0;r<PROWS;r++){ for(let m=-12;m<=12;m++){ if((m&1)!==(r&1)) continue; const x=PCX+m*PBW/2, y=PTOP+r*PROWH;
+  if(x<BL+8||x>BR-8) continue; if(CROSSES.some(([cx,cy])=>Math.hypot(cx-x,cy-y)<26)) continue; PEGS.push([x,y]); } }
 function drawPlinko(){
-  px.clearRect(0,0,PW,440);
-  px.fillStyle="#c9c3ff";
-  for(let r=0;r<PROWS;r++) for(let k=0;k<=r+2;k++){ const x=PCX+(k-(r+2)/2)*PGAP, y=PTOP+r*PROWH; px.beginPath(); px.arc(x,y,4,0,7); px.fill(); }
+  const t=performance.now();
+  px.fillStyle="#0d0d18"; px.fillRect(0,0,PW,PH);
+  // stage truss + lights
+  px.fillStyle="#2a2a3a"; px.fillRect(0,8,PW,30); px.strokeStyle="#55556a"; px.lineWidth=2;
+  for(let x=0;x<PW;x+=24){ px.beginPath(); px.moveTo(x,8); px.lineTo(x+12,38); px.lineTo(x+24,8); px.stroke(); }
+  for(let i=0;i<10;i++){ const on=((i+Math.floor(t/350))%3)!==0, x=24+i*46;
+    px.fillStyle=on?(i%2?"#43e0ff":"#ffffff"):"#3a3a4a"; px.shadowColor=px.fillStyle; px.shadowBlur=on?14:0;
+    px.beginPath(); px.arc(x,46,8,0,7); px.fill(); }
+  px.shadowBlur=0;
+  // board + neon frame
+  px.fillStyle="#1b1b2a"; px.fillRect(BL-12,72,BR-BL+24,PH-82);
+  px.drawImage(tex,BL,86);
+  px.strokeStyle="#43e0ff"; px.lineWidth=2; px.shadowColor="#43e0ff"; px.shadowBlur=10; px.strokeRect(BL-4,80,BR-BL+8,PBIN-16); px.shadowBlur=0;
+  // curved bumpers at the top
+  px.fillStyle="#1d1f2a";
+  [[BL+40,110,-0.18],[PCX,104,0],[BR-40,110,0.18]].forEach(([x,y,a],i)=>{ px.save(); px.translate(x,y); px.rotate(a);
+    px.beginPath(); px.roundRect(i===1?-70:-34,-8,i===1?140:68,16,8); px.fill(); px.restore(); });
+  // pegs
+  PEGS.forEach(([x,y])=>{ const g=px.createRadialGradient(x-1.5,y-1.5,0,x,y,5); g.addColorStop(0,"#fff"); g.addColorStop(1,"#6b7280");
+    px.fillStyle=g; px.beginPath(); px.arc(x,y,4.5,0,7); px.fill(); });
+  // spinning pink crosses (just for show)
+  CROSSES.forEach(([x,y],i)=>{ px.save(); px.translate(x,y); px.rotate(t/700*(i%2?1:-1));
+    px.fillStyle="#3a1030"; px.fillRect(-21,-6,42,12); px.fillRect(-6,-21,12,42);
+    px.fillStyle="#ff6fc8"; px.fillRect(-19,-4,38,8); px.fillRect(-4,-19,8,38);
+    px.fillStyle="#ffd6f0"; px.fillRect(-19,-1,38,2); px.fillRect(-1,-19,2,38); px.restore(); });
+  // bins
   for(let k=0;k<=PROWS;k++){
-    const x=PCX+(k-PROWS/2)*PGAP, m=PMULT[k];
-    const col=m>=10?"#c06bff":m>=4?"#ff3d6e":m>=2?"#ffc93c":m>=0.8?"#3ddc84":"#5b5b7a";
-    px.fillStyle=(k===lastBin&&Date.now()-lastBinT<900)?"#ffffff":col;
-    px.beginPath(); px.roundRect(x-PGAP/2+2,PBIN,PGAP-4,m>=10?60:m>=4?48:36,6); px.fill();
-    px.fillStyle="#111"; px.font="bold 12px Inter, sans-serif"; px.textAlign="center"; px.fillText(m+"×",x,PBIN+20);
+    const x=BL+k*PBW, lit=k===lastBin&&Date.now()-lastBinT<900;
+    px.fillStyle=lit?"#ffffff":BINCOL[k]; px.shadowColor=BINCOL[k]; px.shadowBlur=lit?24:8;
+    px.fillRect(x+5,PBIN+8,PBW-10,PH-PBIN-22); px.shadowBlur=0;
+    px.fillStyle="#0d0d18"; px.font="bold 14px Inter, sans-serif"; px.textAlign="center"; px.fillText(PMULT[k]+"×",x+PBW/2,PBIN+44);
   }
-  balls.forEach(b=>{ px.fillStyle="#ffc93c"; px.beginPath(); px.arc(b.x,b.y,8,0,7); px.fill(); });
+  px.fillStyle="#2c2f3d"; for(let k=0;k<=PROWS+1;k++){ px.beginPath(); px.roundRect(BL+k*PBW-4,PBIN-6,8,PH-PBIN-8,4); px.fill(); }
+  // balls
+  balls.forEach(b=>{ const g=px.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,9); g.addColorStop(0,"#fff"); g.addColorStop(1,"#9aa3b5");
+    px.fillStyle=g; px.beginPath(); px.arc(b.x,b.y,8,0,7); px.fill(); });
 }
 function plinkoStep(){
-  const now=performance.now();
+  if(pc.offsetParent===null && !balls.length){ plinkoRAF=null; return; }
+  const now=performance.now(), STEP=170;
   balls.forEach(b=>{
-    const seg=Math.min(b.path.length-1,Math.floor((now-b.t0)/150)), f=Math.min(1,((now-b.t0)%150)/150);
+    const seg=Math.min(b.path.length-1,Math.floor((now-b.t0)/STEP)), f=Math.min(1,((now-b.t0)%STEP)/STEP);
     let a,z;
-    if(seg===0){ a=[PCX+b.aim*PGAP*1.4,4]; z=[PCX,PTOP-10]; }
-    else { const r=seg-1; a=pegXY(r,b.path[seg-1]); a[1]-=10; z = r+1<PROWS? pegXY(r+1,b.path[seg]) : [PCX+(b.path[seg]-PROWS/2)*PGAP,PBIN]; if(r+1<PROWS) z[1]-=10; }
-    b.x=a[0]+(z[0]-a[0])*f; b.y=a[1]+(z[1]-a[1])*f - Math.sin(f*Math.PI)*10;
-    if(now-b.t0>=150*(PROWS+1) && !b.done){ b.done=true; landBall(b); }
+    if(seg===0){ a=[PCX+b.aim*PBW*1.6,74]; z=[PCX,PTOP-11]; }
+    else { const r=seg-1; a=pegXY(r,b.path[seg-1]); a[1]-=11; z = r+1<PROWS? pegXY(r+1,b.path[seg]) : [BL+(b.path[seg]+.5)*PBW,PBIN+20]; if(r+1<PROWS) z[1]-=11; }
+    b.x=a[0]+(z[0]-a[0])*f; b.y=a[1]+(z[1]-a[1])*f - Math.sin(f*Math.PI)*12;
+    if(now-b.t0>=STEP*(PROWS+1) && !b.done){ b.done=true; landBall(b); }
   });
   balls=balls.filter(b=>!b.done);
   drawPlinko();
-  plinkoRAF = balls.length||Date.now()-lastBinT<900 ? requestAnimationFrame(plinkoStep) : null;
+  plinkoRAF=requestAnimationFrame(plinkoStep);
 }
+function startPlinko(){ if(!plinkoRAF) plinkoRAF=requestAnimationFrame(plinkoStep); }
 function landBall(b){
   const k=b.path[b.path.length-1], m=PMULT[k], win=Math.round(b.bet*m);
   lastBin=k; lastBinT=Date.now();
@@ -1013,8 +1123,8 @@ function landBall(b){
 function dropBall(){
   const bet=S.bet; if(!takeBet(bet)) return false;
   const path=[0]; let k=0; for(let r=0;r<PROWS;r++){ k+=Math.random()<.5?0:1; path.push(k); } // aim has no effect
-  balls.push({path,bet,aim,t0:performance.now(),x:PCX,y:0});
-  if(!plinkoRAF) plinkoRAF=requestAnimationFrame(plinkoStep);
+  balls.push({path,bet,aim,t0:performance.now(),x:PCX,y:74});
+  startPlinko();
   return true;
 }
 $("plinkoDrop").onclick=()=>dropBall();
