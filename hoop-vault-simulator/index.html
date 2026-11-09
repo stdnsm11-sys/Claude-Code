@@ -43,7 +43,7 @@ h1,h2,h3,.disp{font-family:"Bebas Neue",Impact,sans-serif;letter-spacing:.04em;f
 .grid{display:grid;grid-template-columns:1fr 320px;gap:14px}
 @media (max-width:900px){.grid{grid-template-columns:1fr}}
 .grid>*{min-width:0}
-@media (prefers-reduced-motion:reduce){.ticker span,.offer .buy{animation:none}}
+@media (prefers-reduced-motion:reduce){.ticker span,.offer .buy,body.insight .flash{animation:none}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative}
 .panel h2{font-size:26px;margin-bottom:8px}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
@@ -134,6 +134,31 @@ body.insight .itag{display:inline-block}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .tacticlist{display:grid;gap:8px}
+.switch{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:6px 12px 6px 6px;border-radius:999px;font-weight:800}
+.switch .knob{width:40px;height:22px;border-radius:99px;background:#44445f;position:relative;transition:background .2s}
+.switch .knob::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.switch[aria-checked="true"]{border-color:var(--insight)}
+.switch[aria-checked="true"] .knob{background:var(--insight)}
+.switch[aria-checked="true"] .knob::after{left:21px}
+.switch:focus-visible,.btn:focus-visible,.toggle:focus-visible{outline:3px solid var(--insight);outline-offset:2px}
+.teach{border-color:var(--insight);background:linear-gradient(180deg,#26220a,var(--panel) 70%)}
+.teach h2{color:var(--insight)}
+.goal{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:999px;margin-bottom:4px}
+.goal.SPEND{background:var(--hot);color:#fff}.goal.STAY{background:var(--gem);color:#04202a}.goal.RETURN{background:var(--ok);color:#03210f}
+.tnow h4{margin:2px 0 6px;font-size:17px}
+.tnow dl{margin:0;display:grid;gap:6px;font-size:13px}
+.tnow dt{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--insight)}
+.tnow dd{margin:0;color:#e9e6c8}
+.thist{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.thist span{font-size:11px;background:#ffffff12;border-radius:6px;padding:2px 6px}
+.thist span b{color:var(--insight)}
+body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
+@keyframes flash{50%{box-shadow:0 0 0 4px var(--insight),0 0 26px var(--insight)}}
+.streak{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0}
+.streak div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;font-size:10px;font-weight:800}
+.streak div.done{background:#173d26;border-color:var(--ok);color:var(--ok)}
+.streak div.today{border-color:var(--coin);box-shadow:0 0 10px #ffc93c66}
+.streak div i{display:block;font-style:normal;font-size:11px;color:var(--muted);font-weight:600}
 .tacticlist div{background:var(--panel2);border-radius:10px;padding:10px;border-left:4px solid var(--line)}
 .tacticlist div.seen{border-left-color:var(--insight)}
 .disclaimer{background:#0d2a1a;border:1px solid var(--ok);color:#c9ffe0;padding:8px 12px;border-radius:10px;font-size:12px;margin-top:8px}
@@ -145,7 +170,7 @@ td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
     <div class="bal">
       <div class="pill"><span class="g">◆</span><span id="gems">0</span><span class="small muted">Gems</span><button id="plusGems" title="Get more gems">+</button><span class="itag" data-t="currency">Premium currency</span></div>
       <div class="pill"><span class="c">●</span><span id="coins">0</span><span class="small muted">Coins</span><span class="itag" data-t="grind">Engineered grind</span></div>
-      <button class="toggle" id="insightBtn">🔍 Insight Mode</button>
+      <button class="switch" id="insightBtn" role="switch" aria-checked="false" title="Explain the psychological tricks as they happen"><span class="knob"></span>🎓 Teach Mode</button>
       <button class="toggle" id="debriefBtn">📋 Debrief</button>
     </div>
   </div>
@@ -223,7 +248,7 @@ td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
       <!-- WHEEL -->
       <section data-pane="wheel" class="hide">
         <h2>Lucky Wheel <span class="itag" data-t="wheel">Deceptive wheel</span></h2>
-        <p class="small muted">One free spin every day. Extra spins just ◆ 100!</p>
+        <p class="small muted">One free spin every day. Extra spins just ◆ 100! <span class="itag" data-t="appointment">Appointment mechanic</span></p>
         <div class="wheelwrap"><div class="pointer"></div><svg id="wheel" viewBox="-110 -110 220 220"></svg></div>
         <div style="text-align:center">
           <button class="btn primary" id="spinBtn">SPIN</button>
@@ -234,13 +259,26 @@ td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
       <!-- SQUAD -->
       <section data-pane="squad" class="hide">
         <h2>My Squad</h2>
-        <p class="small muted">Your best five start automatically. Tap a card to quick-sell it for coins.</p>
+        <p class="small muted">Your best five start automatically. Tap a card to quick-sell it for coins. <span class="itag" data-t="quicksell">Buy high, sell low</span></p>
         <div class="cards" id="collection"></div>
       </section>
     </div>
 
     <!-- SIDEBAR -->
     <div style="display:grid;gap:14px;align-content:start">
+      <div class="panel teach hide" id="teachPanel" aria-live="polite">
+        <h2>🎓 Teach Mode</h2>
+        <div class="tnow" id="teachNow"><p class="small">Play normally. Every time the game uses a trick on you, it gets explained here and highlighted on screen.</p>
+          <p class="small"><span class="goal SPEND">SPEND</span> gets your money · <span class="goal STAY">STAY</span> keeps you playing · <span class="goal RETURN">RETURN</span> brings you back</p></div>
+        <div class="small muted" style="margin-top:10px">Tricks spotted: <b id="teachCount" style="color:var(--insight)">0</b> / <span id="teachTotal"></span> · times used on you: <b id="teachUses" style="color:var(--insight)">0</b></div>
+        <div class="thist" id="teachHist"></div>
+      </div>
+      <div class="panel" id="streakPanel">
+        <h3 style="font-size:20px">Daily Rewards <span class="itag" data-t="streak">Login streak</span></h3>
+        <div class="small muted" id="streakMsg"></div>
+        <div class="streak" id="streak"></div>
+        <button class="btn primary" id="claimBtn" style="width:100%">Claim</button>
+      </div>
       <div class="panel real">
         <h2>Reality Check</h2>
         <div class="small muted">Pretend money “spent” so far</div>
@@ -269,25 +307,72 @@ td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 
 <script>
 (() => {
-// ---------- Tactic glossary (used by Insight Mode + Debrief) ----------
+// ---------- Tactic glossary (used by Teach Mode + Debrief) ----------
+// g = what the trick is for: SPEND (get money), STAY (keep playing), RETURN (come back later)
 const TACTICS = {
-  currency:{t:"Premium currency",d:"Prices are shown in Gems, not dollars. A 1,250-gem pack doesn't 'feel' like $12, which weakens the pain of paying."},
-  leftover:{t:"Leftover currency trap",d:"Bundle sizes never line up with pack prices (packs cost 600 / 1,250; bundles give 450, 1,000, 2,100…). You almost always end with a remainder that's 'wasted' unless you buy more."},
-  anchoring:{t:"Price anchoring & 'best value' badges",d:"A crossed-out 'value' price and 'BEST VALUE' ribbons push you toward the biggest bundle by making it seem like the rational choice."},
-  lootbox:{t:"Paid randomized rewards (loot boxes)",d:"You pay for a chance, not an item. Unpredictable rewards (a variable-ratio schedule) are the same reinforcement pattern slot machines use, and they are the hardest to stop."},
-  hiddenodds:{t:"Buried odds",d:"The real probabilities exist, but they're behind a tiny grey link with a dull name. Most players never open it."},
-  nearmiss:{t:"Near-miss animation",d:"The pack glowed Diamond/Galaxy before revealing something ordinary. Near-misses excite the brain almost like wins and push people to try 'one more'."},
-  hook:{t:"Rigged first pull",d:"Your free welcome pack was guaranteed to contain a Diamond. An early big win anchors your expectations and gets you hooked."},
-  honeymoon:{t:"Early-win honeymoon",d:"Your first few opponents were deliberately weak. Easy early wins build attachment before the difficulty ramps up."},
-  rubberband:{t:"Rubber-band matchmaking",d:"Opponents are scaled to YOUR team rating. Buying better players only helps briefly, so the game never lets you feel 'done'."},
-  lossoffer:{t:"Offer timed to a loss",d:"Purchase prompts appear right after a close loss, when frustration is highest and judgment is weakest. The '73%' stat is made up."},
-  fomo:{t:"Fake urgency (FOMO)",d:"The countdown silently resets when it hits zero or when you reload. The 'limited time' offer never actually goes away."},
-  wheel:{t:"Deceptive wheel",d:"The GALAXY slice is drawn huge, but its real chance is 0.2%. The wheel often stops just past it to create a near-miss."},
-  social:{t:"Fabricated social proof",d:"The 'Live Pulls' feed is generated randomly and only shows big wins, making jackpots seem common."},
-  powercreep:{t:"Power creep / season reset",d:"A new season raised opponent ratings and released stronger cards. The players you paid for are now worse, so you have to buy again."},
-  grind:{t:"Engineered grind",d:"A win earns ~200 coins; a pack costs 7,500. That's ~40 wins per pack. Earning by playing is made tedious so paying seems reasonable."},
-  oneclick:{t:"Frictionless purchasing",d:"One tap buys, with no confirmation step and no running total. Removing friction removes the moment where you'd reconsider."},
-  sunk:{t:"Sunk-cost collection meter",d:"A progress bar toward 'completing' a set that is built to be extremely expensive to finish, and that resets every season."},
+  currency:{g:"SPEND",t:"Premium currency",d:"Prices are shown in Gems, not dollars. A 1,250-gem pack doesn't 'feel' like $12, which weakens the pain of paying.",
+    p:"Mental accounting / 'pain of paying': money turned into tokens is easier to spend because it no longer feels like real money.",
+    c:"Casinos swap cash for chips for exactly this reason.",r:"Translate every price back to dollars before you tap (1,250 gems ≈ $11–14)."},
+  leftover:{g:"SPEND",t:"Leftover currency trap",d:"Bundle sizes never line up with pack prices (packs cost 600 / 1,250; bundles give 450, 1,000, 2,100…). You almost always end with a remainder.",
+    p:"Waste aversion: leftover gems feel 'wasted' unless you buy more to use them.",
+    c:"Like a slot card loaded with an odd amount, so you keep playing to use it up.",r:"Leftover gems are already spent money. Buying more to 'use them up' only costs you more."},
+  anchoring:{g:"SPEND",t:"Price anchoring & 'best value' badges",d:"A crossed-out 'value' price and 'BEST VALUE' ribbons push you toward the biggest bundle.",
+    p:"Anchoring: the first number you see ($89.97) makes the next one ($49.99) feel cheap.",
+    c:"Casino 'comps' and 'bonus' match deals that make bigger deposits look smarter.",r:"Ask 'would I pay $49.99 for this if there were no crossed-out price?'"},
+  lootbox:{g:"SPEND",t:"Paid random rewards (loot boxes)",d:"You pay for a chance at a player, not the player itself.",
+    p:"Variable-ratio reinforcement: unpredictable rewards produce the strongest, hardest-to-stop habits. Dopamine spikes on the uncertainty, not just the win.",
+    c:"This is the slot machine's core mechanic: pay, spin, random result.",r:"Check the odds and work out the expected cost before opening any pack."},
+  hiddenodds:{g:"SPEND",t:"Buried odds",d:"The real probabilities exist, but they're behind a tiny grey link with a dull name.",
+    p:"Optimism bias: without numbers, people overestimate their chances, especially after seeing others win.",
+    c:"Slot machines don't post their payout tables on the front either.",r:"Always look for the odds. If a game hides them, that tells you something."},
+  nearmiss:{g:"SPEND",t:"Near-miss animation",d:"The pack glowed Diamond/Galaxy, then revealed something ordinary.",
+    p:"Near-miss effect: brain scans show near-misses activate reward areas almost like real wins, making you feel 'due' for one.",
+    c:"Slots are designed to land jackpot symbols just above or below the payline.",r:"The result was decided before the animation started. 'Close' means nothing."},
+  hook:{g:"STAY",t:"Rigged first pull",d:"Your free welcome pack was guaranteed to contain a Diamond.",
+    p:"Early big win + anchoring: an early jackpot sets your expectations, and you keep chasing that feeling.",
+    c:"Many problem gamblers report a big win early on that hooked them.",r:"Remember your first pull was set up. Future packs use the real odds."},
+  honeymoon:{g:"STAY",t:"Early-win honeymoon",d:"Your first few opponents were deliberately weak.",
+    p:"Competence and attachment: quick success makes you feel skilled and invested before the difficulty jumps.",
+    c:"Like 'free play' credits that make you feel lucky on day one.",r:"Notice when a game suddenly gets harder right after you got attached."},
+  rubberband:{g:"SPEND",t:"Rubber-band matchmaking",d:"Opponents are scaled to YOUR team rating. Buying better players only helps briefly.",
+    p:"Hedonic treadmill: every upgrade is quickly matched, so satisfaction never lasts and you're always one purchase from feeling strong.",
+    c:"The house edge: whatever you bring, the game is tuned so you don't stay ahead.",r:"If opponents always match you, paying can't make you 'win'. Compare your win % before and after buying."},
+  lossoffer:{g:"SPEND",t:"Offer timed to a loss",d:"A pack offer appeared right after a close loss. The '73%' stat is made up.",
+    p:"Loss-chasing and 'hot' emotional states: frustration lowers self-control and makes buying a fix feel urgent.",
+    c:"Chasing losses ('I'll win it back') is a classic sign of problem gambling.",r:"Never buy right after a loss. Wait 24 hours and see if you still want it."},
+  fomo:{g:"SPEND",t:"Fake urgency (FOMO)",d:"The countdown silently resets when it hits zero or when you reload.",
+    p:"Scarcity and fear of missing out: limited time cuts off careful thinking.",
+    c:"'Limited-time' bonuses and countdown promos at online casinos.",r:"Reload the page. If the timer resets, the deadline is fake."},
+  wheel:{g:"STAY",t:"Deceptive wheel",d:"The GALAXY slice is drawn huge, but its real chance is 0.2%. The wheel often stops just past it.",
+    p:"Visual misdirection + near-miss: your eyes judge odds by slice size, and stopping 'one slot away' feels like almost winning.",
+    c:"This is a literal casino prize wheel, a game-show-style gambling device.",r:"Slice size is decoration. Only the published odds matter."},
+  social:{g:"SPEND",t:"Fabricated social proof",d:"The 'Live Pulls' feed is generated randomly and only shows big wins.",
+    p:"Social proof + availability bias: seeing lots of wins makes winning seem common and normal.",
+    c:"Casinos make winning slots ring loudly; losing ones stay silent.",r:"You only hear about the winners. Thousands of losing pulls are never shown."},
+  powercreep:{g:"RETURN",t:"Power creep / season reset",d:"A new season raised opponent ratings and released stronger cards.",
+    p:"Planned obsolescence + sunk cost: what you bought loses value, so you buy again to keep up.",
+    c:"Like resetting a loyalty tier so you have to keep gambling to keep your status.",r:"Anything you buy has an expiration date. Price it as a short rental."},
+  grind:{g:"SPEND",t:"Engineered grind",d:"A win earns ~200 coins; a pack costs 7,500. That's ~40 wins per pack.",
+    p:"Effort justification: making the free path tedious makes paying feel like a reasonable shortcut.",
+    c:"Like comps that need huge amounts of play to earn anything real.",r:"Ask whether the game would be fun if you just played it without chasing packs."},
+  oneclick:{g:"SPEND",t:"Frictionless purchasing",d:"One tap buys, with no confirmation step and no running total.",
+    p:"Removing friction removes the pause where you'd reconsider. Impulse wins.",
+    c:"Card-on-file and cashless casino wallets do the same thing.",r:"Remove saved cards, or use a gift card with a fixed limit."},
+  sunk:{g:"STAY",t:"Sunk-cost collection meter",d:"A progress bar toward a set built to be extremely expensive to finish. You also got free progress just for opening one pack.",
+    p:"Endowed progress + sunk cost: once you've started, an unfinished bar nags you, and past spending makes quitting feel like losing.",
+    c:"Casino loyalty cards that show 'only 200 points to the next tier'.",r:"Progress bars measure the game's goals, not yours."},
+  intermittent:{g:"STAY",t:"Random match rewards",d:"Coins for winning were random (150–250), not a fixed amount.",
+    p:"Unpredictable rewards keep you checking 'what did I get this time?', even when the amounts are small.",
+    c:"Small, frequent slot payouts that keep you at the machine.",r:"Average it out: it's ~200 coins every time. The randomness is the hook."},
+  quicksell:{g:"SPEND",t:"Buy high, sell low",d:"A Gold card sells for 250 coins, while packs cost 7,500 coins.",
+    p:"Asymmetric value: cards feel valuable when you pull them but are worth almost nothing when you try to cash out.",
+    c:"Casino chips and prizes are cheap to cash out compared with what you paid to win them.",r:"Your collection's resale value is a tiny fraction of what it cost."},
+  streak:{g:"RETURN",t:"Daily login streak",d:"Rewards grow each day in a row, and missing a single day resets you to Day 1.",
+    p:"Loss aversion + habit loops: losing a streak hurts more than the reward is worth, so you open the app daily out of obligation.",
+    c:"Daily casino-app bonuses and 'come back tomorrow' free coins.",r:"Ask whether you're opening the app because you want to or because you don't want to lose the streak."},
+  appointment:{g:"RETURN",t:"Appointment mechanics",d:"The free spin only refreshes once a day.",
+    p:"Scheduled rewards build habits: you come back at set times even when you weren't planning to play.",
+    c:"Social casino apps that drop free coins every few hours.",r:"Turn off notifications. A free spin isn't free if it costs you your time every day."},
 };
 const seen = new Set();
 const shown = new Set(); // tactics already explained in a pop-up this session
@@ -326,7 +411,7 @@ let S;
 function fresh(){
   return {gems:600,coins:0,usd:0,purchases:0,packs:0,wins:0,losses:0,games:0,galaxy:0,season:1,
     cards:[mk("bronze"),mk("bronze"),mk("silver"),mk("bronze"),mk("silver")],
-    firstPack:true,freeSpin:true,insight:false,started:Date.now(),log:[],seen:[],introDone:false,
+    firstPack:true,freeSpin:true,insight:false,spinDay:null,streakDay:0,streakLast:null,uses:{},started:Date.now(),log:[],seen:[],introDone:false,
     offerEnd:Date.now()+15*60e3, nextOpp:null};
 }
 function mk(tier,season){
@@ -348,9 +433,32 @@ function toast(html,cls="",ms=4200){
   const box=$("toasts"); box.appendChild(d); setTimeout(()=>d.remove(),ms);
   while(box.children.length>3) box.firstChild.remove();
 }
+const FLASH = {currency:".pill",leftover:"#bundles",anchoring:"#offer",lootbox:".packs",hiddenodds:".oddslink",
+  rubberband:".court",lossoffer:"#lossOffer",fomo:"#offer",wheel:".wheelwrap",social:"#feed",grind:"#coins",
+  oneclick:"#bundles",sunk:".meter",intermittent:".court",quicksell:"#collection",streak:"#streakPanel",appointment:"#spinBtn",
+  honeymoon:".court",powercreep:"#seasonNum",nearmiss:".reveal",hook:".reveal"};
+let lastToastAt=0;
 function tactic(k){
-  seen.add(k); save();
-  if(S.insight && !shown.has(k)){ shown.add(k); toast(`🔍 <b>${TACTICS[k].t}</b><br>${TACTICS[k].d}`,"ins",8000); }
+  const T=TACTICS[k]; seen.add(k);
+  S.uses=S.uses||{}; S.uses[k]=(S.uses[k]||0)+1; save();
+  if(!S.insight) return;
+  // highlight the part of the screen doing it
+  document.querySelectorAll(FLASH[k]||"_").forEach(el=>{ el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),3400); });
+  // full explanation in the Teach panel, every time
+  $("teachNow").innerHTML=`<span class="goal ${T.g}">${T.g}</span> <span class="small muted">used on you ${S.uses[k]}×</span>
+    <h4>${T.t}</h4><dl><dt>What just happened</dt><dd>${T.d}</dd><dt>The psychology</dt><dd>${T.p}</dd>
+    <dt>Casino version</dt><dd>${T.c}</dd><dt>How to resist</dt><dd>${T.r}</dd></dl>`;
+  renderTeach();
+  // pop-up: full the first time, short reminder after that (throttled)
+  if(!shown.has(k)){ shown.add(k); toast(`<span class="goal ${T.g}">${T.g}</span><br>🎓 <b>${T.t}</b><br>${T.p}<br><i>Casino version:</i> ${T.c}`,"ins",9000); }
+  else if(Date.now()-lastToastAt>1500){ lastToastAt=Date.now(); toast(`🎓 <b>${T.t}</b> again (${S.uses[k]}×)`,"ins",2600); }
+}
+function renderTeach(){
+  const u=S.uses||{};
+  $("teachTotal").textContent=Object.keys(TACTICS).length;
+  $("teachCount").textContent=Object.keys(u).length;
+  $("teachUses").textContent=Object.values(u).reduce((a,b)=>a+b,0);
+  $("teachHist").innerHTML=Object.entries(u).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<span>${TACTICS[k].t} <b>${n}</b></span>`).join("");
 }
 function log(msg){ S.log.unshift(msg); S.log=S.log.slice(0,60); renderLog(); }
 function lineup(){ return [...S.cards].sort((a,b)=>b.ovr-a.ovr).slice(0,5); }
@@ -389,7 +497,9 @@ function render(){
   $("wheelBadge").classList.toggle("hide",!S.freeSpin);
   $("spinBtn").textContent=S.freeSpin?"FREE SPIN":"SPIN AGAIN – ◆ 100";
   document.body.classList.toggle("insight",S.insight);
-  $("insightBtn").classList.toggle("on",S.insight);
+  $("insightBtn").setAttribute("aria-checked",String(!!S.insight));
+  $("teachPanel").classList.toggle("hide",!S.insight);
+  renderStreak();
   // shortfall nudge
   const need = PACK_COST.premium.gems - S.gems;
   $("shortfall").innerHTML = (S.gems>0 && S.gems<PACK_COST.premium.gems)
@@ -411,7 +521,8 @@ $("tabs").addEventListener("click",e=>{
   document.querySelectorAll("[data-pane]").forEach(p=>p.classList.toggle("hide",p.dataset.pane!==b.dataset.tab));
   if(b.dataset.tab==="store"){ tactic("anchoring"); tactic("leftover"); }
   if(b.dataset.tab==="packs") tactic("sunk");
-  if(b.dataset.tab==="wheel") tactic("wheel");
+  if(b.dataset.tab==="wheel"){ tactic("wheel"); if(!S.freeSpin) tactic("appointment"); }
+  if(b.dataset.tab==="squad") tactic("quicksell");
 });
 function goTab(t){ document.querySelector(`#tabs button[data-tab="${t}"]`).click(); }
 
@@ -512,11 +623,11 @@ $("playBtn").onclick=()=>{
     S.games++;
     if(S.games===3) tactic("honeymoon");
     if(S.games>=4) tactic("rubberband");
-    if(win){ const c=rnd(150,250); S.coins+=c; S.wins++; $("matchMsg").innerHTML=`WIN! +● ${c} coins`; log(`Beat ${oppName} (OVR ${opp}) ${h}-${a}`); }
+    if(win){ const c=rnd(150,250); S.coins+=c; S.wins++; tactic("intermittent"); $("matchMsg").innerHTML=`WIN! +● ${c} coins`; log(`Beat ${oppName} (OVR ${opp}) ${h}-${a}`); }
     else { S.coins+=60; S.losses++; const m=a-h;
       $("matchMsg").innerHTML=`Lost by ${m}. +● 60 coins${m<=4?"<br><span style='color:var(--coin)'>A Diamond in your lineup would have flipped that!</span>":""}`;
       log(`Lost to ${oppName} (OVR ${opp}) ${h}-${a}`);
-      if(m<=6){ $("lossOffer").classList.remove("hide"); tactic("lossoffer"); }
+      if(m<=6){ $("lossOffer").classList.remove("hide"); tactic("lossoffer"); } else if(S.games>=3) tactic("rubberband");
     }
     if(S.games%2===0) tactic("grind");
     if(S.games%8===0) newSeason();
@@ -563,7 +674,7 @@ let wheelRot=0, spinning=false;
 $("spinBtn").onclick=()=>{
   if(spinning) return;
   if(!S.freeSpin){ if(S.gems<100){ toast("Need ◆ 100 to spin."); goTab("store"); return; } S.gems-=100; }
-  S.freeSpin=false; spinning=true; tactic("wheel");
+  S.freeSpin=false; S.spinDay=today(); spinning=true; tactic("wheel"); tactic("appointment");
   // choose by REAL probability
   let r=Math.random(),acc=0,res=WHEEL[2];
   for(const s of WHEEL){ acc+=s.p; if(r<acc){res=s;break;} }
@@ -589,7 +700,7 @@ $("collection").addEventListener("click",e=>{
   const c=e.target.closest("[data-sell]"); if(!c) return;
   const i=S.cards.findIndex(x=>x.id===c.dataset.sell); if(i<0) return;
   const card=S.cards[i]; S.coins+=TIERS[card.tier].qs; S.cards.splice(i,1);
-  log(`Quick-sold ${card.name} for ${TIERS[card.tier].qs} coins`); save(); render();
+  log(`Quick-sold ${card.name} for ${TIERS[card.tier].qs} coins`); tactic("quicksell"); save(); render();
 });
 
 // ---------- Fake social feed + ticker ----------
@@ -618,6 +729,31 @@ setInterval(()=>{
 // reload always shows a fresh 15:00 → part of the fake urgency
 S.offerEnd=Date.now()+15*60e3;
 
+// ---------- Daily login streak ----------
+const STREAK=[{l:"◆ 50",f:()=>S.gems+=50},{l:"● 500",f:()=>S.coins+=500},{l:"◆ 100",f:()=>S.gems+=100},
+  {l:"Pack",f:()=>setTimeout(()=>openPack("standard",{}),400)},{l:"◆ 150",f:()=>S.gems+=150},{l:"● 1,000",f:()=>S.coins+=1000},{l:"PREMIUM",f:()=>setTimeout(()=>openPack("premium",{}),400)}];
+function today(d=new Date()){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return today(d); }
+let streakLostFrom=0;
+function checkDay(){
+  if(S.spinDay!==today()) S.freeSpin=true;
+  if(S.streakLast && S.streakLast!==today() && S.streakLast!==yesterday() && S.streakDay>0){ streakLostFrom=S.streakDay; S.streakDay=0; }
+  if(S.streakDay>=7 && S.streakLast!==today()) S.streakDay=0;
+}
+function renderStreak(){
+  const claimed=S.streakLast===today();
+  $("streak").innerHTML=STREAK.map((x,i)=>`<div class="${i<S.streakDay?"done":""}${!claimed&&i===S.streakDay?" today":""}">D${i+1}<i>${x.l}</i></div>`).join("");
+  $("claimBtn").disabled=claimed;
+  $("claimBtn").textContent=claimed?"Come back tomorrow for Day "+Math.min(7,S.streakDay+1):"Claim Day "+(S.streakDay+1);
+  $("streakMsg").innerHTML=streakLostFrom?`<span style="color:var(--hot)">You lost your ${streakLostFrom}-day streak! 😱 Don't miss a day.</span>`:
+    (claimed?"Miss a day and your streak resets to Day 1.":"Your reward is waiting!");
+}
+$("claimBtn").onclick=()=>{
+  if(S.streakLast===today()) return;
+  STREAK[S.streakDay].f(); log(`Claimed Day ${S.streakDay+1} reward: ${STREAK[S.streakDay].l}`);
+  S.streakDay++; S.streakLast=today(); streakLostFrom=0; save(); render(); tactic("streak");
+};
+
 // ---------- Modals ----------
 function modal(html){
   close();
@@ -626,7 +762,12 @@ function modal(html){
 }
 function close(){ $("modalRoot").innerHTML=""; }
 
-$("insightBtn").onclick=()=>{ S.insight=!S.insight; save(); render(); if(S.insight) toast("🔍 <b>Insight Mode on.</b> Yellow tags and pop-ups explain each tactic as it happens.","ins"); };
+$("insightBtn").onclick=()=>{ S.insight=!S.insight; shown.clear(); save(); render(); renderTeach();
+  if(S.insight) toast("🎓 <b>Teach Mode on.</b> The game works the same, but every trick it uses on you is highlighted and explained.","ins");
+  else toast("Teach Mode off. The tricks are still running; you just can't see them.","");
+};
+document.addEventListener("mouseover",e=>{ const t=e.target.closest(".itag"); if(t&&!t.title&&TACTICS[t.dataset.t]) t.title=TACTICS[t.dataset.t].p; });
+document.addEventListener("click",e=>{ const t=e.target.closest(".itag"); if(t&&TACTICS[t.dataset.t]){ shown.delete(t.dataset.t); tactic(t.dataset.t); } });
 
 function debrief(){
   const stdPack = 1-Math.pow(1-ODDS.standard.galaxy,3), prmPack=1-Math.pow(1-ODDS.premium.galaxy,3);
@@ -644,7 +785,7 @@ function debrief(){
       <tr><td>Wins needed to earn ONE Standard pack</td><td>~${Math.round(7500/200)} wins</td></tr>
     </table>
     <h3 style="font-size:24px">Tactics in this game <span class="small muted" style="font-family:Inter">(highlighted = you ran into it)</span></h3>
-    <div class="tacticlist">${Object.entries(TACTICS).map(([k,v])=>`<div class="${seen.has(k)?"seen":""}"><b>${seen.has(k)?"✔ ":""}${v.t}</b><br><span class="small muted">${v.d}</span></div>`).join("")}</div>
+    <div class="tacticlist">${Object.entries(TACTICS).map(([k,v])=>`<div class="${seen.has(k)?"seen":""}"><span class="goal ${v.g}">${v.g}</span> <b>${seen.has(k)?"✔ ":""}${v.t}</b>${(S.uses||{})[k]?` <span class="small muted">· used on you ${S.uses[k]}×</span>`:""}<br><span class="small muted">${v.d}</span><br><span class="small"><b>Psychology:</b> ${v.p}</span><br><span class="small"><b>Casino version:</b> ${v.c}</span></div>`).join("")}</div>
     <h3 style="font-size:24px;margin-top:14px">Real-world context</h3>
     <ul class="small">
       <li>Sports games with card-collecting modes sell randomized player packs bought with premium currency, often with casino-style extras such as prize wheels and pachinko-like boards.</li>
@@ -677,21 +818,21 @@ function intro(){
     <p><b>This is an educational simulation.</b> It copies the <i>design tactics</i> found in many pay-to-win sports games so you can experience them, and then take them apart.</p>
     <ul class="small">
       <li>💳 <b>No real money is charged, ever.</b> Every price is pretend; the “Reality Check” panel adds up what it <i>would</i> have cost.</li>
-      <li>🔍 <b>Insight Mode</b> shows a yellow tag and pop-up every time a manipulative tactic is used on you.</li>
+      <li>🎓 <b>Teach Mode</b> (switch at the top) keeps the game working the same, but every time you do something it highlights the trick being used on you and explains the psychology, the casino version, and how to resist it.</li>
       <li>📋 <b>Debrief</b> shows your totals, the real odds, and every tactic in the game.</li>
     </ul>
-    <p class="small muted">Classroom tip: play 5–10 minutes with Insight Mode <b>off</b>, then turn it on or open the Debrief and discuss.</p>
+    <p class="small muted">Classroom tip: play 5–10 minutes with Teach Mode <b>off</b>, then turn it on or open the Debrief and discuss.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn primary" id="iOff">Play normally (Insight off)</button>
-      <button class="btn" id="iOn" style="background:var(--insight);color:#111">Play with Insight Mode on</button>
+      <button class="btn primary" id="iOff">Play normally (Teach Mode off)</button>
+      <button class="btn" id="iOn" style="background:var(--insight);color:#111">Play with Teach Mode on</button>
     </div>
     <p class="small muted" style="margin-top:10px">🎁 Welcome gift: ◆ 600 Gems, enough for your first Standard Pack!</p>`);
-  const go=on=>{ S.insight=on; S.introDone=true; save(); close(); render(); goTab("packs"); };
+  const go=on=>{ S.insight=on; if(on) setTimeout(()=>toast("🎓 <b>Teach Mode on.</b> Watch the yellow highlights and the Teach panel.","ins"),300); S.introDone=true; save(); close(); render(); goTab("packs"); };
   $("iOff").onclick=()=>go(false); $("iOn").onclick=()=>go(true);
 }
 
 // ---------- Boot ----------
-renderBundles(); drawWheel(); render(); renderLog();
+checkDay(); renderBundles(); drawWheel(); render(); renderLog(); renderTeach();
 if(!S.introDone) intro();
 })();
 </script>

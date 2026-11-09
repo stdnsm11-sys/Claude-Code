@@ -6,7 +6,12 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 
 ## How to use it
 1. Play for 5–10 minutes with **Insight Mode off**: open packs, play matches, spin the wheel, "buy" gems.
-2. Turn **🔍 Insight Mode** on. A yellow tag marks each tactic on screen, and a pop-up explains it the first time it's used on you.
+2. Flip the **🎓 Teach Mode** switch at the top. The game works exactly the same, but every time you do something:
+   - the part of the screen using a trick glows yellow,
+   - the **Teach panel** explains what just happened, the psychology behind it, the casino version, and how to resist it,
+   - each trick is labeled by its goal: **SPEND** (get your money), **STAY** (keep you playing) or **RETURN** (bring you back),
+   - a counter shows how many tricks you've spotted and how many times each was used on you.
+   Tap any yellow tag to bring up its explanation again.
 3. Open **📋 Debrief** to see your totals, the expected cost of a top card, every tactic (the ones you ran into are highlighted), real-world context and discussion questions.
 
 ## Tactics simulated
@@ -28,6 +33,10 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 | Power creep / seasons | Every 8 matches a new season makes your cards weaker |
 | Engineered grind | ~40 wins to earn one pack with coins |
 | Frictionless purchasing | One-tap buy, no confirmation |
-| Sunk-cost meter | Collection progress bar toward an expensive set |
+| Sunk-cost / endowed progress | Collection bar toward an expensive set (with free progress to start) |
+| Random match rewards | Win coins vary randomly (150–250) |
+| Buy high, sell low | Quick-sell values are tiny compared with pack prices |
+| Daily login streak | 7-day reward calendar that resets if you miss a day |
+| Appointment mechanics | Free wheel spin refreshes once per day |
 
 Progress is saved in this browser only (localStorage). Use **Reset simulation** in the Debrief to start over.
