@@ -35,6 +35,26 @@ In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
 - **Read it** reads the whole routine aloud.
 - Every new day starts fresh, with all tiles back to red. You can turn this off.
 
+## Breaking a tile into smaller steps
+**Press and hold any tile** (or right-click it) for its menu, then tap **🧩 Break it down into smaller steps**. For example, *Get dressed* becomes *Go to dresser, Open drawer, Underwear on, Pants on, Shirt on, Socks on*.
+
+- The board steps **into** the tile and shows its small steps. A **⬆ Back** button and a path (*Wake up › Get dressed*) show where you are.
+- **Small steps can be broken down again.** Hold *Shirt on* and it becomes *Get shirt, Find the tag, Head in, One arm in, Other arm in, Pull it down*.
+- A broken-down tile looks like a stack of cards with a **🧩 steps** chip. Tapping it opens its small steps. Its color comes from them: yellow once one is started, green when all are done.
+- When the last small step turns green, the app says "Get dressed. All done!" and climbs back up to the bigger step. When a whole routine is done, the usual celebration shows what's next.
+- The menu can also **break it down a different way** (Claude), **put it back together** (with Undo), say the step, and in Parent mode edit it or **add my own smaller steps**.
+
+**Step size follows the child's developmental level.** Pick it in the menu or in Parent mode settings. Choose by the child's skills, not only age:
+
+| Level | About | Steps | Words per tile |
+|---|---|---|---|
+| Early | 2–3 years | 2–3 | 1–2 |
+| Preschool | 3–4 years | 3–4 | 2–3 |
+| Pre-K (default) | 4–5 years | 4–6 | 2–4 |
+| Kindergarten | 5–6 years | 5–7 | up to 5 |
+
+Ready-made breakdowns work offline for: get dressed, shirt on, pants on, socks on, shoes on, coat on, wash hands, brush teeth, potty / bathroom, bath, pajamas on, toys away / clean up, throw away trash, hang up backpack, car seat, line up, and eat my food. For any other tile, Claude writes the small steps at the chosen level (on claude.ai only).
+
 ## Parent mode (press and hold **🔒 Parent**)
 Parent mode opens with a press-and-hold so a quick tap from the child won't open it. A dark bar shows while it is on; **Done** closes it.
 

@@ -114,6 +114,31 @@ button{cursor:pointer;color:var(--ink)}
 .tile.busy .pic{opacity:.35}
 .tile .drawing{position:absolute;inset:auto 8px 44% 8px;text-align:center;font-weight:700;font-size:.8rem;color:var(--ink)}
 
+/* broken-down tiles: a stack of cards with a step count */
+.tile{-webkit-touch-callout:none}
+.tile.has-sub{box-shadow:7px 7px 0 -2px var(--card),7px 7px 0 1px rgba(20,24,40,.28)}
+.subchip{position:absolute;right:8px;bottom:-13px;background:var(--accent);color:var(--accent-ink);border:2px solid var(--card);border-radius:999px;
+  font-family:var(--body);font-weight:700;font-size:.74rem;padding:1px 9px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.subchip .e{font-size:1em}
+.tile.breaking .pic{opacity:.35}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.crumbs .up{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:1.05rem;min-height:50px;padding:8px 18px}
+.crumbs .path{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-weight:700;color:var(--on-muted);font-size:.92rem}
+.crumbs .path button{border:0;background:none;color:var(--on-ground);font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:4px 2px;min-height:36px}
+.crumbs .path span.here{color:var(--on-ground)}
+.tm{max-width:460px}
+.tm-head{display:flex;gap:14px;align-items:center}
+.tm-head .ed-prev{width:96px;border-width:6px}
+.tm-head .ed-prev .pic .emo{font-size:44px}
+.tm-head .ed-prev .word{font-size:.85rem}
+.tm-head h2{font-size:1.4rem}
+.tm-head p{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.tm-acts{display:flex;flex-direction:column;gap:8px}
+.tm-acts .btn{justify-content:flex-start;min-height:52px;font-size:1rem;border-radius:16px}
+.tm-acts .btn.primary{font-size:1.1rem}
+.tm-size{display:flex;flex-direction:column;gap:6px;background:var(--quiet);border-radius:14px;padding:10px 12px}
+.tm-size .hint{margin:0;color:var(--muted);font-size:.85rem}
+
 /* tile editor */
 .sheet{position:fixed;inset:0;background:rgba(20,24,40,.5);display:grid;place-items:center;z-index:25;padding:16px;overflow-y:auto}
 .sheet .box{background:var(--card);color:var(--ink);border-radius:26px;padding:20px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow-y:auto}
@@ -146,7 +171,7 @@ button{cursor:pointer;color:var(--ink)}
 
 /* routine */
 .rhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px}
-.rhead h2{font-family:var(--display);font-weight:700;font-size:1.6rem;margin:0;display:flex;align-items:center;gap:10px}
+.rhead h2{font-family:var(--display);font-weight:700;font-size:1.6rem;margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px}
 .rhead h2 .e{font-size:1.2em}
 .rhead h2 span.cnt{font-family:var(--body);font-size:.95rem;font-weight:700;color:var(--on-muted);font-variant-numeric:tabular-nums}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem;color:var(--on-muted)}
@@ -302,6 +327,7 @@ button{cursor:pointer;color:var(--ink)}
         <span class="l-done"><i></i>Done</span>
       </div>
     </div>
+    <nav class="crumbs" id="crumbs" hidden aria-label="Where you are"></nav>
     <main class="board" id="board" aria-live="polite"></main>
     <div class="nextbar" id="nextbar" hidden><button class="btn primary" id="nextBtn" type="button"></button></div>
   </section>
@@ -366,6 +392,9 @@ button{cursor:pointer;color:var(--ink)}
             <button type="button" data-size="m" aria-pressed="true">Medium</button>
             <button type="button" data-size="l" aria-pressed="false">Large</button>
           </div>
+          <label class="field" style="width:100%;max-width:320px">Small steps are sized for
+            <select id="levelSel"></select>
+          </label>
           <label class="field" style="width:100%;max-width:260px">Voice speed
             <input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="0.8">
           </label>
@@ -436,6 +465,22 @@ button{cursor:pointer;color:var(--ink)}
       <button class="btn" id="edCancel" type="button">Cancel</button>
       <button class="btn primary" id="edSave" type="button">Save tile</button>
     </div>
+  </div>
+</div>
+<div class="sheet" id="tmenu" hidden role="dialog" aria-modal="true" aria-labelledby="tmH">
+  <div class="box tm">
+    <div class="tm-head">
+      <div class="ed-prev" aria-hidden="true"><span class="pic" id="tmPic"></span><span class="word" id="tmWord"></span></div>
+      <div><h2 id="tmH">Get dressed</h2><p id="tmSub"></p></div>
+    </div>
+    <div class="tm-size">
+      <label class="field">Step size
+        <select id="tmLevel"></select>
+      </label>
+      <p class="hint">Choose by the child's skills, not only age. Smaller levels give fewer, bigger steps with fewer words.</p>
+    </div>
+    <div class="tm-acts" id="tmActs"></div>
+    <p class="drawmsg" id="tmMsg" aria-live="polite" style="margin:0"></p>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -509,6 +554,49 @@ const PARTS = [
     ["Bedtime","😴",["Brush teeth","Potty","Bedtime story","Hugs","Lights off","Sleep"],"all"]]}
 ];
 const TPL = {}; PARTS.forEach(p => p.routines.forEach(r => { TPL[r[0]] = {part:p.key, def:r}; }));
+/* ---------- breaking a tile into smaller steps ---------- */
+// Step size follows the child's developmental level (skills, not only age).
+const LEVELS = [
+  {n:1, name:"Early", age:"about 2–3 years", min:2, max:3, words:"1 or 2 words"},
+  {n:2, name:"Preschool", age:"about 3–4 years", min:3, max:4, words:"2 or 3 words"},
+  {n:3, name:"Pre-K", age:"about 4–5 years", min:4, max:6, words:"2 to 4 words"},
+  {n:4, name:"Kindergarten", age:"about 5–6 years", min:5, max:7, words:"up to 5 words"}
+];
+// Ready-made breakdowns: [emoji, word on tile, what it says, first level it shows at, last level (default 4)]
+const BREAK = {
+  "get dressed":[["🗄️","Go to dresser","Go to your dresser",2],["🗄️","Open drawer","Open the drawer",3],["🩲","Underwear on","Put on your underwear",3],
+    ["👖","Pants on","Put on your pants",1],["👕","Shirt on","Put on your shirt",1],["🧦","Socks on","Put on your socks",2],["🗄️","Close drawer","Close the drawer",4]],
+  "shirt on":[["👕","Get shirt","Get your shirt",2],["🏷️","Find the tag","Find the tag. It goes in the back",3],["🙆","Head in","Put your head in",1],
+    ["💪","Arms in","Put your arms in",1,1],["💪","One arm in","Put one arm in",2],["💪","Other arm in","Put your other arm in",2],["⬇️","Pull it down","Pull your shirt down",3]],
+  "pants on":[["👖","Get pants","Get your pants",3],["🪑","Sit down","Sit down",2],["🦵","Legs in","Put your legs in",1,1],["🦵","One leg in","Put one leg in",2],
+    ["🦵","Other leg in","Put your other leg in",2],["🧍","Stand up","Stand up",3],["⬆️","Pull them up","Pull your pants up",1]],
+  "socks on":[["🧦","Get socks","Get your socks",2],["🪑","Sit down","Sit down",3],["🦶","One sock on","Put a sock on one foot",1],["🦶","Other sock on","Put a sock on your other foot",1],["⬆️","Pull them up","Pull your socks up",4]],
+  "shoes on":[["👟","Get shoes","Get your shoes",2],["🪑","Sit down","Sit down",3],["🦶","One shoe on","Put one shoe on",1],["🦶","Other shoe on","Put your other shoe on",1],["👟","Close the straps","Close the straps",2],["🧍","Stand up","Stand up",4]],
+  "wash hands":[["🚰","Water on","Turn the water on",2],["💧","Wet hands","Get your hands wet",3],["🧼","Get soap","Get some soap",1],["👐","Rub hands","Rub your hands together",1],
+    ["🔟","Count to 10","Scrub and count to ten",4],["💦","Rinse","Rinse off the soap",2],["🚰","Water off","Turn the water off",3],["💨","Dry hands","Dry your hands",1]],
+  "brush teeth":[["🪥","Get toothbrush","Get your toothbrush",2],["🪥","Toothpaste on","Put toothpaste on your brush",1],["😁","Brush","Brush your teeth",1,1],
+    ["😁","Brush top teeth","Brush your top teeth",2],["😁","Brush bottom teeth","Brush your bottom teeth",2],["😁","Brush the back","Brush your back teeth",4],
+    ["💦","Spit","Spit in the sink",1],["🚰","Rinse brush","Rinse your toothbrush",3],["🪥","Put it away","Put your toothbrush away",3]],
+  "potty":[["👖","Pants down","Pull down your pants",2],["🚽","Sit on potty","Sit on the potty",1],["🚽","Go potty","Pee or poop in the potty",3],["🧻","Wipe","Wipe",2],
+    ["🚽","Flush","Flush the toilet",1],["👖","Pants up","Pull up your pants",2],["🧼","Wash hands","Wash your hands",1]],
+  "bath":[["👕","Clothes off","Take off your clothes",2],["🛁","Get in tub","Get in the tub and sit down",1],["🧽","Wash","Wash with soap",1,1],["🧽","Wash body","Wash your body with soap",2],
+    ["🧴","Wash hair","Wash your hair",3],["💦","Rinse off","Rinse off the soap",3],["🛁","Get out","Get out of the tub carefully",2],["🧖","Dry off","Dry off with your towel",1]],
+  "pajamas on":[["👚","Get pajamas","Get your pajamas",2],["👕","Clothes off","Take off your clothes",3],["👖","Pajama pants on","Put on your pajama pants",1],["👚","Pajama shirt on","Put on your pajama shirt",1],["🧺","Clothes in hamper","Put your clothes in the hamper",3]],
+  "toys away":[["👀","Look for toys","Look for your toys",3],["🧸","Pick up toys","Pick up your toys",1],["🧺","Toys in bin","Put the toys in the bin",1],["📦","Bin on shelf","Put the bin on the shelf",2],["👀","Check the floor","Check the floor for more toys",4]],
+  "throw away trash":[["🫳","Pick up trash","Pick up your trash",1],["🚶","Walk to trash can","Walk to the trash can",2],["🗑️","Open lid","Open the lid",3],["🗑️","Trash in","Put the trash in",1],["🗑️","Close lid","Close the lid",4]],
+  "hang up backpack":[["🪝","Find my hook","Find your hook",2],["🎒","Backpack off","Take off your backpack",1],["📁","Take out folder","Take out your folder",3],["🪝","Hang it up","Hang your backpack on the hook",1],["🍱","Lunchbox away","Put your lunchbox away",4]],
+  "car seat":[["🚗","Climb in","Climb into your car seat",1],["🪑","Sit back","Sit back",2],["💪","Arms in straps","Put your arms in the straps",2],["🔒","Buckle up","Click the buckle",1],["👍","Grown-up checks","Wait for a grown-up to check",3]],
+  "line up":[["🧍","Stand up","Stand up",2],["🪑","Push in chair","Push in your chair",3],["🚶","Walk to line","Walk to the line",1],["🚸","Stand in line","Stand in line",1],["🤲","Hands to self","Keep your hands to yourself",2],["👀","Face forward","Look forward",4]],
+  "eat my food":[["🪑","Sit at table","Sit at the table",2],["🍴","Take a bite","Take a bite",1],["😋","Chew","Chew your food",3],["🥛","Take a drink","Take a drink",4],["🍴","Another bite","Take another bite",2],["🍽️","All done","All done. Your plate is empty",1]],
+  "coat on":[["🧥","Get coat","Get your coat",2],["💪","One arm in","Put one arm in",1],["💪","Other arm in","Put your other arm in",1],["🧥","Zip it up","Zip it up",3],["🙋","Ask for help","Ask for help if you need it",4]]
+};
+const ALIAS = {"bathroom":"potty","go potty":"potty","sit on potty":"potty","clean up":"toys away","bath time":"bath","coat on":"coat on","hang up coat":"coat on",
+  "get my pajamas":"pajamas on","pajamas":"pajamas on","eat breakfast":"eat my food","breakfast":"eat my food","lunch":"eat my food","dinner":"eat my food","eat dinner":"eat my food"};
+function builtIn(label, level){
+  const k = label.trim().toLowerCase(), list = BREAK[k] || BREAK[ALIAS[k]];
+  if (!list) return null;
+  return list.filter(x => x[3] <= level && level <= (x[4] || 4)).map(x => mk(x[0], x[1], x[2]));
+}
 const PART = Object.fromEntries(PARTS.map(p => [p.key, p]));
 const ORDER = PARTS.map(p => p.key);
 const PICKS = ["🐟","🐶","🌳","🧃","🎂","🎈","🚂","🧦","🪥","🛁","👩‍🏫","👦","👧","❤️","🔔","🎁","🌞","🌧️","🪴","🧺","🖍️","📝","💻","🚪"];
@@ -544,6 +632,7 @@ S.schedules.forEach(r => { if (!r.days) r.days = (r.tpl && TPL[r.tpl]) ? TPL[r.t
 if (!Array.isArray(S.seeded)) S.seeded = S.schedules.filter(r => r.tpl).map(r => r.tpl).concat(["Wake up","Breakfast","Off to school","Arriving at school","Bathroom","Lunch","Recess","Rest time","Going home","Snack","Play time","Going to the store","Dinner","Bath time","Bedtime"]);
 if (S.mode !== "weekend") S.mode = "school";
 if (S.autoWeek === undefined) S.autoWeek = true;
+if (![1,2,3,4].includes(S.level)) S.level = 3;
 Object.keys(TPL).forEach(n => { if (!S.seeded.includes(n)){ insertTemplate(n); S.seeded.push(n); } });
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
 
@@ -557,8 +646,24 @@ function insertTemplate(name){
 const shows = r => r.days === "all" || !r.days || r.days === S.mode;
 const inPart = p => S.schedules.filter(x => x.part === p && shows(x));
 const cur = () => S.schedules.find(x => x.id === S.current && x.part === S.part && shows(x)) || null;
-const isDone = r => !!r && r.tiles.length > 0 && r.tiles.every(t => t.status === "done");
-const doneCount = r => r.tiles.filter(t => t.status === "done").length;
+// A broken-down tile takes its color from its small steps: all green = green, any started = yellow.
+function st(t){
+  if (t.sub && t.sub.length){ const ss = t.sub.map(st); return ss.every(x => x === "done") ? "done" : ss.some(x => x !== "todo") ? "wait" : "todo"; }
+  return t.status;
+}
+const resetTiles = arr => arr.forEach(t => { t.status = "todo"; if (t.sub) resetTiles(t.sub); });
+const allDone = arr => arr.length > 0 && arr.every(t => st(t) === "done");
+const isDone = r => !!r && allDone(r.tiles);
+const doneCount = r => r.tiles.filter(t => st(t) === "done").length;
+// path = ids of the broken-down tiles the child has stepped into, inside the current routine
+let path = [];
+function list(){
+  const r = cur(); if (!r) return null;
+  let arr = r.tiles; const trail = [];
+  for (const id of path){ const t = arr.find(x => x.id === id); if (!t || !t.sub) break; trail.push(t); arr = t.sub; }
+  if (trail.length !== path.length) path = trail.map(t => t.id);
+  return {r, arr, trail};
+}
 const firstOpen = p => { const rs = inPart(p); return rs.find(r => !isDone(r)) || rs[0] || null; };
 function nextAfter(r){
   const rs = inPart(r.part), i = rs.indexOf(r);
@@ -570,8 +675,8 @@ function nextAfter(r){
 function checkDay(){
   const t = todayKey();
   if (S.day !== t){
-    if (S.newDay) S.schedules.forEach(r => r.tiles.forEach(x => x.status = "todo"));
-    S.day = t; started = false;
+    if (S.newDay) S.schedules.forEach(r => resetTiles(r.tiles));
+    S.day = t; started = false; path = [];
     if (S.autoWeek) S.mode = weekendDay();
     if (S.followClock) goPart(clockPart(), false);
     save(); render(true);
@@ -606,16 +711,19 @@ function picHTML(t){
   return `<span class="emo${emoCount(em) > 1 ? " two" : ""}" aria-hidden="true">${esc(em)}</span>`;
 }
 function tileHTML(t, i, tag){
-  const badge = t.status === "done" ? CHECK : t.status === "wait" ? HOUR : (i + 1);
-  return `<button type="button" class="tile" data-id="${t.id}" data-s="${t.status}" aria-label="Step ${i+1}: ${esc(t.label)}, ${STATE_WORD[t.status]}">
+  const s = st(t), n = t.sub ? t.sub.length : 0, d = n ? t.sub.filter(x => st(x) === "done").length : 0;
+  const badge = s === "done" ? CHECK : s === "wait" ? HOUR : (i + 1);
+  return `<button type="button" class="tile${t.sub ? " has-sub" : ""}${breaking[t.id] ? " breaking" : ""}" data-id="${t.id}" data-s="${s}" aria-label="Step ${i+1}: ${esc(t.label)}, ${STATE_WORD[s]}${t.sub ? `, ${n} small steps` : ""}">
     <span class="badge">${badge}</span>${tag ? `<span class="tag">${tag}</span>` : ""}
-    <span class="pic">${picHTML(t)}</span><span class="word">${esc(t.label)}</span></button>`;
+    <span class="pic">${picHTML(t)}</span><span class="word">${esc(t.label)}</span>
+    ${t.sub ? `<span class="subchip"><span class="e" aria-hidden="true">🧩</span>${d ? `${d} of ${n}` : `${n} steps`}</span>` : ""}${breaking[t.id] ? '<span class="drawing">Breaking it down…</span>' : ""}</button>`;
 }
 function ctlHTML(t, i, n){
   return `<div class="ctl" data-id="${t.id}">
     <button type="button" data-act="left" ${i === 0 ? "disabled" : ""} aria-label="Move earlier">◀</button>
     <button type="button" data-act="edit" aria-label="Edit tile">✏️</button>
     <button type="button" data-act="regen" aria-label="New picture">🔄</button>
+    <button type="button" data-act="parts" aria-label="Break into smaller steps">🧩</button>
     <button type="button" data-act="del" aria-label="Remove tile">🗑</button>
     <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button></div>`;
 }
@@ -649,23 +757,30 @@ function render(animate){
   }).join("") + (adult ? `<button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button>` : "");
 
   // start banner
-  const showStart = !started && r && !doneCount(r) && !adult;
+  const L = list(), arr = L ? L.arr : [], trail = L ? L.trail : [], here = trail[trail.length - 1];
+  const showStart = !started && r && !doneCount(r) && !adult && !trail.length;
   $("start").hidden = !showStart;
   if (showStart){ $("startIcon").textContent = r.icon || "⭐"; $("startName").textContent = r.name; }
 
   // routine head + board
-  $("rIcon").textContent = r ? (r.icon || "⭐") : P.icon;
-  $("rTitle").textContent = r ? r.name : `${P.name} routines`;
-  $("rCount").textContent = r ? `${doneCount(r)} of ${r.tiles.length} done` : "";
+  $("rIcon").textContent = here ? (here.img ? "🧩" : here.emoji) : r ? (r.icon || "⭐") : P.icon;
+  $("rTitle").textContent = here ? here.label : r ? r.name : `${P.name} routines`;
+  $("rCount").textContent = r ? `${arr.filter(t => st(t) === "done").length} of ${arr.length} ${here ? "small steps " : ""}done` : "";
+  $("crumbs").hidden = !trail.length;
+  if (trail.length){
+    const names = [r.name, ...trail.map(t => t.label)];
+    $("crumbs").innerHTML = `<button type="button" class="btn up" data-depth="${trail.length - 1}">⬆ Back to ${esc(names[names.length - 2])}</button>
+      <span class="path">${names.map((n, k) => k === names.length - 1 ? `<span class="here">${esc(n)}</span>` : `<button type="button" data-depth="${k}">${esc(n)}</button> ›`).join(" ")}</span>`;
+  }
   $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
   const board = $("board");
-  board.classList.toggle("firstthen", S.view === "ft" && !!r && r.tiles.length > 0);
+  board.classList.toggle("firstthen", S.view === "ft" && arr.length > 0);
   if (!r){
     board.innerHTML = `<p class="empty"><b>No routines here yet.</b> Open <b>Parent</b> mode (press and hold), then add a ready-made or blank routine for the ${P.name.toLowerCase()}.</p>`;
-  } else if (!r.tiles.length && !adult){
-    board.innerHTML = `<p class="empty"><b>This routine has no steps yet.</b> Open <b>Parent</b> mode (press and hold) to add tiles.</p>`;
+  } else if (!arr.length && !adult){
+    board.innerHTML = `<p class="empty"><b>No steps here yet.</b> Open <b>Parent</b> mode (press and hold) to add tiles.</p>`;
   } else {
-    const tiles = r.tiles, nowI = tiles.findIndex(t => t.status !== "done");
+    const tiles = arr, nowI = tiles.findIndex(t => st(t) !== "done");
     if (S.view === "ft" && tiles.length){
       const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
       let h = `<div class="ft-col"><h3>First</h3><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`;
@@ -676,12 +791,12 @@ function render(animate){
         + (adult ? `<div class="cell addcell"><button type="button" class="tile" id="addTile"><span class="plus" aria-hidden="true">+</span><span class="word">Add a tile</span></button></div>` : "");
     }
   }
-  const key = S.part + ":" + (r ? r.id : "");
+  const key = S.part + ":" + (r ? r.id : "") + ":" + path.join("/");
   if (animate || key !== lastShown){ board.classList.remove("enter"); void board.offsetWidth; board.classList.add("enter"); }
   lastShown = key;
 
   // next button
-  const nx = r && isDone(r) ? nextAfter(r) : null;
+  const nx = r && !trail.length && isDone(r) ? nextAfter(r) : null;
   $("nextbar").hidden = !nx;
   if (nx) $("nextBtn").innerHTML = `Next: <span class="e">${esc(nx.r.icon || "⭐")}</span> ${esc(nx.r.name)}${nx.part !== S.part ? ` (${PART[nx.part].name})` : ""} ➜`;
 
@@ -710,19 +825,20 @@ function renderPanel(r){
   $("followClock").checked = S.followClock; $("newDay").checked = S.newDay; $("autoWeek").checked = S.autoWeek; $("tapCycles").checked = S.tapCycles;
   $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
   document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
+  $("levelSel").value = S.level;
   renderLib();
 }
 
 /* ---------- moving through the day ---------- */
 function goPart(p, announce){
-  S.part = p; const r = firstOpen(p); S.current = r ? r.id : null; save(); render(true);
+  S.part = p; path = []; const r = firstOpen(p); S.current = r ? r.id : null; save(); render(true);
   if (announce){ const P = PART[p]; speak(r ? `${P.name}. ${isDone(r) ? "" : "First, " + lc(r.name) + "."}` : P.name); }
   if (r) scrollStop();
 }
 function goRoutine(id, announce){
   const r = S.schedules.find(x => x.id === id); if (!r) return;
-  S.part = r.part; S.current = r.id; started = true; save(); render(true);
-  if (announce) speak(isDone(r) ? `${r.name}. All done.` : `${r.name}. ${r.tiles[0] ? "First, " + lc(r.tiles.find(t => t.status !== "done").say) + "." : ""}`);
+  S.part = r.part; S.current = r.id; path = []; started = true; save(); render(true);
+  if (announce) speak(isDone(r) ? `${r.name}. All done.` : `${r.name}. ${r.tiles[0] ? "First, " + lc(r.tiles.find(t => st(t) !== "done").say) + "." : ""}`);
   scrollStop();
 }
 function scrollStop(){ const s = document.querySelector('.stop[aria-current="step"]'); if (s && s.scrollIntoView) s.scrollIntoView({behavior:"smooth", block:"nearest", inline:"center"}); }
@@ -741,18 +857,40 @@ $("startBtn").onclick = () => {
   const r = cur(); started = true; render();
   if (r) speak(`${PART[S.part].greet} First, ${lc(r.name)}. ${r.tiles[0] ? lc(r.tiles[0].say) + "." : ""}`);
 };
+$("crumbs").onclick = e => {
+  const b = e.target.closest("[data-depth]"); if (!b) return;
+  path = path.slice(0, +b.dataset.depth); render(true);
+  const L = list(); speak(L.trail.length ? L.trail[L.trail.length - 1].label : L.r.name);
+};
+function stepInto(t){
+  path.push(t.id); started = true; render(true);
+  const next = t.sub.find(x => st(x) !== "done");
+  speak(next ? `${t.label}. First, ${lc(next.say)}.` : `${t.label}. All done.`);
+}
 $("nextBtn").onclick = () => { const r = cur(), nx = r && nextAfter(r); if (nx) goRoutine(nx.r.id, true); };
 
 /* ---------- tiles ---------- */
 const NEXT = {todo:"wait", wait:"done", done:"todo"};
 function setStatus(id, s, fromTap){
-  const r = cur(); if (!r) return; const t = r.tiles.find(x => x.id === id); if (!t) return;
-  const was = isDone(r);
+  const L = list(); if (!L) return; const r = L.r, t = L.arr.find(x => x.id === id); if (!t) return;
+  const was = isDone(r), levelWas = allDone(L.arr);
   t.status = s; started = true; save(); render();
   const el = document.querySelector(`.tile[data-id="${id}"]`);
   if (el) el.classList.add("pop");
   if (fromTap) speak(s === "done" ? `${t.say}. Done!` : t.say, el);
+  // finished every small step: climb back up to the bigger step, which is now green
+  if (L.trail.length && !levelWas && allDone(L.arr)) return setTimeout(() => climb(r, was), 1300);
   if (!was && isDone(r) && S.cheer) setTimeout(() => celebrate(r), 650);
+}
+function climb(r, was){
+  let L = list(), finished = null;
+  while (L && L.trail.length && allDone(L.arr)){ finished = L.trail[L.trail.length - 1]; path.pop(); L = list(); }
+  render(true);
+  if (finished){
+    const el = document.querySelector(`.tile[data-id="${finished.id}"]`); if (el) el.classList.add("pop");
+    speak(`${finished.label}. All done!`, el);
+  }
+  if (!was && isDone(r) && S.cheer) setTimeout(() => celebrate(r), 1100);
 }
 let cheerTarget = null;
 function celebrate(r){
@@ -776,29 +914,47 @@ $("cheerStay").onclick = () => { $("cheer").hidden = true; };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("cheer").hidden) $("cheer").hidden = true; });
 
 $("board").addEventListener("click", e => {
-  const r = cur(); if (!r) return;
+  if (lpFired){ lpFired = false; return; }
+  const L = list(); if (!L) return; const tiles = L.arr;
   if (e.target.closest("#addTile")) return openEditor(null);
   const ctl = e.target.closest(".ctl button");
   if (ctl){
-    const id = ctl.parentElement.dataset.id, act = ctl.dataset.act, i = r.tiles.findIndex(x => x.id === id);
-    if (act === "edit") return openEditor(r.tiles[i]);
-    if (act === "regen") return regenTile(r.tiles[i]);
-    if (act === "left" && i > 0) [r.tiles[i-1], r.tiles[i]] = [r.tiles[i], r.tiles[i-1]];
-    if (act === "right" && i < r.tiles.length - 1) [r.tiles[i+1], r.tiles[i]] = [r.tiles[i], r.tiles[i+1]];
-    if (act === "del"){ const [gone] = r.tiles.splice(i, 1); lastRemoved = {rid:r.id, i, t:gone}; toastUndo(`Removed “${gone.label}”.`); }
+    const id = ctl.parentElement.dataset.id, act = ctl.dataset.act, i = tiles.findIndex(x => x.id === id);
+    if (act === "edit") return openEditor(tiles[i]);
+    if (act === "regen") return regenTile(tiles[i]);
+    if (act === "parts") return openTileMenu(tiles[i]);
+    if (act === "left" && i > 0) [tiles[i-1], tiles[i]] = [tiles[i], tiles[i-1]];
+    if (act === "right" && i < tiles.length - 1) [tiles[i+1], tiles[i]] = [tiles[i], tiles[i+1]];
+    if (act === "del"){ const [gone] = tiles.splice(i, 1); lastRemoved = {arr:tiles, i, t:gone}; toastUndo(`Removed “${gone.label}”.`); }
     save(); render(); return;
   }
-  const tile = e.target.closest(".tile"); if (!tile) return;
-  const t = r.tiles.find(x => x.id === tile.dataset.id);
+  const tile = e.target.closest(".tile[data-id]"); if (!tile) return;
+  const t = tiles.find(x => x.id === tile.dataset.id); if (!t || breaking[t.id]) return;
+  if (t.sub) return stepInto(t);
   if (S.tapCycles) setStatus(t.id, NEXT[t.status], true);
   else { started = true; speak(t.say, tile); }
 });
+// Long-press (or right-click) a tile for the "break it down" menu.
+let lpT = null, lpFired = false, lpXY = null;
+$("board").addEventListener("pointerdown", e => {
+  const tile = e.target.closest(".tile[data-id]"); if (!tile) return;
+  lpFired = false; lpXY = [e.clientX, e.clientY]; clearTimeout(lpT);
+  lpT = setTimeout(() => { lpFired = true; const L = list(), t = L && L.arr.find(x => x.id === tile.dataset.id); if (t) openTileMenu(t); }, 550);
+});
+$("board").addEventListener("pointermove", e => { if (lpXY && Math.hypot(e.clientX - lpXY[0], e.clientY - lpXY[1]) > 12) clearTimeout(lpT); });
+["pointerup","pointercancel","pointerleave"].forEach(ev => $("board").addEventListener(ev, () => { clearTimeout(lpT); lpXY = null; }));
+$("board").addEventListener("contextmenu", e => {
+  const tile = e.target.closest(".tile[data-id]"); if (!tile) return;
+  e.preventDefault(); clearTimeout(lpT);
+  if (!$("tmenu").hidden) return;
+  const L = list(), t = L && L.arr.find(x => x.id === tile.dataset.id); if (t) openTileMenu(t);
+});
 
 $("readAll").onclick = () => {
-  const r = cur(); if (!r || !r.tiles.length) return speak(PART[S.part].greet);
-  const ts = r.tiles, i = ts.findIndex(t => t.status !== "done");
+  const L = list(); if (!L || !L.arr.length) return speak(PART[S.part].greet);
+  const ts = L.arr, i = ts.findIndex(t => st(t) !== "done"), name = L.trail.length ? L.trail[L.trail.length - 1].label : L.r.name;
   if (S.view === "ft" && i >= 0) speak(`First, ${lc(ts[i].say)}.` + (ts[i+1] ? ` Then, ${lc(ts[i+1].say)}.` : ""));
-  else speak(`${r.name}. ` + ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + lc(t.say)).join(". ") + ".");
+  else speak(`${name}. ` + ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + lc(t.say)).join(". ") + ".");
 };
 $("vAll").onclick = () => { S.view = "all"; save(); render(true); };
 $("vFT").onclick = () => { S.view = "ft"; save(); render(true); };
@@ -836,7 +992,7 @@ function moveRoutine(dir){
 }
 $("rEarlier").onclick = () => moveRoutine(-1);
 $("rLater").onclick = () => moveRoutine(1);
-$("rReset").onclick = () => { const r = cur(); if (!r) return; r.tiles.forEach(t => t.status = "todo"); save(); render(true); toast("Every step is back to red."); };
+$("rReset").onclick = () => { const r = cur(); if (!r) return; resetTiles(r.tiles); save(); render(true); toast("Every step is back to red."); };
 $("rDel").onclick = () => { $("rDelConfirm").hidden = false; };
 $("rDelNo").onclick = () => { $("rDelConfirm").hidden = true; };
 $("rDelYes").onclick = () => {
@@ -851,7 +1007,7 @@ $("readyChips").onclick = e => {
   const r = insertTemplate(name);
   S.current = r.id; save(); render(true); toast(`Added “${name}”.`);
 };
-$("dayReset").onclick = () => { S.schedules.forEach(r => r.tiles.forEach(t => t.status = "todo")); started = false; goPart(S.followClock ? clockPart() : "morning", false); toast("A fresh day. Every tile is red again."); };
+$("dayReset").onclick = () => { S.schedules.forEach(r => resetTiles(r.tiles)); started = false; path = []; goPart(S.followClock ? clockPart() : "morning", false); toast("A fresh day. Every tile is red again."); };
 $("followClock").onchange = e => { S.followClock = e.target.checked; save(); };
 $("newDay").onchange = e => { S.newDay = e.target.checked; save(); };
 $("autoWeek").onchange = e => { S.autoWeek = e.target.checked; save(); };
@@ -879,9 +1035,9 @@ function renderLib(){
 }
 $("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
 $("lib").onclick = e => {
-  const b = e.target.closest("[data-i]"); if (!b) return; const r = cur();
-  if (!r){ toast("Add a routine first."); return; }
-  const [em,l,s] = LIB[cat][+b.dataset.i]; r.tiles.push(mk(em,l,s)); if (r.icon === "⭐" && r.tiles.length === 1) r.icon = em;
+  const b = e.target.closest("[data-i]"); if (!b) return; const L = list();
+  if (!L){ toast("Add a routine first."); return; }
+  const r = L.r, [em,l,s] = LIB[cat][+b.dataset.i]; L.arr.push(mk(em,l,s)); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1) r.icon = em;
   save(); render(); toast(`Added “${l}”.`);
 };
 
@@ -917,6 +1073,7 @@ function drawError(e){
   if (c === "not_granted" || c === "sampling_disabled" || c === "not_declared" || c === "capability_disabled"){ sampleFn = null; return "Drawing with Claude isn't allowed here. Pick a picture or photo instead."; }
   if (c === "rate_limited") return "Claude is busy. Wait a minute, then try again.";
   if (c === "bad_svg") return "That drawing didn't come out. Tap Try again.";
+  if (c === "bad_list" || c === "invalid_json") return "That didn't come out right. Tap the button to try again.";
   if (c === "refused") return "Claude couldn't draw that. Try different words.";
   return "Something went wrong. Tap Try again.";
 }
@@ -996,25 +1153,123 @@ $("edPhoto").onchange = e => {
 function closeEditor(){ if (ed && ed.ctl) ed.ctl.abort(); ed = null; $("sheet").hidden = true; }
 $("edCancel").onclick = closeEditor;
 $("edRemove").onclick = () => {
-  const r = cur(), t = ed && ed.tile; if (!r || !t) return closeEditor();
-  const i = r.tiles.indexOf(t); if (i >= 0){ r.tiles.splice(i, 1); lastRemoved = {rid:r.id, i, t}; toastUndo(`Removed “${t.label}”.`); }
+  const L = list(), t = ed && ed.tile; if (!L || !t) return closeEditor();
+  const i = L.arr.indexOf(t); if (i >= 0){ L.arr.splice(i, 1); lastRemoved = {arr:L.arr, i, t}; toastUndo(`Removed “${t.label}”.`); }
   closeEditor(); save(); render();
 };
 $("edSave").onclick = () => {
-  const label = $("edLabel").value.trim(), r = cur();
+  const label = $("edLabel").value.trim(), L = list(), r = L && L.r;
   if (!label){ toast("Type the word for the tile first."); $("edLabel").focus(); return; }
   if (!r){ toast("Add a routine first."); return; }
   const say = $("edSay").value.trim() || (ed.tile && ed.tile.label === label ? ed.tile.say : (PIC[label] && PIC[label][1]) || label);
   const t = ed.tile || mk(ed.emoji, label, say);
   t.label = label; t.say = say; t.emoji = ed.emoji; t.img = ed.img; t.drawn = !!(ed.img && ed.cands.includes(ed.img)); t.attempts = ed.attempt;
-  if (!ed.tile){ r.tiles.push(t); if (r.icon === "⭐" && r.tiles.length === 1 && !t.img) r.icon = t.emoji; }
+  if (!ed.tile){ L.arr.push(t); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1 && !t.img) r.icon = t.emoji; }
   closeEditor(); save(); render(); toast(`Saved “${label}”.`);
 };
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("sheet").hidden) closeEditor(); });
 
+/* ---------- long-press menu: break a tile into smaller steps ---------- */
+const breaking = {};   // tile id -> true while Claude works out small steps
+let tmTile = null;
+const levelOpts = () => LEVELS.map(l => `<option value="${l.n}">${l.name} (${l.age}): ${l.min}–${l.max} steps</option>`).join("");
+$("tmLevel").innerHTML = levelOpts(); $("levelSel").innerHTML = levelOpts();
+$("levelSel").onchange = e => { S.level = +e.target.value; save(); };
+function openTileMenu(t){
+  tmTile = t; $("tmMsg").textContent = ""; $("tmenu").hidden = false; tmRender();
+  const f = $("tmActs").querySelector("button"); if (f) f.focus();
+}
+function tmRender(){
+  const t = tmTile; if (!t) return;
+  $("tmPic").innerHTML = picHTML(t); $("tmWord").textContent = t.label; $("tmH").textContent = t.label;
+  $("tmSub").textContent = t.sub ? `Broken into ${t.sub.length} smaller steps.` : `“${t.say}”`;
+  $("tmLevel").value = S.level;
+  const b = [];
+  const busy = !!breaking[t.id];
+  if (t.sub){
+    b.push(`<button type="button" class="btn primary" data-tm="open"><span class="e">🧩</span> Show the ${t.sub.length} small steps</button>`);
+    b.push(`<button type="button" class="btn" data-tm="again" ${busy ? "disabled" : ""}><span class="e">🔁</span> Break it down a different way</button>`);
+    b.push(`<button type="button" class="btn" data-tm="merge"><span class="e">↩️</span> Put it back together</button>`);
+  } else {
+    b.push(`<button type="button" class="btn primary" data-tm="break" ${busy ? "disabled" : ""}><span class="e">🧩</span> Break it down into smaller steps</button>`);
+    if (adult) b.push(`<button type="button" class="btn" data-tm="own"><span class="e">➕</span> Add my own smaller steps</button>`);
+  }
+  b.push(`<button type="button" class="btn" data-tm="say"><span class="e">🔊</span> Say it</button>`);
+  if (adult) b.push(`<button type="button" class="btn" data-tm="edit"><span class="e">✏️</span> Edit tile</button>`);
+  b.push(`<button type="button" class="btn" data-tm="close">Close</button>`);
+  $("tmActs").innerHTML = b.join("");
+}
+function closeTileMenu(){ $("tmenu").hidden = true; tmTile = null; }
+$("tmLevel").onchange = e => {
+  S.level = +e.target.value; save();
+  $("tmMsg").textContent = tmTile && tmTile.sub ? "Saved. Tap “Break it down a different way” to resize these steps." : `Saved. Steps will be sized for ${LEVELS[S.level - 1].name}.`;
+};
+$("tmenu").addEventListener("click", e => { if (e.target === $("tmenu")) closeTileMenu(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("tmenu").hidden) closeTileMenu(); });
+$("tmActs").onclick = async e => {
+  const b = e.target.closest("[data-tm]"); if (!b || !tmTile) return; const t = tmTile, act = b.dataset.tm;
+  if (act === "close") return closeTileMenu();
+  if (act === "say") return speak(t.say);
+  if (act === "edit"){ closeTileMenu(); return openEditor(t); }
+  if (act === "open"){ closeTileMenu(); return stepInto(t); }
+  if (act === "own"){ t.sub = []; t.status = "todo"; closeTileMenu(); save(); path.push(t.id); render(true); return toast("Add the small steps with the + tile."); }
+  if (act === "merge"){
+    const old = t.sub; t.status = st(t); delete t.sub; closeTileMenu(); save(); render();
+    return toastUndo(`“${t.label}” is one tile again.`, () => { t.sub = old; });
+  }
+  if (act === "break" || act === "again") await breakDown(t, act === "again");
+};
+async function breakDown(t, differently){
+  const L = list(), chain = L ? [L.r.name, ...L.trail.map(x => x.label)] : [];
+  let steps = differently ? null : builtIn(t.label, S.level), how = "ready";
+  if (!steps){
+    if (!sampleFn){
+      $("tmMsg").textContent = differently
+        ? "A different breakdown needs Claude, which works when this page is opened on claude.ai."
+        : (adult ? "There are no ready-made small steps for this tile here. Tap “Add my own smaller steps”." : "There are no ready-made small steps for this tile here. A parent can add them in Parent mode.");
+      return;
+    }
+    breaking[t.id] = true; t.bdAttempts = (t.bdAttempts || 0) + 1; tmRender(); render();
+    $("tmMsg").textContent = "Claude is breaking it down…";
+    try { steps = await aiSteps(t, chain, t.bdAttempts); how = "claude"; }
+    catch(e){
+      const c = e && e.code;
+      $("tmMsg").textContent = ["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(c)
+        ? (sampleFn = null, "Claude isn't allowed here, so only ready-made small steps can be used.") : drawError(e);
+    }
+    delete breaking[t.id];
+    if (!steps){ tmRender(); render(); return; }
+  }
+  const old = t.sub;
+  if (st(t) === "done") steps.forEach(x => x.status = "done");
+  t.sub = steps;
+  save();
+  if (tmTile === t) closeTileMenu();
+  stepInto(t);
+  if (old) toastUndo(`New small steps for “${t.label}”.`, () => { t.sub = old; path = path.filter(id => id !== t.id); });
+  else if (how === "claude") toast(`Claude made ${steps.length} small steps. Long-press a step to break it down again.`);
+}
+async function aiSteps(t, chain, attempt){
+  const lv = LEVELS[S.level - 1];
+  const prompt = `You are helping a parent build a visual schedule (AAC / Boardmaker style picture tiles) for a young autistic child.
+Break this step into smaller steps, in the order the child does them:
+Step: "${t.label}" (the adult says: "${t.say}")
+It is part of: ${chain.join(" → ") || "a daily routine"}.
+Size the steps for this developmental level: ${lv.name}, ${lv.age}. Use ${lv.min} to ${lv.max} steps. Each label is ${lv.words}, plain concrete words a young child knows, starting with an action word when it fits. Each "say" is one short sentence an adult says to the child, using "you".
+Give each step one emoji that best pictures it. Do not repeat "${t.label}" itself as a step. Keep every step safe and right for a young child.${attempt > 1 ? `
+This is attempt ${attempt}: the parent wants a different breakdown, so choose different steps or a different way to split it.` : ""}
+Reply with only a JSON array, for example: [{"emoji":"🗄️","label":"Go to dresser","say":"Go to your dresser."}]`;
+  const out = await sampleFn.json(prompt, {modelTier:"quick", cache:false});
+  if (!Array.isArray(out)) throw {code:"bad_list"};
+  const steps = out.filter(o => o && typeof o.label === "string" && o.label.trim()).slice(0, 8)
+    .map(o => mk(String(o.emoji || "⭐").trim().slice(0, 16) || "⭐", o.label.trim().slice(0, 28), String(o.say || o.label).trim().slice(0, 90)));
+  if (steps.length < 2) throw {code:"bad_list"};
+  return steps;
+}
+
 let lastRemoved = null, undoFn = null;
 function toastUndo(m, fn){
-  undoFn = fn || (() => { const r = S.schedules.find(x => x.id === lastRemoved.rid); if (r) r.tiles.splice(lastRemoved.i, 0, lastRemoved.t); });
+  undoFn = fn || (() => { lastRemoved.arr.splice(lastRemoved.i, 0, lastRemoved.t); });
   const el = $("toast"); el.innerHTML = `${esc(m)} <button type="button" id="undoBtn" style="margin-left:8px;border:0;border-radius:999px;padding:2px 10px;font-weight:700">Undo</button>`;
   el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 5000);
   $("undoBtn").onclick = () => { if (undoFn){ undoFn(); undoFn = null; save(); render(); } el.hidden = true; };
@@ -1023,7 +1278,7 @@ function toastUndo(m, fn){
 var tt; function toast(m){ const el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2400); }
 
 /* ---------- start ---------- */
-if (S.day !== todayKey()){ if (S.newDay) S.schedules.forEach(r => r.tiles.forEach(x => x.status = "todo")); S.day = todayKey(); if (S.autoWeek) S.mode = weekendDay(); }
+if (S.day !== todayKey()){ if (S.newDay) S.schedules.forEach(r => resetTiles(r.tiles)); S.day = todayKey(); if (S.autoWeek) S.mode = weekendDay(); }
 if (S.followClock || !PART[S.part]) S.part = clockPart();
 if (!cur()){ const r = firstOpen(S.part); S.current = r ? r.id : null; }
 save(); render(true); scrollStop();
