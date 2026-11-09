@@ -8,8 +8,8 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 1. Play for 5–10 minutes with **Teach Mode off**: open packs, play matches, spin the wheel, "buy" gems.
 2. Flip the **🎓 Teach Mode** switch at the top. The game works exactly the same, but every time you do something:
    - the part of the screen using a trick glows yellow,
-   - the **Teach panel** explains what just happened, the psychology behind it, the casino version, and how to resist it,
-   - each trick is labeled by its goal: **SPEND** (get your money), **STAY** (keep you playing) or **RETURN** (bring you back),
+   - the **Teach panel** explains it in plain, short sentences written for students: *What happened*, *Why it works on your brain*, *Like a casino*, and *What you can do*,
+   - each trick is labeled by its goal: **💸 Wants your money**, **⏳ Keeps you playing** or **🔁 Brings you back**,
    - a counter shows how many tricks you've spotted and how many times each was used on you.
    Tap any yellow tag to bring up its explanation again.
 3. Open **📋 Debrief** to see your totals, the expected cost of a top card, every tactic (the ones you ran into are highlighted), real-world context and discussion questions.

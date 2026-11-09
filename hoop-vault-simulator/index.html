@@ -368,7 +368,7 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
       <div class="panel teach hide" id="teachPanel" aria-live="polite">
         <h2>🎓 Teach Mode</h2>
         <div class="tnow" id="teachNow"><p class="small">Play normally. Every time the game uses a trick on you, it gets explained here and highlighted on screen.</p>
-          <p class="small"><span class="goal SPEND">SPEND</span> gets your money · <span class="goal STAY">STAY</span> keeps you playing · <span class="goal RETURN">RETURN</span> brings you back</p></div>
+          <p class="small">Each trick has a goal: <span class="goal SPEND">💸 Wants your money</span> <span class="goal STAY">⏳ Keeps you playing</span> <span class="goal RETURN">🔁 Brings you back</span></p></div>
         <div class="small muted" style="margin-top:10px">Tricks spotted: <b id="teachCount" style="color:var(--insight)">0</b> / <span id="teachTotal"></span> · times used on you: <b id="teachUses" style="color:var(--insight)">0</b></div>
         <div class="thist" id="teachHist"></div>
       </div>
@@ -410,106 +410,108 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
 // ---------- Tactic glossary (used by Teach Mode + Debrief) ----------
 // g = what the trick is for: SPEND (get money), STAY (keep playing), RETURN (come back later)
 const TACTICS = {
-  currency:{g:"SPEND",t:"Premium currency",d:"Prices are shown in Gems, not dollars. A 1,250-gem pack doesn't 'feel' like $12, which weakens the pain of paying.",
-    p:"Mental accounting / 'pain of paying': money turned into tokens is easier to spend because it no longer feels like real money.",
-    c:"Casinos swap cash for chips for exactly this reason.",r:"Translate every price back to dollars before you tap (1,250 gems ≈ $11–14)."},
-  leftover:{g:"SPEND",t:"Leftover currency trap",d:"Bundle sizes never line up with pack prices (packs cost 600 / 1,250; bundles give 450, 1,000, 2,100…). You almost always end with a remainder.",
-    p:"Waste aversion: leftover gems feel 'wasted' unless you buy more to use them.",
-    c:"Like a slot card loaded with an odd amount, so you keep playing to use it up.",r:"Leftover gems are already spent money. Buying more to 'use them up' only costs you more."},
-  anchoring:{g:"SPEND",t:"Price anchoring & 'best value' badges",d:"A crossed-out 'value' price and 'BEST VALUE' ribbons push you toward the biggest bundle.",
-    p:"Anchoring: the first number you see ($89.97) makes the next one ($49.99) feel cheap.",
-    c:"Casino 'comps' and 'bonus' match deals that make bigger deposits look smarter.",r:"Ask 'would I pay $49.99 for this if there were no crossed-out price?'"},
-  lootbox:{g:"SPEND",t:"Paid random rewards (loot boxes)",d:"You pay for a chance at a player, not the player itself.",
-    p:"Variable-ratio reinforcement: unpredictable rewards produce the strongest, hardest-to-stop habits. Dopamine spikes on the uncertainty, not just the win.",
-    c:"This is the slot machine's core mechanic: pay, spin, random result.",r:"Check the odds and work out the expected cost before opening any pack."},
-  hiddenodds:{g:"SPEND",t:"Buried odds",d:"The real probabilities exist, but they're behind a tiny grey link with a dull name.",
-    p:"Optimism bias: without numbers, people overestimate their chances, especially after seeing others win.",
-    c:"Slot machines don't post their payout tables on the front either.",r:"Always look for the odds. If a game hides them, that tells you something."},
-  nearmiss:{g:"SPEND",t:"Near-miss animation",d:"The pack glowed Diamond/Galaxy, then revealed something ordinary.",
-    p:"Near-miss effect: brain scans show near-misses activate reward areas almost like real wins, making you feel 'due' for one.",
-    c:"Slots are designed to land jackpot symbols just above or below the payline.",r:"The result was decided before the animation started. 'Close' means nothing."},
-  hook:{g:"STAY",t:"Rigged first pull",d:"Your free welcome pack was guaranteed to contain a Diamond.",
-    p:"Early big win + anchoring: an early jackpot sets your expectations, and you keep chasing that feeling.",
-    c:"Many problem gamblers report a big win early on that hooked them.",r:"Remember your first pull was set up. Future packs use the real odds."},
-  honeymoon:{g:"STAY",t:"Early-win honeymoon",d:"Your first few opponents were deliberately weak.",
-    p:"Competence and attachment: quick success makes you feel skilled and invested before the difficulty jumps.",
-    c:"Like 'free play' credits that make you feel lucky on day one.",r:"Notice when a game suddenly gets harder right after you got attached."},
-  rubberband:{g:"SPEND",t:"Rubber-band matchmaking",d:"Opponents are scaled to YOUR team rating. Buying better players only helps briefly.",
-    p:"Hedonic treadmill: every upgrade is quickly matched, so satisfaction never lasts and you're always one purchase from feeling strong.",
-    c:"The house edge: whatever you bring, the game is tuned so you don't stay ahead.",r:"If opponents always match you, paying can't make you 'win'. Compare your win % before and after buying."},
-  lossoffer:{g:"SPEND",t:"Offer timed to a loss",d:"A pack offer appeared right after a close loss. The '73%' stat is made up.",
-    p:"Loss-chasing and 'hot' emotional states: frustration lowers self-control and makes buying a fix feel urgent.",
-    c:"Chasing losses ('I'll win it back') is a classic sign of problem gambling.",r:"Never buy right after a loss. Wait 24 hours and see if you still want it."},
-  fomo:{g:"SPEND",t:"Fake urgency (FOMO)",d:"The countdown silently resets when it hits zero or when you reload.",
-    p:"Scarcity and fear of missing out: limited time cuts off careful thinking.",
-    c:"'Limited-time' bonuses and countdown promos at online casinos.",r:"Reload the page. If the timer resets, the deadline is fake."},
-  wheel:{g:"STAY",t:"Deceptive wheel",d:"The GALAXY slice is drawn huge, but its real chance is 0.2%. The wheel often stops just past it.",
-    p:"Visual misdirection + near-miss: your eyes judge odds by slice size, and stopping 'one slot away' feels like almost winning.",
-    c:"This is a literal casino prize wheel, a game-show-style gambling device.",r:"Slice size is decoration. Only the published odds matter."},
-  social:{g:"SPEND",t:"Fabricated social proof",d:"The 'Live Pulls' feed is generated randomly and only shows big wins.",
-    p:"Social proof + availability bias: seeing lots of wins makes winning seem common and normal.",
-    c:"Casinos make winning slots ring loudly; losing ones stay silent.",r:"You only hear about the winners. Thousands of losing pulls are never shown."},
-  powercreep:{g:"RETURN",t:"Power creep / season reset",d:"A new season raised opponent ratings and released stronger cards.",
-    p:"Planned obsolescence + sunk cost: what you bought loses value, so you buy again to keep up.",
-    c:"Like resetting a loyalty tier so you have to keep gambling to keep your status.",r:"Anything you buy has an expiration date. Price it as a short rental."},
-  grind:{g:"SPEND",t:"Engineered grind",d:"A win earns ~200 coins; a pack costs 7,500. That's ~40 wins per pack.",
-    p:"Effort justification: making the free path tedious makes paying feel like a reasonable shortcut.",
-    c:"Like comps that need huge amounts of play to earn anything real.",r:"Ask whether the game would be fun if you just played it without chasing packs."},
-  oneclick:{g:"SPEND",t:"Frictionless purchasing",d:"One tap buys, with no confirmation step and no running total.",
-    p:"Removing friction removes the pause where you'd reconsider. Impulse wins.",
-    c:"Card-on-file and cashless casino wallets do the same thing.",r:"Remove saved cards, or use a gift card with a fixed limit."},
-  sunk:{g:"STAY",t:"Sunk-cost collection meter",d:"A progress bar toward a set built to be extremely expensive to finish. You also got free progress just for opening one pack.",
-    p:"Endowed progress + sunk cost: once you've started, an unfinished bar nags you, and past spending makes quitting feel like losing.",
-    c:"Casino loyalty cards that show 'only 200 points to the next tier'.",r:"Progress bars measure the game's goals, not yours."},
-  intermittent:{g:"STAY",t:"Random match rewards",d:"Coins for winning were random (150–250), not a fixed amount.",
-    p:"Unpredictable rewards keep you checking 'what did I get this time?', even when the amounts are small.",
-    c:"Small, frequent slot payouts that keep you at the machine.",r:"Average it out: it's ~200 coins every time. The randomness is the hook."},
-  quicksell:{g:"SPEND",t:"Buy high, sell low",d:"A Gold card sells for 250 coins, while packs cost 7,500 coins.",
-    p:"Asymmetric value: cards feel valuable when you pull them but are worth almost nothing when you try to cash out.",
-    c:"Casino chips and prizes are cheap to cash out compared with what you paid to win them.",r:"Your collection's resale value is a tiny fraction of what it cost."},
-  streak:{g:"RETURN",t:"Daily login streak",d:"Rewards grow each day in a row, and missing a single day resets you to Day 1.",
-    p:"Loss aversion + habit loops: losing a streak hurts more than the reward is worth, so you open the app daily out of obligation.",
-    c:"Daily casino-app bonuses and 'come back tomorrow' free coins.",r:"Ask whether you're opening the app because you want to or because you don't want to lose the streak."},
-  arcade:{g:"STAY",t:"Casino games inside a sports game",d:"A basketball game for all ages now has a slot machine, Plinko and roulette.",
-    p:"Normalization: when gambling is wrapped in a familiar, friendly game, it stops feeling like gambling, especially for kids and teens.",
-    c:"These ARE casino games, just paid with game coins instead of chips.",r:"Call it what it is. If it has a reel, a wheel or a ball drop for a random prize, it's gambling-style design."},
-  exchange:{g:"SPEND",t:"Currency layering",d:"Dollars → Gems → Coins → bets. Each step makes it harder to tell what you're really spending.",
-    p:"Every extra currency adds distance from real money and weakens the 'pain of paying'.",
-    c:"Cash → chips → credits on a machine.",r:"◆ 100 ≈ $0.87–$1.11, so a ● 1,000 bet is about $1. Do the math out loud."},
-  betmax:{g:"SPEND",t:"Bet-max default",d:"The biggest bet was pre-selected and glows.",
-    p:"Default effect: people tend to stick with whatever option is already chosen.",
-    c:"The big 'BET MAX' button on every slot machine.",r:"Always pick the smallest bet before you play, or don't play."},
-  freeplay:{g:"STAY",t:"Free welcome credits",d:"You got 1,000 free Arcade coins to 'try it out'.",
-    p:"Free trials lower the barrier. Once you've played and felt a win, paying to continue feels normal.",
-    c:"Casino 'free play' and sign-up bonuses.",r:"Free credits are bait. The casino expects you to spend more than it gave you."},
-  ldw:{g:"STAY",t:"Loss disguised as a win",d:"The slot flashed 'WIN!' and celebrated, but it paid back LESS than you bet.",
-    p:"Your brain reacts to the lights and the word 'WIN' as if you won, so you misremember how much you're losing.",
-    c:"Modern slots do this constantly; researchers call it an LDW (loss disguised as a win).",r:"Compare the payout to the bet. Anything under your bet is a loss."},
-  virtualreel:{g:"STAY",t:"Engineered near-misses",d:"Two jackpot symbols landed on the line and the third stopped just above it. That's shown far more often than chance would allow.",
-    p:"Near-misses feel like 'almost winning' and make people play longer, even though they're just losses.",
-    c:"Real slots use 'virtual reel' weighting so jackpot symbols appear next to the payline much more often than on it.",r:"There's no such thing as 'almost' on a slot. The result was decided when you pressed spin."},
-  control:{g:"STAY",t:"Illusion of control",d:"The STOP and AIM buttons do nothing. Every result is decided the instant you play.",
-    p:"Feeling in control makes people bet more and believe skill matters in a game of pure chance.",
-    c:"Slot 'stop' buttons, choosing your own lottery numbers, blowing on dice.",r:"If the outcome is random, nothing you press changes your odds."},
-  autoplay:{g:"STAY",t:"Autoplay and speed",d:"AUTO ×10 / DROP ×10 bet over and over without you deciding each time.",
-    p:"Removing the pause between bets removes the moment you'd stop and think, and speeds up losses.",
-    c:"Autoplay on slots is banned or limited in some countries (for example, Great Britain) for this reason.",r:"Never use autoplay. Every bet should be a choice."},
-  sensory:{g:"STAY",t:"Celebration effects",d:"Flashing lights and big '+coins' numbers on every payout, however small.",
-    p:"Sensory rewards trigger excitement on their own and make wins feel bigger and more frequent than they are.",
-    c:"Casino floors are built around lights, jingles and the sound of coins.",r:"Turn the hype down: check your balance, not the lights."},
-  fallacy:{g:"SPEND",t:"Gambler's fallacy prompts",d:"The 'HOT' and 'COLD' numbers and 'RED is due!' messages suggest past spins predict the next one.",
-    p:"People think randomness 'evens out' in the short run, so a streak makes the opposite feel 'due'.",
-    c:"Real roulette tables show result boards for exactly this reason.",r:"Every spin is independent. The wheel has no memory."},
-  chase:{g:"SPEND",t:"Double-up chasing",d:"After a loss, a 'DOUBLE UP' button offered to bet twice as much to win it back.",
-    p:"Loss-chasing: trying to recover losses by betting more is one of the strongest warning signs of problem gambling.",
-    c:"The 'Martingale' doubling system, which eventually wipes players out.",r:"Accept the loss. Doubling up only makes the eventual loss bigger."},
-  houseedge:{g:"SPEND",t:"House edge",d:"",
-    p:"Each bet looks fair, but every game is set to pay back less than you put in over time. The more you play, the surer you are to lose.",
-    c:"Every casino game has a built-in edge. The house always wins in the long run.",r:"Look at 'bet / paid back' in the Reality Check. That gap is the house edge at work."},
-  appointment:{g:"RETURN",t:"Appointment mechanics",d:"The free spin only refreshes once a day.",
-    p:"Scheduled rewards build habits: you come back at set times even when you weren't planning to play.",
-    c:"Social casino apps that drop free coins every few hours.",r:"Turn off notifications. A free spin isn't free if it costs you your time every day."},
+  // t = name, d = what happened, p = why it works on your brain, c = how a casino does it, r = what you can do
+  currency:{g:"SPEND",t:"Fake money (Gems)",d:"Prices are in Gems, not dollars.",
+    p:"Gems don't feel like real money, so spending them doesn't hurt as much.",
+    c:"Casinos turn your cash into plastic chips for the same reason.",r:"Change Gems back to dollars in your head. 1,250 Gems is about $12."},
+  leftover:{g:"SPEND",t:"Leftover Gems trap",d:"Gem bundles never match pack prices, so you always have some Gems left over.",
+    p:"Leftovers feel wasted, so you buy more to 'use them up'.",
+    c:"Like a gift card with a few dollars left that gets you to spend more.",r:"Leftover Gems are money you already spent. Buying more won't get it back."},
+  anchoring:{g:"SPEND",t:"Fake sale price",d:"A crossed-out price and a 'BEST VALUE' sign make the big bundle look like a deal.",
+    p:"Seeing a big number first makes the next number seem small.",
+    c:"Casinos offer 'bonus' deals so bigger deposits look smart.",r:"Ask yourself: would I pay this if there were no crossed-out price?"},
+  lootbox:{g:"SPEND",t:"Loot boxes",d:"You paid for a surprise pack, not the player you wanted.",
+    p:"Not knowing what you'll get is exciting. That excitement makes it hard to stop.",
+    c:"A slot machine works the same way: pay, then get a random result.",r:"Check the odds before you open a pack."},
+  hiddenodds:{g:"SPEND",t:"Hidden odds",d:"The odds are behind a tiny grey link that's easy to miss.",
+    p:"If you don't see the odds, you guess your chances are better than they really are.",
+    c:"Slot machines don't show their odds on the front either.",r:"Always look for the odds. Hiding them is a warning sign."},
+  nearmiss:{g:"SPEND",t:"'So close!' moment",d:"The pack glowed like a top card, then showed a normal one.",
+    p:"Almost winning feels a lot like winning, so you want to try again.",
+    c:"Slot machines often stop the jackpot symbol just past the line.",r:"The result was picked before the animation started. 'Close' doesn't count."},
+  hook:{g:"STAY",t:"Rigged first pack",d:"Your free first pack was set up to give you a great card.",
+    p:"A big win early makes you think it will happen again.",
+    c:"Many gamblers say a big early win is what got them hooked.",r:"Your first pack was set up. Every pack after uses the real, low odds."},
+  honeymoon:{g:"STAY",t:"Easy first games",d:"Your first few opponents were made weak on purpose.",
+    p:"Winning right away makes you feel good at the game and want to stay.",
+    c:"Casinos give 'free play' so new players feel lucky.",r:"Notice when a game suddenly gets harder after you're hooked."},
+  rubberband:{g:"SPEND",t:"Opponents level up with you",d:"Opponents get better when your team gets better.",
+    p:"You never feel strong for long, so you keep buying upgrades.",
+    c:"Casino games are set so players never stay ahead.",r:"If the game always matches you, buying can't make you win more."},
+  lossoffer:{g:"SPEND",t:"Offer after a loss",d:"Right after a close loss, the game offered you a pack. The '73%' was made up.",
+    p:"When you're upset, it's harder to make good choices.",
+    c:"Gamblers who try to 'win it back' after losing often lose more.",r:"Don't buy right after a loss. Wait a day."},
+  fomo:{g:"SPEND",t:"Fake countdown",d:"The timer starts over at zero or when you reload the page.",
+    p:"A ticking clock makes you rush instead of think.",
+    c:"Online casinos use 'today only' bonuses.",r:"Reload the page. If the timer resets, the deadline is fake."},
+  wheel:{g:"STAY",t:"Tricky prize wheel",d:"The GALAXY slice looks huge, but you only win it 2 times in 1,000 spins.",
+    p:"Your eyes think a big slice means a big chance. It doesn't.",
+    c:"This is a real casino prize wheel.",r:"Slice size is just decoration. Only the real odds matter."},
+  social:{g:"SPEND",t:"Fake winners list",d:"The 'Live Pulls' list is made up and only shows big wins.",
+    p:"Seeing lots of winners makes winning seem common.",
+    c:"Winning slot machines ring loudly. Losing ones are silent.",r:"You only see the winners, never the thousands who lost."},
+  powercreep:{g:"RETURN",t:"New season, weaker cards",d:"A new season made opponents stronger and your cards worse.",
+    p:"What you paid for loses value, so you feel you have to buy again.",
+    c:"Like a rewards level that resets so you have to keep spending.",r:"Anything you buy will lose value soon. Think of it as renting."},
+  grind:{g:"SPEND",t:"Slow on purpose",d:"A win gives about 200 coins. A pack costs 7,500. That's about 40 wins!",
+    p:"Making the free way slow makes paying feel like a smart shortcut.",
+    c:"Casino rewards take tons of play to earn anything good.",r:"Ask: is the game still fun if I just play it?"},
+  oneclick:{g:"SPEND",t:"One-tap buying",d:"One tap spent money. No 'Are you sure?'",
+    p:"With no pause, you don't stop to think.",
+    c:"Casino cards and saved payment info make spending fast.",r:"Ask an adult to remove saved cards, or use a gift card with a limit."},
+  sunk:{g:"STAY",t:"Progress bar trap",d:"A bar shows how close you are to finishing a set. You even got free progress to start.",
+    p:"An unfinished bar bugs you. After spending money, quitting feels like losing it.",
+    c:"Casino reward cards say things like 'only 200 points to the next level!'",r:"The bar shows the game's goal, not yours."},
+  intermittent:{g:"STAY",t:"Random rewards",d:"Your coins for winning were a random amount.",
+    p:"Not knowing what you'll get keeps you curious and playing.",
+    c:"Slot machines pay small random amounts to keep you there.",r:"It averages about 200 every time. The randomness is the hook."},
+  quicksell:{g:"SPEND",t:"Cards sell for almost nothing",d:"A Gold card sells for 250 coins, but packs cost 7,500.",
+    p:"Cards feel valuable when you get them, but they're worth very little later.",
+    c:"Casino prizes are worth much less than what you spent to win them.",r:"Your collection is worth only a tiny bit of what it cost."},
+  streak:{g:"RETURN",t:"Daily streak",d:"Rewards get bigger each day, but miss one day and you start over.",
+    p:"Losing a streak feels bad, so you open the app every day even when you don't want to.",
+    c:"Casino apps give 'come back tomorrow' free coins.",r:"Ask: am I playing because I want to, or because I'm afraid to lose my streak?"},
+  arcade:{g:"STAY",t:"Casino games in a sports game",d:"A basketball game now has slots, Plinko and roulette.",
+    p:"Putting gambling inside a fun game makes it feel normal, even for kids.",
+    c:"These are casino games. They just use game coins instead of chips.",r:"Reels, wheels and ball drops for random prizes are gambling."},
+  exchange:{g:"SPEND",t:"Money → Gems → Coins",d:"Your dollars become Gems, then Coins, then bets.",
+    p:"Each change makes it harder to tell how much real money you're using.",
+    c:"Casinos turn cash into chips, then into machine credits.",r:"A 1,000-coin bet is about $1 of real money."},
+  betmax:{g:"SPEND",t:"Biggest bet picked for you",d:"The biggest bet was already picked and glowing.",
+    p:"Most people stick with whatever is already picked.",
+    c:"Every slot machine has a big 'BET MAX' button.",r:"Always pick the smallest bet yourself."},
+  freeplay:{g:"STAY",t:"Free coins to start",d:"You got 1,000 free coins to 'try it out'.",
+    p:"Once you've tried it and won, paying to keep going feels normal.",
+    c:"Casinos give free play to new players.",r:"Free coins are bait. They expect you to spend more later."},
+  ldw:{g:"STAY",t:"Fake win",d:"It said 'WIN!', but you got back LESS than you bet.",
+    p:"The lights and the word 'WIN' trick your brain into feeling like you won.",
+    c:"Slot machines do this all the time.",r:"Compare what you got to what you bet. Less = you lost."},
+  virtualreel:{g:"STAY",t:"Rigged 'so close!'",d:"Two jackpots landed and the third just missed. The game shows this way more than real luck would.",
+    p:"Almost winning makes people keep playing.",
+    c:"Real slot machines are built to show near-misses more often.",r:"There's no 'almost' in a slot. You either won or you lost."},
+  control:{g:"STAY",t:"Buttons that do nothing",d:"The STOP and AIM buttons don't change anything. The result is already picked.",
+    p:"Pressing buttons makes you feel in control, so you think skill matters. It doesn't.",
+    c:"Slot stop buttons. Picking 'lucky' numbers. Blowing on dice.",r:"If it's random, nothing you press changes your chances."},
+  autoplay:{g:"STAY",t:"Autoplay",d:"AUTO ×10 bets again and again without you choosing each time.",
+    p:"No break means no time to stop and think, so you lose faster.",
+    c:"Great Britain banned autoplay on online slots for this reason.",r:"Never use autoplay. Every bet should be your choice."},
+  sensory:{g:"STAY",t:"Flashing lights",d:"Lights flash and numbers pop up, even for tiny wins.",
+    p:"Lights and sounds make you excited and make wins seem bigger.",
+    c:"Casinos are full of lights and jingling sounds.",r:"Ignore the lights. Look at your balance."},
+  fallacy:{g:"SPEND",t:"'It's due!' trick",d:"'HOT' numbers and 'RED IS DUE!' make you think past spins predict the next one.",
+    p:"People think luck has to even out. It doesn't.",
+    c:"Real roulette tables show past results to trick players.",r:"Every spin is brand new. The wheel has no memory."},
+  chase:{g:"SPEND",t:"'Double up' trap",d:"After you lost, a button said to bet double to win it back.",
+    p:"Trying to win back losses is a big warning sign of a gambling problem.",
+    c:"Doubling your bet after each loss is a famous way gamblers go broke.",r:"Accept the loss and stop. Doubling makes losses bigger."},
+  houseedge:{g:"SPEND",t:"The house always wins",d:"",
+    p:"Each game is set to give back less than you put in. The longer you play, the more you lose.",
+    c:"Every casino game is built this way.",r:"Check 'bet / paid back' in the Reality Check."},
+  appointment:{g:"RETURN",t:"Come back tomorrow",d:"The free spin only comes back once a day.",
+    p:"Rewards at set times build a habit of opening the app.",
+    c:"Casino apps drop free coins every few hours.",r:"Turn off notifications. You decide when you play."},
 };
+const GOAL={SPEND:"💸 Wants your money",STAY:"⏳ Keeps you playing",RETURN:"🔁 Brings you back"};
 const seen = new Set();
 const shown = new Set(); // tactics already explained in a pop-up this session
 
@@ -583,12 +585,12 @@ function tactic(k){
   // highlight the part of the screen doing it
   document.querySelectorAll(FLASH[k]||"_").forEach(el=>{ el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),3400); });
   // full explanation in the Teach panel, every time
-  $("teachNow").innerHTML=`<span class="goal ${T.g}">${T.g}</span> <span class="small muted">used on you ${S.uses[k]}×</span>
-    <h4>${T.t}</h4><dl><dt>What just happened</dt><dd>${T.d}</dd><dt>The psychology</dt><dd>${T.p}</dd>
-    <dt>Casino version</dt><dd>${T.c}</dd><dt>How to resist</dt><dd>${T.r}</dd></dl>`;
+  $("teachNow").innerHTML=`<span class="goal ${T.g}">${GOAL[T.g]}</span> <span class="small muted">used on you ${S.uses[k]}×</span>
+    <h4>${T.t}</h4><dl><dt>What happened</dt><dd>${T.d}</dd><dt>Why it works on your brain</dt><dd>${T.p}</dd>
+    <dt>Like a casino</dt><dd>${T.c}</dd><dt>What you can do</dt><dd>${T.r}</dd></dl>`;
   renderTeach();
   // pop-up: full the first time, short reminder after that (throttled)
-  if(!shown.has(k)){ shown.add(k); toast(`<span class="goal ${T.g}">${T.g}</span><br>🎓 <b>${T.t}</b><br>${T.p}<br><i>Casino version:</i> ${T.c}`,"ins",9000); }
+  if(!shown.has(k)){ shown.add(k); toast(`<span class="goal ${T.g}">${GOAL[T.g]}</span><br>🎓 <b>${T.t}</b><br>${T.d}<br><i>Why it works:</i> ${T.p}`,"ins",9000); }
   else if(Date.now()-lastToastAt>1500){ lastToastAt=Date.now(); toast(`🎓 <b>${T.t}</b> again (${S.uses[k]}×)`,"ins",2600); }
 }
 function renderTeach(){
@@ -1081,7 +1083,7 @@ function rSpin(amount){
 $("rSpin").onclick=()=>rSpin(S.bet);
 $("rDouble").onclick=()=>{ tactic("chase"); rSpin(rLastLoss*2); };
 renderRoulette();
-TACTICS.houseedge.d=`Over the long run Slots pays back ${Math.round(SLOT_RTP*100)}%, Plinko ${Math.round(PLINKO_RTP*100)}% and Roulette 97.3% of what you bet. The rest is kept.`;
+TACTICS.houseedge.d=`For every 100 coins you bet, Slots gives back about ${Math.round(SLOT_RTP*100)}, Plinko about ${Math.round(PLINKO_RTP*100)}, and Roulette about 97. The game keeps the rest.`;
 
 // ---------- Daily login streak ----------
 const STREAK=[{l:"◆ 50",f:()=>S.gems+=50},{l:"● 500",f:()=>S.coins+=500},{l:"◆ 100",f:()=>S.gems+=100},
@@ -1140,7 +1142,7 @@ function debrief(){
       <tr><td>Wins needed to earn ONE Standard pack</td><td>~${Math.round(7500/200)} wins</td></tr>
     </table>
     <h3 style="font-size:24px">Tactics in this game <span class="small muted" style="font-family:Inter">(highlighted = you ran into it)</span></h3>
-    <div class="tacticlist">${Object.entries(TACTICS).map(([k,v])=>`<div class="${seen.has(k)?"seen":""}"><span class="goal ${v.g}">${v.g}</span> <b>${seen.has(k)?"✔ ":""}${v.t}</b>${(S.uses||{})[k]?` <span class="small muted">· used on you ${S.uses[k]}×</span>`:""}<br><span class="small muted">${v.d}</span><br><span class="small"><b>Psychology:</b> ${v.p}</span><br><span class="small"><b>Casino version:</b> ${v.c}</span></div>`).join("")}</div>
+    <div class="tacticlist">${Object.entries(TACTICS).map(([k,v])=>`<div class="${seen.has(k)?"seen":""}"><span class="goal ${v.g}">${GOAL[v.g]}</span> <b>${seen.has(k)?"✔ ":""}${v.t}</b>${(S.uses||{})[k]?` <span class="small muted">· used on you ${S.uses[k]}×</span>`:""}<br><span class="small muted">${v.d}</span><br><span class="small"><b>Why it works:</b> ${v.p}</span><br><span class="small"><b>Like a casino:</b> ${v.c}</span><br><span class="small"><b>What you can do:</b> ${v.r}</span></div>`).join("")}</div>
     <h3 style="font-size:24px;margin-top:14px">Real-world context</h3>
     <ul class="small">
       <li>Sports games with card-collecting modes sell randomized player packs bought with premium currency, often with casino-style extras such as prize wheels and pachinko-like boards.</li>
@@ -1173,7 +1175,7 @@ function intro(){
     <p><b>This is an educational simulation.</b> It copies the <i>design tactics</i> found in many pay-to-win sports games so you can experience them, and then take them apart.</p>
     <ul class="small">
       <li>💳 <b>No real money is charged, ever.</b> Every price is pretend; the “Reality Check” panel adds up what it <i>would</i> have cost.</li>
-      <li>🎓 <b>Teach Mode</b> (switch at the top) keeps the game working the same, but every time you do something it highlights the trick being used on you and explains the psychology, the casino version, and how to resist it.</li>
+      <li>🎓 <b>Teach Mode</b> (switch at the top): the game works the same, but each time it tries to trick you, it lights up and tells you how the trick works.</li>
       <li>📋 <b>Debrief</b> shows your totals, the real odds, and every tactic in the game.</li>
     </ul>
     <p class="small muted">Classroom tip: play 5–10 minutes with Teach Mode <b>off</b>, then turn it on or open the Debrief and discuss.</p>
@@ -1187,6 +1189,7 @@ function intro(){
 }
 
 // ---------- Boot ----------
+document.querySelectorAll(".itag").forEach(t=>{ if(TACTICS[t.dataset.t]) t.textContent=TACTICS[t.dataset.t].t; });
 checkDay(); renderBundles(); drawWheel(); render(); renderLog(); renderTeach();
 if(!S.introDone) intro();
 })();
