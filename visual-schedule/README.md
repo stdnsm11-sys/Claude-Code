@@ -64,6 +64,14 @@ Tap **🖨️ Print** at the top. Choose:
 
 A preview shows the first page. **Save PDF to print** makes a US Letter PDF with black-outlined, numbered cards (photos included). Open the PDF and print it. The app can't open the printer dialog itself on claude.ai, so it always goes through a PDF.
 
+### Canon Ivy 2 mini photo printer
+In the print window, choose **Printer → Canon Ivy 2 (2×3 in.)**. The Ivy 2 prints 2×3 inch ZINK sticker paper from pictures in your photo library, so the app makes one picture per sticker (1200×1800, 600 dpi) instead of a PDF.
+- **1 big card** per sticker: a large picture and big word, with a safe edge so the outline isn't trimmed.
+- **2 cards** per sticker: two smaller cards stacked, with a dotted line to cut them apart.
+- Options: step numbers, a title sticker before each routine, and small steps of broken-down tiles.
+- **Save all stickers (ZIP)**, or tap one sticker thumbnail to save just that picture.
+- On iPhone/iPad: open the ZIP in the Files app, select the pictures, **Save to Photos**, then pick them in the **Canon Mini Print** app and print.
+
 ## Real photos from the camera
 A photo of the real thing (for *Snack*, his bag of M&Ms) shows big on the tile, with the symbol kept small in the corner.
 - In Parent mode, tap **📷** under a tile to open the camera right away. The photo is added to that tile, with **Undo**.

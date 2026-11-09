@@ -137,6 +137,10 @@ button{cursor:pointer;color:var(--ink)}
 .pr-opts legend{font-weight:700;color:var(--muted);font-size:.88rem;margin-bottom:6px;padding:0}
 .pr-opts .seg{flex-wrap:wrap;border-radius:18px}
 .pr-prev{width:100%;max-width:220px;border:2px solid var(--line);border-radius:6px;box-shadow:0 2px 8px rgba(20,24,40,.15);background:#fff}
+.pr-thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.pr-thumbs button{border:2px solid var(--line);border-radius:8px;background:#fff;padding:3px;width:64px}
+.pr-thumbs button:hover{border-color:var(--accent)}
+.pr-thumbs img{display:block;width:100%;height:auto;border-radius:4px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* tile editor */
@@ -501,6 +505,12 @@ button{cursor:pointer;color:var(--ink)}
     <h2 id="prH">Print the schedule</h2>
     <div class="ed-top" style="grid-template-columns:minmax(0,1fr) 160px">
       <div class="pr-opts">
+        <fieldset><legend>Printer</legend>
+          <div class="seg" role="group" id="prPrinter">
+            <button type="button" data-printer="letter" aria-pressed="true">Letter paper</button>
+            <button type="button" data-printer="ivy" aria-pressed="false">Canon Ivy 2 (2×3 in.)</button>
+          </div>
+        </fieldset>
         <fieldset><legend>What to print</legend>
           <div class="seg" role="group" id="prWhat">
             <button type="button" data-what="routine" aria-pressed="true">This routine</button>
@@ -508,6 +518,7 @@ button{cursor:pointer;color:var(--ink)}
             <button type="button" data-what="day" aria-pressed="false">The whole day</button>
           </div>
         </fieldset>
+        <div id="prLetterOpts" class="pr-opts">
         <fieldset><legend>Card size</legend>
           <div class="seg" role="group" id="prSize">
             <button type="button" data-cols="2" aria-pressed="false">Large</button>
@@ -515,10 +526,26 @@ button{cursor:pointer;color:var(--ink)}
             <button type="button" data-cols="4" aria-pressed="false">Small</button>
           </div>
         </fieldset>
-        <label class="toggle"><input type="checkbox" id="prSub" checked> Add the small steps of broken-down tiles</label>
         <label class="toggle"><input type="checkbox" id="prCut"> Dotted cut lines (for velcro or a first/then board)</label>
+        </div>
+        <div id="prIvyOpts" class="pr-opts" hidden>
+        <fieldset><legend>Cards on each 2×3 in. sticker</legend>
+          <div class="seg" role="group" id="prIvyLayout">
+            <button type="button" data-per="1" aria-pressed="true">1 big card</button>
+            <button type="button" data-per="2" aria-pressed="false">2 cards (cut in half)</button>
+          </div>
+        </fieldset>
+        <label class="toggle"><input type="checkbox" id="prNum" checked> Step numbers on the cards</label>
+        <label class="toggle"><input type="checkbox" id="prTitle"> A title sticker before each routine</label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="prSub" checked> Add the small steps of broken-down tiles</label>
       </div>
       <div><canvas class="pr-prev" id="prPrev" width="1275" height="1650" aria-label="Preview of the first page"></canvas></div>
+    </div>
+    <div id="prIvyBox" class="ed-sec" hidden>
+      <h3>Print on the Ivy 2</h3>
+      <p class="hint">Save the stickers as pictures, add them to your photo library, then pick them in the Canon Mini Print app. A ZIP holds every sticker (on iPhone or iPad, tap it in the Files app to open it, select the pictures, then Save to Photos). Or tap one sticker below to save just that picture.</p>
+      <div class="pr-thumbs" id="prThumbs"></div>
     </div>
     <p class="drawmsg" id="prMsg" aria-live="polite" style="margin:0"></p>
     <div class="ed-acts">
@@ -1343,7 +1370,7 @@ Reply with only a JSON array, for example: [{"emoji":"🗄️","label":"Go to dr
 // The viewer can't open a print dialog, so the schedule becomes a PDF the person saves and prints.
 let downloadsApi = null;
 (async () => { try { if (window.claude && claude.use) downloadsApi = await claude.use("downloads"); } catch(e){} })();
-const PR = {what:"routine", cols:3};
+const PR = {what:"routine", cols:3, printer:"letter", per:1};
 const PW = 1275, PH = 1650, PM = 75;   // US Letter at 150 dpi, with margins
 function prSections(){
   // [{title, sub, tiles}] in print order
@@ -1467,9 +1494,134 @@ async function pdfFrom(pages){
   put(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
   return new Blob(parts, {type:"application/pdf"});
 }
+/* Canon Ivy 2: ZINK 2×3 in. photo stickers. Each sticker is a 1200×1800 picture (600 dpi);
+   a 5% safe edge keeps the outline clear of the printer's slight edge trim. */
+const IW = 1200, IH = 1800;
+function ivySheets(){
+  const items = [];
+  prSections().forEach(sc => {
+    if ($("prTitle").checked) items.push({title:sc});
+    sc.tiles.forEach((t, i) => items.push({t, n:i + 1}));
+  });
+  const sheets = [];
+  for (let i = 0; i < items.length; i += PR.per) sheets.push(items.slice(i, i + PR.per));
+  return sheets;
+}
+function ivyCard(g, it, x, y, w, h, imgs){
+  const land = w > h, k = w / IW;   // k scales line widths and text to the card size
+  const m = Math.round(Math.min(w, h) * (land ? 0.06 : 0.06)), bw = Math.max(2, 16 * k * (land ? 0.85 : 1));
+  const bx = x + m, by = y + m, W = w - 2 * m, H = h - 2 * m;
+  rr(g, bx, by, W, H, Math.min(W, H) * 0.08); g.fillStyle = "#fff"; g.fill(); g.lineWidth = bw; g.strokeStyle = "#1d1f2b"; g.stroke();
+  const pad = Math.min(W, H) * 0.07;
+  g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#1d1f2b";
+  if (it.title){
+    const sc = it.title, side = Math.min(W - 2 * pad, H * 0.42);
+    g.font = `${side * 0.8}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+    g.fillText(sc.icon, bx + W / 2, by + pad + side / 2);
+    const f = fitLines(g, sc.title, W - 2 * pad, (land ? 130 : 170) * k, 700);
+    const ty = by + pad + side + (H - pad - side) * 0.38;
+    f.lines.forEach((l, j) => g.fillText(l, bx + W / 2, ty + (j - (f.lines.length - 1) / 2) * f.s * 1.08));
+    g.font = `400 ${(land ? 60 : 80) * k}px Andika, sans-serif`; g.fillStyle = "#666";
+    g.fillText(sc.sub, bx + W / 2, by + H - pad - 20 * k);
+    return;
+  }
+  const t = it.t, wordH = land ? H * 0.3 : H * 0.3;
+  const side = Math.min(W - 2 * pad, H - wordH - 2 * pad), px = bx + (W - side) / 2, py = by + pad;
+  const photo = t.photo && imgs.get(t.photo), sym = t.img && imgs.get(t.img);
+  g.save(); rr(g, px, py, side, side, side * 0.06); g.clip();
+  if (photo) drawCover(g, photo, px, py, side, side);
+  else if (sym) drawCover(g, sym, px, py, side, side);
+  else { g.font = `${side * 0.82}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + side / 2, py + side * 0.54); }
+  g.restore();
+  if (photo){
+    const d = side * 0.34, cx = px + d / 2 + side * 0.03, cy = py + side - d / 2 - side * 0.03;
+    g.beginPath(); g.arc(cx, cy, d / 2 + 6 * k, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 4 * k; g.strokeStyle = "#1d1f2b"; g.stroke();
+    if (sym){ g.save(); g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.clip(); drawCover(g, sym, cx - d / 2, cy - d / 2, d, d); g.restore(); }
+    else { g.font = `${d * 0.72}px "Noto Color Emoji", "Apple Color Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
+  }
+  const f = fitLines(g, t.label, W - 2 * pad, (land ? 118 : 150) * k, 600);
+  g.fillStyle = "#1d1f2b";
+  const ty = py + side + (by + H - py - side) / 2;
+  f.lines.forEach((l, j) => g.fillText(l, bx + W / 2, ty + (j - (f.lines.length - 1) / 2) * f.s * 1.08));
+  if ($("prNum").checked){
+    const r = Math.min(W, H) * (land ? 0.085 : 0.075); g.beginPath(); g.arc(bx + r * 0.95, by + r * 0.95, r, 0, Math.PI * 2); g.fillStyle = "#1d1f2b"; g.fill();
+    g.fillStyle = "#fff"; g.font = `700 ${r * 1.1}px Fredoka, sans-serif`; g.fillText(String(it.n), bx + r * 0.95, by + r * 1.0);
+  }
+}
+function ivyDraw(c, sheet, scale, imgs){
+  const w = Math.round(IW * scale), h = Math.round(IH * scale); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
+  if (PR.per === 1) ivyCard(g, sheet[0], 0, 0, w, h, imgs);
+  else {
+    sheet.forEach((it, i) => ivyCard(g, it, 0, i * h / 2, w, h / 2, imgs));
+    g.save(); g.setLineDash([14 * scale, 12 * scale]); g.strokeStyle = "#b5b5b5"; g.lineWidth = Math.max(1, 3 * scale);
+    g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke(); g.restore();
+  }
+  return c;
+}
+const jpgOf = c => new Promise(ok => c.toBlob(b => ok(b), "image/jpeg", 0.92));
+// A small ZIP writer (stored, no compression: JPEGs are already compressed).
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipOf(files){
+  const enc = new TextEncoder(), parts = [], cent = []; let off = 0;
+  const d = new Date(), dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(), tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  files.forEach(({name, data}) => {
+    const nm = enc.encode(name), crc = crc32(data), h = new DataView(new ArrayBuffer(30));
+    [[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,tm,2],[12,dt,2],[14,crc,4],[18,data.length,4],[22,data.length,4],[26,nm.length,2],[28,0,2]].forEach(([o,v,n]) => n === 4 ? h.setUint32(o, v, true) : h.setUint16(o, v, true));
+    parts.push(new Uint8Array(h.buffer), nm, data);
+    const c = new DataView(new ArrayBuffer(46));
+    [[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,tm,2],[14,dt,2],[16,crc,4],[20,data.length,4],[24,data.length,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,n]) => n === 4 ? c.setUint32(o, v, true) : c.setUint16(o, v, true));
+    cent.push(new Uint8Array(c.buffer), nm);
+    off += 30 + nm.length + data.length;
+  });
+  const cdSize = cent.reduce((a, b) => a + b.length, 0), e = new DataView(new ArrayBuffer(22));
+  [[0,0x06054b50,4],[4,0,2],[6,0,2],[8,files.length,2],[10,files.length,2],[12,cdSize,4],[16,off,4],[20,0,2]].forEach(([o,v,n]) => n === 4 ? e.setUint32(o, v, true) : e.setUint16(o, v, true));
+  return new Blob([...parts, ...cent, new Uint8Array(e.buffer)], {type:"application/zip"});
+}
+const sheetName = (sheet, i) => `${String(i + 1).padStart(2, "0")} ${sheet.map(it => it.title ? it.title.title : it.t.label).join(" + ")}`.replace(/[^\w ,+'-]+/g, "").trim().slice(0, 60);
+async function saveFile(filename, blob){
+  if (downloadsApi){ await downloadsApi.save({filename, data:blob}); return "Saved"; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); return "Downloaded";
+}
+const saveErr = e => { const c = e && e.code; return c === "declined" ? "Nothing was saved." : c === "rate_limited" ? "A save is already open. Finish that one, then try again." : "That couldn't be saved here. Try again, or open the app from its index.html file."; };
+let ivyCache = null;
+async function ivyPreview(){
+  const sheets = ivySheets(), sc = prSections(), imgs = await prReady(sc); ivyCache = {sheets, imgs};
+  const c = $("prPrev"); ivyDraw(c, sheets[0] || [], 1, imgs);
+  if (!sheets.length){ const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); }
+  const shown = sheets.slice(0, 30), tc = document.createElement("canvas");
+  $("prThumbs").innerHTML = shown.map((sh, i) => `<button type="button" data-sheet="${i}" aria-label="Save sticker ${i + 1}: ${esc(sheetName(sh, i))}"><img alt="" src="${ivyDraw(tc, sh, 0.1, imgs).toDataURL("image/jpeg", 0.8)}"></button>`).join("")
+    + (sheets.length > shown.length ? `<span class="drawmsg">and ${sheets.length - shown.length} more in the ZIP</span>` : "");
+  const cards = sheets.reduce((a, s) => a + s.filter(it => it.t).length, 0);
+  $("prMsg").textContent = sheets.length ? `${sheets.length} ${sheets.length === 1 ? "sticker" : "stickers"} (${cards} ${cards === 1 ? "card" : "cards"}). The Ivy 2 prints 2×3 in. ZINK sticker paper.` : "Nothing to print here yet.";
+  $("prGo").disabled = !sheets.length;
+}
+$("prThumbs").onclick = async e => {
+  const b = e.target.closest("[data-sheet]"); if (!b || !ivyCache) return;
+  const i = +b.dataset.sheet, sh = ivyCache.sheets[i]; b.disabled = true;
+  try { const blob = await jpgOf(ivyDraw(document.createElement("canvas"), sh, 1, ivyCache.imgs)); const name = `${sheetName(sh, i)}.jpg`;
+    $("prMsg").textContent = `${await saveFile(name, blob)} “${name}”. Add it to Photos, then print it from the Canon Mini Print app.`; }
+  catch(err){ $("prMsg").textContent = saveErr(err); }
+  b.disabled = false;
+};
+async function ivyZip(){
+  const {sheets, imgs} = ivyCache || {}; if (!sheets || !sheets.length) return;
+  const c = document.createElement("canvas"), files = [];
+  for (let i = 0; i < sheets.length; i++){
+    $("prMsg").textContent = `Making sticker ${i + 1} of ${sheets.length}…`;
+    files.push({name:`${sheetName(sheets[i], i)}.jpg`, data:new Uint8Array(await (await jpgOf(ivyDraw(c, sheets[i], 1, imgs))).arrayBuffer())});
+  }
+  const L = list(), base = PR.what === "day" ? `${S.mode === "weekend" ? "Weekend" : "School day"}` : PR.what === "part" ? PART[S.part].name : (L && L.trail.length ? L.trail[L.trail.length - 1].label : (L ? L.r.name : "Schedule"));
+  const name = `${base.replace(/[^\w ,'-]+/g, "").trim() || "Schedule"} - Ivy stickers.zip`;
+  $("prMsg").textContent = `${await saveFile(name, zipOf(files))} “${name}” with ${files.length} ${files.length === 1 ? "sticker" : "stickers"}.`;
+}
+
 let prTimer = null;
 async function prPreview(){
-  const pages = await prPages(1), c = $("prPrev"), g = c.getContext("2d");
+  if (PR.printer === "ivy") return ivyPreview();
+  const pages = await prPages(1), c = $("prPrev"); c.width = PW; c.height = PH; const g = c.getContext("2d");
   g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
   if (pages[0]) g.drawImage(pages[0], 0, 0);
   const all = prSections(), count = all.reduce((a, s) => a + s.tiles.length, 0);
@@ -1479,6 +1631,11 @@ async function prPreview(){
 function prSync(){
   document.querySelectorAll("#prWhat [data-what]").forEach(b => b.setAttribute("aria-pressed", b.dataset.what === PR.what));
   document.querySelectorAll("#prSize [data-cols]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.cols === PR.cols));
+  document.querySelectorAll("#prPrinter [data-printer]").forEach(b => b.setAttribute("aria-pressed", b.dataset.printer === PR.printer));
+  document.querySelectorAll("#prIvyLayout [data-per]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.per === PR.per));
+  const ivy = PR.printer === "ivy";
+  $("prLetterOpts").hidden = ivy; $("prIvyOpts").hidden = !ivy; $("prIvyBox").hidden = !ivy;
+  $("prGo").innerHTML = ivy ? '<span class="e">🗂️</span> Save all stickers (ZIP)' : '<span class="e">📄</span> Save PDF to print';
   const L = list(); $("prWhat").querySelector('[data-what="routine"]').textContent = L && L.trail.length ? "These small steps" : "This routine";
   $("prWhat").querySelector('[data-what="part"]').textContent = `The whole ${PART[S.part].name.toLowerCase()}`;
   clearTimeout(prTimer); prTimer = setTimeout(prPreview, 60);
@@ -1487,9 +1644,17 @@ $("printBtn").onclick = () => { $("psheet").hidden = false; prSync(); $("prGo").
 $("prCancel").onclick = () => { $("psheet").hidden = true; };
 $("prWhat").onclick = e => { const b = e.target.closest("[data-what]"); if (b){ PR.what = b.dataset.what; prSync(); } };
 $("prSize").onclick = e => { const b = e.target.closest("[data-cols]"); if (b){ PR.cols = +b.dataset.cols; prSync(); } };
-$("prSub").onchange = prSync; $("prCut").onchange = prSync;
+$("prSub").onchange = prSync; $("prCut").onchange = prSync; $("prNum").onchange = prSync; $("prTitle").onchange = prSync;
+$("prPrinter").onclick = e => { const b = e.target.closest("[data-printer]"); if (b){ PR.printer = b.dataset.printer; try { localStorage.setItem("sbs-printer", PR.printer); } catch(err){} prSync(); } };
+$("prIvyLayout").onclick = e => { const b = e.target.closest("[data-per]"); if (b){ PR.per = +b.dataset.per; prSync(); } };
+try { if (localStorage.getItem("sbs-printer") === "ivy") PR.printer = "ivy"; } catch(err){}
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("psheet").hidden) $("psheet").hidden = true; });
 $("prGo").onclick = async () => {
+  if (PR.printer === "ivy"){
+    $("prGo").disabled = true;
+    try { await ivyZip(); } catch(e){ $("prMsg").textContent = saveErr(e); }
+    $("prGo").disabled = false; return;
+  }
   $("prGo").disabled = true; $("prMsg").textContent = "Making the PDF…";
   try {
     const pages = await prPages(), blob = await pdfFrom(pages);
