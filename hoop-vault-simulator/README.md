@@ -39,4 +39,14 @@ A single-page simulation of the monetization tactics used in pay-to-win sports c
 | Daily login streak | 7-day reward calendar that resets if you miss a day |
 | Appointment mechanics | Free wheel spin refreshes once per day |
 
+### Prize Arcade (🎰 tab): casino games inside the sports game
+Bets use game coins; Gems can be exchanged for coins (◆ 100 → ● 1,000).
+
+| Game | Tricks it demonstrates |
+|---|---|
+| **Slot machine** | Losses disguised as wins (0.5× payouts celebrated as "WIN!"), engineered near-misses (two jackpot symbols + one just off the line, shown far more often than chance), STOP buttons that do nothing (illusion of control), AUTO ×10 autoplay. Long-run payback ≈ 71%. |
+| **Plinko** | "Aim" buttons that don't change anything, flashy 10× edge bins that are almost never hit (0.1%), "one peg from 10×" near-misses, DROP ×10. Long-run payback ≈ 74%. |
+| **Roulette** | HOT/COLD number boards and "RED IS DUE!" messages (gambler's fallacy), a DOUBLE UP button after every loss (loss-chasing / Martingale), the green 0 house edge. Payback 97.3%. |
+| **Across the Arcade** | Free welcome credits, BET MAX pre-selected, currency layering (dollars → gems → coins), celebration effects, house edge. The Reality Check tracks coins bet vs. paid back. |
+
 Progress is saved in this browser only (localStorage). Use **Reset simulation** in the Debrief to start over.

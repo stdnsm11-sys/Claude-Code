@@ -134,6 +134,39 @@ body.insight .itag{display:inline-block}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .tacticlist{display:grid;gap:8px}
+/* arcade */
+.arcbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.betrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+.betrow button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:6px 12px;font-weight:800}
+.betrow button.sel{background:var(--coin);color:#2a1d00;border-color:var(--coin)}
+.betrow button.max{box-shadow:0 0 12px #ffc93c66}
+.teachonly{display:none}
+body.insight .teachonly{display:block}
+.machine{background:linear-gradient(180deg,#3a0d2a,#16081f);border:3px solid var(--coin);border-radius:18px;padding:16px;text-align:center;box-shadow:inset 0 0 30px #000}
+.reels{display:flex;justify-content:center;gap:8px;position:relative;margin:0 auto 12px;max-width:340px}
+.reel{flex:1;background:#fff;border-radius:10px;overflow:hidden;border:3px solid #222;display:grid;grid-template-rows:repeat(3,64px)}
+.reel div{display:flex;align-items:center;justify-content:center;font-size:40px;line-height:1}
+.reel div:nth-child(1),.reel div:nth-child(3){opacity:.45}
+.reel.spin div{filter:blur(1.5px)}
+.payline{position:absolute;left:-6px;right:-6px;top:50%;height:3px;background:var(--hot);transform:translateY(-50%);box-shadow:0 0 8px var(--hot);pointer-events:none}
+.ctrl{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.amsg{min-height:46px;font-weight:800;font-size:18px;margin-top:10px}
+.win-flash{animation:winf .25s 6 alternate}
+@keyframes winf{to{box-shadow:0 0 0 6px var(--coin),0 0 40px var(--coin);filter:brightness(1.35)}}
+.paytable{font-size:12px;color:var(--muted);margin-top:10px}
+.paytable td{padding:3px 6px}
+#plinko{display:block;width:100%;max-width:460px;height:auto;margin:0 auto;background:#120c2b;border-radius:14px;border:2px solid #6d4bd8}
+.rwrap{position:relative;width:280px;max-width:100%;aspect-ratio:1;margin:0 auto}
+.rwrap svg{width:100%;height:100%;transition:transform 4.5s cubic-bezier(.12,.7,.1,1)}
+.rgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:8px}
+.rgrid button,.rbets button{padding:6px 0;font-weight:800;color:#fff;border-radius:6px;font-size:12px;border:2px solid transparent}
+.rgrid .r{background:#c4123a}.rgrid .b{background:#222}.rgrid .z{background:#0d8a43;grid-column:span 12}
+.rbets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.rbets button{background:var(--panel2);border-color:var(--line);padding:8px 0}
+.rgrid button.sel,.rbets button.sel{border-color:var(--coin);box-shadow:0 0 10px var(--coin)}
+.hist{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.hist span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.hotcold{display:flex;gap:10px;justify-content:center;font-size:12px;font-weight:800;flex-wrap:wrap}
 .switch{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:6px 12px 6px 6px;border-radius:999px;font-weight:800}
 .switch .knob{width:40px;height:22px;border-radius:99px;background:#44445f;position:relative;transition:background .2s}
 .switch .knob::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
@@ -191,6 +224,7 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
         <button data-tab="store">🛒 Store<span class="badge">SALE</span></button>
         <button data-tab="packs">🎁 Packs</button>
         <button data-tab="wheel">🎡 Lucky Wheel<span class="badge" id="wheelBadge">1</span></button>
+        <button data-tab="arcade">🎰 Arcade<span class="badge">NEW</span></button>
         <button data-tab="squad">🧢 My Squad</button>
       </div>
 
@@ -256,6 +290,71 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
         </div>
       </section>
 
+      <!-- ARCADE -->
+      <section data-pane="arcade" class="hide">
+        <h2>Prize Arcade <span class="itag" data-t="arcade">Casino in a sports game</span></h2>
+        <div class="arcbar">
+          <div class="pill"><span class="c">●</span><span id="arcCoins">0</span><span class="small muted">Coins</span></div>
+          <button class="btn gem" id="exchBtn">Exchange ◆ 100 → ● 1,000</button><span class="itag" data-t="exchange">Currency layering</span>
+        </div>
+        <div class="teachonly small" id="arcStats" style="color:var(--insight);margin-bottom:6px"></div>
+        <div class="tabs" id="atabs">
+          <button data-a="slots" class="act">🎰 Slots</button>
+          <button data-a="plinko">🔻 Plinko</button>
+          <button data-a="roulette">🎯 Roulette</button>
+        </div>
+        <div class="betrow" id="betrow">Bet:
+          <button data-bet="100">● 100</button><button data-bet="250">● 250</button><button data-bet="500">● 500</button>
+          <button data-bet="1000" class="max">BET MAX ● 1,000</button><span class="itag" data-t="betmax">Bet-max default</span>
+        </div>
+
+        <div data-apane="slots">
+          <div class="machine" id="slotMachine">
+            <div class="disp" style="font-size:30px;color:var(--coin)">GALAXY JACKPOT 🌌 <span class="itag" data-t="virtualreel">Engineered near-misses</span></div>
+            <div class="reels" id="reels"><div class="reel" id="reel0"></div><div class="reel" id="reel1"></div><div class="reel" id="reel2"></div><div class="payline"></div></div>
+            <div class="ctrl">
+              <button class="btn primary" id="slotSpin" style="font-size:18px;padding:12px 28px">SPIN</button>
+              <button class="btn" data-stop="0">STOP 1</button><button class="btn" data-stop="1">STOP 2</button><button class="btn" data-stop="2">STOP 3</button>
+              <button class="btn" id="autoSpin">AUTO ×10</button>
+            </div>
+            <div class="small" style="margin-top:6px"><span class="itag" data-t="control">Illusion of control</span><span class="itag" data-t="autoplay">Autoplay</span><span class="itag" data-t="ldw">Loss disguised as win</span></div>
+            <div class="amsg" id="slotMsg"></div>
+          </div>
+          <table class="paytable"><tr><td>🌌🌌🌌</td><td>100× + Galaxy card</td><td>💎💎💎</td><td>25×</td><td>🏆🏆🏆</td><td>10×</td></tr>
+            <tr><td>👟👟👟</td><td>5×</td><td>🏀🏀🏀</td><td>3×</td><td>any 🏀🏀</td><td>1.5×</td></tr><tr><td>any 🏀</td><td>0.5×</td><td colspan="4"></td></tr></table>
+        </div>
+
+        <div data-apane="plinko" class="hide">
+          <canvas id="plinko" width="460" height="440"></canvas>
+          <div class="ctrl" style="margin-top:10px">
+            <button class="btn" data-aim="-1">◀ Aim left</button><button class="btn" data-aim="0">Center</button><button class="btn" data-aim="1">Aim right ▶</button>
+          </div>
+          <div class="ctrl" style="margin-top:8px">
+            <button class="btn primary" id="plinkoDrop" style="font-size:18px;padding:12px 28px">DROP BALL</button>
+            <button class="btn" id="plinkoDrop10">DROP ×10</button>
+          </div>
+          <div class="small" style="text-align:center;margin-top:6px"><span class="itag" data-t="control">Illusion of control</span><span class="itag" data-t="nearmiss">Near-miss</span><span class="itag" data-t="houseedge">House edge</span></div>
+          <div class="amsg" id="plinkoMsg" style="text-align:center"></div>
+        </div>
+
+        <div data-apane="roulette" class="hide">
+          <div class="rwrap"><div class="pointer"></div><svg id="rwheel" viewBox="-110 -110 220 220"></svg></div>
+          <div class="hist" id="rhist"></div>
+          <div class="hotcold" id="rhot"></div>
+          <div class="small" style="text-align:center"><span class="itag" data-t="fallacy">Gambler's fallacy</span><span class="itag" data-t="chase">Double-up chasing</span></div>
+          <div class="rbets" id="rbets">
+            <button data-rb="red" style="background:#c4123a">RED</button><button data-rb="black" style="background:#222">BLACK</button><button data-rb="odd">ODD</button>
+            <button data-rb="even">EVEN</button><button data-rb="low">1–18</button><button data-rb="high">19–36</button>
+          </div>
+          <div class="rgrid" id="rgrid"></div>
+          <div class="ctrl" style="margin-top:10px">
+            <button class="btn primary" id="rSpin" style="font-size:18px;padding:12px 28px">SPIN</button>
+            <button class="btn coin hide" id="rDouble">DOUBLE UP</button>
+          </div>
+          <div class="amsg" id="rMsg" style="text-align:center"></div>
+        </div>
+      </section>
+
       <!-- SQUAD -->
       <section data-pane="squad" class="hide">
         <h2>My Squad</h2>
@@ -289,6 +388,7 @@ body.insight .flash{animation:flash 1.1s ease-in-out 3;border-radius:12px}
         <div class="stat"><span>Galaxy pulls</span><b id="rGal">0</b></div>
         <div class="stat"><span>Time in session</span><b id="rTime">0:00</b></div>
         <div class="stat"><span>Cost per win</span><b id="rPerWin">—</b></div>
+        <div class="stat"><span>Arcade: bet / paid back</span><b id="rArc">0 / 0</b></div>
       </div>
       <div class="panel">
         <h3 style="font-size:20px">Live Pulls <span class="itag" data-t="social">Fake social proof</span></h3>
@@ -370,6 +470,42 @@ const TACTICS = {
   streak:{g:"RETURN",t:"Daily login streak",d:"Rewards grow each day in a row, and missing a single day resets you to Day 1.",
     p:"Loss aversion + habit loops: losing a streak hurts more than the reward is worth, so you open the app daily out of obligation.",
     c:"Daily casino-app bonuses and 'come back tomorrow' free coins.",r:"Ask whether you're opening the app because you want to or because you don't want to lose the streak."},
+  arcade:{g:"STAY",t:"Casino games inside a sports game",d:"A basketball game for all ages now has a slot machine, Plinko and roulette.",
+    p:"Normalization: when gambling is wrapped in a familiar, friendly game, it stops feeling like gambling, especially for kids and teens.",
+    c:"These ARE casino games, just paid with game coins instead of chips.",r:"Call it what it is. If it has a reel, a wheel or a ball drop for a random prize, it's gambling-style design."},
+  exchange:{g:"SPEND",t:"Currency layering",d:"Dollars → Gems → Coins → bets. Each step makes it harder to tell what you're really spending.",
+    p:"Every extra currency adds distance from real money and weakens the 'pain of paying'.",
+    c:"Cash → chips → credits on a machine.",r:"◆ 100 ≈ $0.87–$1.11, so a ● 1,000 bet is about $1. Do the math out loud."},
+  betmax:{g:"SPEND",t:"Bet-max default",d:"The biggest bet was pre-selected and glows.",
+    p:"Default effect: people tend to stick with whatever option is already chosen.",
+    c:"The big 'BET MAX' button on every slot machine.",r:"Always pick the smallest bet before you play, or don't play."},
+  freeplay:{g:"STAY",t:"Free welcome credits",d:"You got 1,000 free Arcade coins to 'try it out'.",
+    p:"Free trials lower the barrier. Once you've played and felt a win, paying to continue feels normal.",
+    c:"Casino 'free play' and sign-up bonuses.",r:"Free credits are bait. The casino expects you to spend more than it gave you."},
+  ldw:{g:"STAY",t:"Loss disguised as a win",d:"The slot flashed 'WIN!' and celebrated, but it paid back LESS than you bet.",
+    p:"Your brain reacts to the lights and the word 'WIN' as if you won, so you misremember how much you're losing.",
+    c:"Modern slots do this constantly; researchers call it an LDW (loss disguised as a win).",r:"Compare the payout to the bet. Anything under your bet is a loss."},
+  virtualreel:{g:"STAY",t:"Engineered near-misses",d:"Two jackpot symbols landed on the line and the third stopped just above it. That's shown far more often than chance would allow.",
+    p:"Near-misses feel like 'almost winning' and make people play longer, even though they're just losses.",
+    c:"Real slots use 'virtual reel' weighting so jackpot symbols appear next to the payline much more often than on it.",r:"There's no such thing as 'almost' on a slot. The result was decided when you pressed spin."},
+  control:{g:"STAY",t:"Illusion of control",d:"The STOP and AIM buttons do nothing. Every result is decided the instant you play.",
+    p:"Feeling in control makes people bet more and believe skill matters in a game of pure chance.",
+    c:"Slot 'stop' buttons, choosing your own lottery numbers, blowing on dice.",r:"If the outcome is random, nothing you press changes your odds."},
+  autoplay:{g:"STAY",t:"Autoplay and speed",d:"AUTO ×10 / DROP ×10 bet over and over without you deciding each time.",
+    p:"Removing the pause between bets removes the moment you'd stop and think, and speeds up losses.",
+    c:"Autoplay on slots is banned or limited in some countries (for example, Great Britain) for this reason.",r:"Never use autoplay. Every bet should be a choice."},
+  sensory:{g:"STAY",t:"Celebration effects",d:"Flashing lights and big '+coins' numbers on every payout, however small.",
+    p:"Sensory rewards trigger excitement on their own and make wins feel bigger and more frequent than they are.",
+    c:"Casino floors are built around lights, jingles and the sound of coins.",r:"Turn the hype down: check your balance, not the lights."},
+  fallacy:{g:"SPEND",t:"Gambler's fallacy prompts",d:"The 'HOT' and 'COLD' numbers and 'RED is due!' messages suggest past spins predict the next one.",
+    p:"People think randomness 'evens out' in the short run, so a streak makes the opposite feel 'due'.",
+    c:"Real roulette tables show result boards for exactly this reason.",r:"Every spin is independent. The wheel has no memory."},
+  chase:{g:"SPEND",t:"Double-up chasing",d:"After a loss, a 'DOUBLE UP' button offered to bet twice as much to win it back.",
+    p:"Loss-chasing: trying to recover losses by betting more is one of the strongest warning signs of problem gambling.",
+    c:"The 'Martingale' doubling system, which eventually wipes players out.",r:"Accept the loss. Doubling up only makes the eventual loss bigger."},
+  houseedge:{g:"SPEND",t:"House edge",d:"",
+    p:"Each bet looks fair, but every game is set to pay back less than you put in over time. The more you play, the surer you are to lose.",
+    c:"Every casino game has a built-in edge. The house always wins in the long run.",r:"Look at 'bet / paid back' in the Reality Check. That gap is the house edge at work."},
   appointment:{g:"RETURN",t:"Appointment mechanics",d:"The free spin only refreshes once a day.",
     p:"Scheduled rewards build habits: you come back at set times even when you weren't planning to play.",
     c:"Social casino apps that drop free coins every few hours.",r:"Turn off notifications. A free spin isn't free if it costs you your time every day."},
@@ -411,7 +547,7 @@ let S;
 function fresh(){
   return {gems:600,coins:0,usd:0,purchases:0,packs:0,wins:0,losses:0,games:0,galaxy:0,season:1,
     cards:[mk("bronze"),mk("bronze"),mk("silver"),mk("bronze"),mk("silver")],
-    firstPack:true,freeSpin:true,insight:false,spinDay:null,streakDay:0,streakLast:null,uses:{},started:Date.now(),log:[],seen:[],introDone:false,
+    firstPack:true,freeSpin:true,insight:false,spinDay:null,streakDay:0,streakLast:null,uses:{},bet:1000,arc:{bet:0,paid:0,plays:0},arcBonus:false,rhist:[],started:Date.now(),log:[],seen:[],introDone:false,
     offerEnd:Date.now()+15*60e3, nextOpp:null};
 }
 function mk(tier,season){
@@ -436,6 +572,8 @@ function toast(html,cls="",ms=4200){
 const FLASH = {currency:".pill",leftover:"#bundles",anchoring:"#offer",lootbox:".packs",hiddenodds:".oddslink",
   rubberband:".court",lossoffer:"#lossOffer",fomo:"#offer",wheel:".wheelwrap",social:"#feed",grind:"#coins",
   oneclick:"#bundles",sunk:".meter",intermittent:".court",quicksell:"#collection",streak:"#streakPanel",appointment:"#spinBtn",
+  arcade:'[data-tab="arcade"]',exchange:"#exchBtn",betmax:"#betrow",freeplay:"#arcCoins",ldw:"#slotMsg",virtualreel:"#reels",
+  control:"[data-stop],[data-aim]",autoplay:"#autoSpin,#plinkoDrop10",sensory:".amsg",fallacy:"#rhot,#rhist",chase:"#rDouble",houseedge:"#rArc,#arcStats",
   honeymoon:".court",powercreep:"#seasonNum",nearmiss:".reveal",hook:".reveal"};
 let lastToastAt=0;
 function tactic(k){
@@ -490,6 +628,7 @@ function render(){
   $("usd").textContent=money(S.usd); $("rPurch").textContent=S.purchases; $("rPacks").textContent=S.packs;
   $("rWL").textContent=`${S.wins}–${S.losses}`; $("rGal").textContent=S.galaxy;
   $("rPerWin").textContent=S.wins?money(S.usd/S.wins):"—";
+  renderArcadeStats();
   // collection meter: galaxy cards owned this season out of a 12-card set
   const owned=S.cards.filter(c=>c.tier==="galaxy"&&c.season===S.season).length + S.cards.filter(c=>c.tier==="diamond"&&c.season===S.season).length*0.25;
   const pct=Math.min(100,Math.round(owned/12*100*10)/10 + (S.packs?3:0));
@@ -523,6 +662,7 @@ $("tabs").addEventListener("click",e=>{
   if(b.dataset.tab==="packs") tactic("sunk");
   if(b.dataset.tab==="wheel"){ tactic("wheel"); if(!S.freeSpin) tactic("appointment"); }
   if(b.dataset.tab==="squad") tactic("quicksell");
+  if(b.dataset.tab==="arcade") openArcade();
 });
 function goTab(t){ document.querySelector(`#tabs button[data-tab="${t}"]`).click(); }
 
@@ -729,6 +869,220 @@ setInterval(()=>{
 // reload always shows a fresh 15:00 → part of the fake urgency
 S.offerEnd=Date.now()+15*60e3;
 
+// ---------- Prize Arcade: slots, plinko, roulette ----------
+S.arc=S.arc||{bet:0,paid:0,plays:0}; S.rhist=S.rhist||[]; S.bet=S.bet||1000;
+function renderArcadeStats(){
+  $("arcCoins").textContent=fmt(S.coins);
+  $("rArc").textContent=`${fmt(S.arc.bet)} / ${fmt(S.arc.paid)}`;
+  const pct=S.arc.bet?Math.round(S.arc.paid/S.arc.bet*100):0;
+  $("arcStats").textContent=S.arc.bet?`🎓 You've bet ● ${fmt(S.arc.bet)} and been paid back ● ${fmt(S.arc.paid)} (${pct}%). Net: ● ${fmt(S.arc.paid-S.arc.bet)}.`:"🎓 Watch how much you bet vs. how much comes back.";
+  document.querySelectorAll("#betrow [data-bet]").forEach(b=>b.classList.toggle("sel",+b.dataset.bet===S.bet));
+}
+function openArcade(){
+  tactic("arcade");
+  if(!S.arcBonus){ S.arcBonus=true; S.coins+=1000; save(); render(); toast("🎁 <b>1,000 FREE Arcade coins</b> to get you started!"); tactic("freeplay"); }
+  if(S.bet===1000) tactic("betmax");
+}
+$("atabs").addEventListener("click",e=>{
+  const b=e.target.closest("[data-a]"); if(!b) return;
+  document.querySelectorAll("#atabs button").forEach(x=>x.classList.toggle("act",x===b));
+  document.querySelectorAll("[data-apane]").forEach(p=>p.classList.toggle("hide",p.dataset.apane!==b.dataset.a));
+  if(b.dataset.a==="plinko") drawPlinko();
+  if(b.dataset.a==="roulette"){ renderRoulette(); if(S.rhist.length>=3) tactic("fallacy"); }
+});
+$("betrow").addEventListener("click",e=>{ const b=e.target.closest("[data-bet]"); if(!b) return; S.bet=+b.dataset.bet; save(); renderArcadeStats(); if(S.bet===1000) tactic("betmax"); });
+$("exchBtn").onclick=()=>{
+  if(S.gems<100){ toast("Not enough gems. Top up in the Store!"); tactic("exchange"); goTab("store"); return; }
+  S.gems-=100; S.coins+=1000; log("Exchanged ◆ 100 for ● 1,000"); save(); render(); tactic("exchange");
+};
+function takeBet(amount){
+  if(S.coins<amount){
+    toast(`Need ● ${fmt(amount-S.coins)} more coins. Exchange some Gems!`);
+    $("exchBtn").classList.add("win-flash"); setTimeout(()=>$("exchBtn").classList.remove("win-flash"),1600);
+    tactic("exchange"); return false;
+  }
+  S.coins-=amount; S.arc.bet+=amount; S.arc.plays++;
+  if(S.arc.plays%6===0) tactic("houseedge");
+  render(); return true;
+}
+function payOut(amount,el){
+  S.coins+=amount; S.arc.paid+=amount; save(); render();
+  if(amount>0 && el){ el.classList.remove("win-flash"); void el.offsetWidth; el.classList.add("win-flash"); setTimeout(()=>el.classList.remove("win-flash"),1600); tactic("sensory"); }
+}
+
+// ----- Slots -----
+const SYM=[{s:"🏀",w:30},{s:"👟",w:22},{s:"🏆",w:18},{s:"🧱",w:20},{s:"💎",w:7},{s:"🌌",w:3}];
+const TRIPLE={"🌌":100,"💎":25,"🏆":10,"👟":5,"🏀":3,"🧱":0};
+const symW=SYM.reduce((a,x)=>a+x.w,0);
+function rollSym(){ let r=Math.random()*symW; for(const x of SYM){ if((r-=x.w)<0) return x.s; } return "🧱"; }
+function slotMult(l){ if(l[0]===l[1]&&l[1]===l[2]) return TRIPLE[l[0]]; const b=l.filter(x=>x==="🏀").length; return b===2?1.5:b===1?0.5:0; }
+const SLOT_RTP=(()=>{ let e=0; for(const a of SYM)for(const b of SYM)for(const c of SYM) e+=a.w*b.w*c.w/symW**3*slotMult([a.s,b.s,c.s]); return e; })();
+function setReel(i,col){ $("reel"+i).innerHTML=col.map(x=>`<div>${x}</div>`).join(""); }
+for(let i=0;i<3;i++) setReel(i,[rollSym(),rollSym(),rollSym()]);
+let slotBusy=false, stopFns=[];
+function slotSpin(){
+  return new Promise(done=>{
+    if(slotBusy) return done(false);
+    const bet=S.bet; if(!takeBet(bet)) return done(false);
+    slotBusy=true; $("slotMsg").textContent="";
+    let line=[rollSym(),rollSym(),rollSym()];
+    const mult=slotMult(line);
+    const cols=line.map(m=>[rollSym(),m,rollSym()]);
+    let near=false;
+    if(mult===0 && Math.random()<0.35){ // engineered near-miss: same 0 payout, but looks "so close"
+      near=true; const filler=pick(["👟","🏆","🧱","💎"]);
+      cols[0][1]="🌌"; cols[1][1]="🌌"; cols[2][1]=filler; cols[2][0]="🌌"; line=[cols[0][1],cols[1][1],cols[2][1]];
+    }
+    let stopped=0; stopFns=[];
+    cols.forEach((col,i)=>{
+      $("reel"+i).classList.add("spin");
+      const iv=setInterval(()=>setReel(i,[rollSym(),rollSym(),rollSym()]),70);
+      let fin=false;
+      const stop=()=>{ if(fin) return; fin=true; clearInterval(iv); clearTimeout(to); $("reel"+i).classList.remove("spin"); setReel(i,col); if(++stopped===3) finish(); };
+      const to=setTimeout(stop,800+i*450);
+      stopFns[i]=stop;
+    });
+    function finish(){
+      const win=Math.round(bet*mult);
+      if(mult===100){ const c=mk("galaxy"); S.cards.push(c); S.galaxy++; }
+      payOut(win, win>0?$("slotMachine"):null);
+      if(mult===0) $("slotMsg").innerHTML = near?`<span style="color:var(--galaxy)">SO CLOSE to the GALAXY JACKPOT! 😱</span>`:"No win. Spin again!";
+      else if(mult<1) $("slotMsg").innerHTML=`🎉 WIN! +● ${fmt(win)} 🎉`;
+      else $("slotMsg").innerHTML=`🎉🎉 BIG WIN! +● ${fmt(win)}${mult===100?" + GALAXY CARD!":""} 🎉🎉`;
+      log(`Slots: bet ${fmt(bet)}, got back ${fmt(win)}`);
+      if(near) tactic("virtualreel");
+      if(mult>0 && mult<1) tactic("ldw");
+      slotBusy=false; done(true);
+    }
+  });
+}
+$("slotSpin").onclick=()=>slotSpin();
+document.querySelectorAll("[data-stop]").forEach(b=>b.onclick=()=>{ const f=stopFns[+b.dataset.stop]; if(slotBusy&&f) f(); tactic("control"); });
+$("autoSpin").onclick=async()=>{
+  tactic("autoplay"); const btn=$("autoSpin"); btn.disabled=true;
+  for(let k=0;k<10;k++){ btn.textContent=`AUTO ${k+1}/10`; if(!(await slotSpin())) break; await new Promise(r=>setTimeout(r,350)); }
+  btn.disabled=false; btn.textContent="AUTO ×10";
+};
+
+// ----- Plinko -----
+const PROWS=10, PMULT=[10,4,2,0.8,0.5,0.3,0.5,0.8,2,4,10];
+const PLINKO_RTP=(()=>{ let e=0,c=1; for(let k=0;k<=PROWS;k++){ e+=c/2**PROWS*PMULT[k]; c=c*(PROWS-k)/(k+1);} return e; })();
+const pc=$("plinko"), px=pc.getContext("2d");
+const PW=460, PGAP=38, PTOP=40, PROWH=32, PCX=PW/2, PBIN=PTOP+PROWS*PROWH+10;
+let balls=[], plinkoRAF=null, aim=0, lastBin=-1, lastBinT=0;
+function pegXY(r,k){ return [PCX+(k-r/2)*PGAP, PTOP+r*PROWH]; }
+function drawPlinko(){
+  px.clearRect(0,0,PW,440);
+  px.fillStyle="#c9c3ff";
+  for(let r=0;r<PROWS;r++) for(let k=0;k<=r+2;k++){ const x=PCX+(k-(r+2)/2)*PGAP, y=PTOP+r*PROWH; px.beginPath(); px.arc(x,y,4,0,7); px.fill(); }
+  for(let k=0;k<=PROWS;k++){
+    const x=PCX+(k-PROWS/2)*PGAP, m=PMULT[k];
+    const col=m>=10?"#c06bff":m>=4?"#ff3d6e":m>=2?"#ffc93c":m>=0.8?"#3ddc84":"#5b5b7a";
+    px.fillStyle=(k===lastBin&&Date.now()-lastBinT<900)?"#ffffff":col;
+    px.beginPath(); px.roundRect(x-PGAP/2+2,PBIN,PGAP-4,m>=10?60:m>=4?48:36,6); px.fill();
+    px.fillStyle="#111"; px.font="bold 12px Inter, sans-serif"; px.textAlign="center"; px.fillText(m+"×",x,PBIN+20);
+  }
+  balls.forEach(b=>{ px.fillStyle="#ffc93c"; px.beginPath(); px.arc(b.x,b.y,8,0,7); px.fill(); });
+}
+function plinkoStep(){
+  const now=performance.now();
+  balls.forEach(b=>{
+    const seg=Math.min(b.path.length-1,Math.floor((now-b.t0)/150)), f=Math.min(1,((now-b.t0)%150)/150);
+    let a,z;
+    if(seg===0){ a=[PCX+b.aim*PGAP*1.4,4]; z=[PCX,PTOP-10]; }
+    else { const r=seg-1; a=pegXY(r,b.path[seg-1]); a[1]-=10; z = r+1<PROWS? pegXY(r+1,b.path[seg]) : [PCX+(b.path[seg]-PROWS/2)*PGAP,PBIN]; if(r+1<PROWS) z[1]-=10; }
+    b.x=a[0]+(z[0]-a[0])*f; b.y=a[1]+(z[1]-a[1])*f - Math.sin(f*Math.PI)*10;
+    if(now-b.t0>=150*(PROWS+1) && !b.done){ b.done=true; landBall(b); }
+  });
+  balls=balls.filter(b=>!b.done);
+  drawPlinko();
+  plinkoRAF = balls.length||Date.now()-lastBinT<900 ? requestAnimationFrame(plinkoStep) : null;
+}
+function landBall(b){
+  const k=b.path[b.path.length-1], m=PMULT[k], win=Math.round(b.bet*m);
+  lastBin=k; lastBinT=Date.now();
+  payOut(win, m>=1?$("plinko"):null);
+  let msg=m>=1?`🎉 ${m}× WIN! +● ${fmt(win)}`:`🎉 +● ${fmt(win)} (${m}×)`;
+  if(k===1||k===PROWS-1){ msg+=` <span style="color:var(--galaxy)">One peg from 10×!</span>`; tactic("nearmiss"); }
+  $("plinkoMsg").innerHTML=msg;
+  if(m<1) tactic("ldw");
+  log(`Plinko: bet ${fmt(b.bet)}, got back ${fmt(win)}`);
+}
+function dropBall(){
+  const bet=S.bet; if(!takeBet(bet)) return false;
+  const path=[0]; let k=0; for(let r=0;r<PROWS;r++){ k+=Math.random()<.5?0:1; path.push(k); } // aim has no effect
+  balls.push({path,bet,aim,t0:performance.now(),x:PCX,y:0});
+  if(!plinkoRAF) plinkoRAF=requestAnimationFrame(plinkoStep);
+  return true;
+}
+$("plinkoDrop").onclick=()=>dropBall();
+$("plinkoDrop10").onclick=()=>{ tactic("autoplay"); let n=0; const iv=setInterval(()=>{ if(++n>10||!dropBall()) clearInterval(iv); },260); };
+document.querySelectorAll("[data-aim]").forEach(b=>b.onclick=()=>{ aim=+b.dataset.aim; tactic("control"); toast(`Aim set ${aim<0?"left":aim>0?"right":"center"}.`,"",1500); });
+drawPlinko();
+
+// ----- Roulette (single zero) -----
+const RORDER=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const RED=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const rcol=n=>n===0?"#0d8a43":RED.has(n)?"#c4123a":"#222";
+let rbet={type:"red"}, rRot=0, rBusy=false, rLastLoss=0;
+(function drawRWheel(){
+  const seg=360/37; let h="";
+  RORDER.forEach((n,i)=>{
+    const a0=(i*seg-seg/2-90)*Math.PI/180, a1=(i*seg+seg/2-90)*Math.PI/180, r=100;
+    h+=`<path d="M0 0 L${r*Math.cos(a0)} ${r*Math.sin(a0)} A${r} ${r} 0 0 1 ${r*Math.cos(a1)} ${r*Math.sin(a1)} Z" fill="${rcol(n)}" stroke="#d4af37" stroke-width=".6"/>`;
+    const m=(i*seg-90)*Math.PI/180;
+    h+=`<text x="${86*Math.cos(m)}" y="${86*Math.sin(m)}" fill="#fff" font-size="7" font-weight="800" text-anchor="middle" dominant-baseline="middle" transform="rotate(${i*seg} ${86*Math.cos(m)} ${86*Math.sin(m)})">${n}</text>`;
+  });
+  h+=`<circle r="62" fill="#3b210d" stroke="#d4af37" stroke-width="2"/><circle r="12" fill="#d4af37"/>`;
+  $("rwheel").innerHTML=h;
+})();
+$("rgrid").innerHTML=`<button data-rn="0" class="z">0</button>`+Array.from({length:36},(_,i)=>i+1).map(n=>`<button data-rn="${n}" class="${RED.has(n)?"r":"b"}">${n}</button>`).join("");
+function rbetLabel(){ return rbet.type==="num"?`#${rbet.n}`:({red:"RED",black:"BLACK",odd:"ODD",even:"EVEN",low:"1–18",high:"19–36"})[rbet.type]; }
+function rWins(n){ const t=rbet.type; if(t==="num") return n===rbet.n?36:0; if(n===0) return 0;
+  return ({red:RED.has(n),black:!RED.has(n),odd:n%2===1,even:n%2===0,low:n<=18,high:n>=19})[t]?2:0; }
+function renderRoulette(){
+  document.querySelectorAll("#rbets [data-rb]").forEach(b=>b.classList.toggle("sel",rbet.type===b.dataset.rb));
+  document.querySelectorAll("#rgrid [data-rn]").forEach(b=>b.classList.toggle("sel",rbet.type==="num"&&rbet.n===+b.dataset.rn));
+  const h=S.rhist.slice(-12);
+  $("rhist").innerHTML=h.map(n=>`<span style="background:${rcol(n)}">${n}</span>`).join("")||`<span class="small muted" style="width:auto">No spins yet</span>`;
+  if(h.length>=3){
+    const cnt={}; S.rhist.slice(-20).forEach(n=>cnt[n]=(cnt[n]||0)+1);
+    const hot=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+    const cold=[...Array(37).keys()].filter(n=>!cnt[n]).slice(0,3);
+    let run=1; const last=h[h.length-1]; for(let i=h.length-2;i>=0&&h[i]!==0&&last!==0&&RED.has(h[i])===RED.has(last);i--) run++;
+    const due = last!==0&&run>=3 ? `<span style="color:var(--coin)">${RED.has(last)?"BLACK":"RED"} IS DUE! (${run} ${RED.has(last)?"reds":"blacks"} in a row)</span>`:"";
+    $("rhot").innerHTML=`<span style="color:var(--hot)">🔥 HOT: ${hot}</span><span style="color:var(--gem)">❄️ COLD: ${cold.join(", ")}</span>${due}`;
+  } else $("rhot").innerHTML="";
+}
+$("rbets").addEventListener("click",e=>{ const b=e.target.closest("[data-rb]"); if(!b) return; rbet={type:b.dataset.rb}; renderRoulette(); if($("rhot").textContent.includes("DUE")) tactic("fallacy"); });
+$("rgrid").addEventListener("click",e=>{ const b=e.target.closest("[data-rn]"); if(!b) return; rbet={type:"num",n:+b.dataset.rn}; renderRoulette(); if(S.rhist.length>=3) tactic("fallacy"); });
+function rSpin(amount){
+  if(rBusy) return; if(!takeBet(amount)) return;
+  rBusy=true; $("rDouble").classList.add("hide"); $("rMsg").textContent=`Betting ● ${fmt(amount)} on ${rbetLabel()}…`;
+  const n=Math.floor(Math.random()*37), idx=RORDER.indexOf(n), seg=360/37;
+  rRot = rRot - (rRot%360) + 360*5 + (360 - idx*seg);
+  $("rwheel").style.transform=`rotate(${rRot}deg)`;
+  setTimeout(()=>{
+    S.rhist.push(n); S.rhist=S.rhist.slice(-40);
+    const m=rWins(n), win=amount*m;
+    payOut(win, win?$("rwheel").parentNode:null);
+    if(win){ $("rMsg").innerHTML=`🎉 ${n} ${n===0?"GREEN":RED.has(n)?"RED":"BLACK"}! You win ● ${fmt(win)}`; rLastLoss=0; }
+    else {
+      rLastLoss=amount;
+      $("rMsg").innerHTML=`${n} ${n===0?"GREEN (house wins)":RED.has(n)?"RED":"BLACK"}. Lost ● ${fmt(amount)}.`;
+      $("rDouble").textContent=`DOUBLE UP: bet ● ${fmt(amount*2)} to win it all back!`;
+      $("rDouble").classList.remove("hide"); tactic("chase");
+    }
+    log(`Roulette: ${fmt(amount)} on ${rbetLabel()}, landed ${n}, got back ${fmt(win)}`);
+    rBusy=false; renderRoulette(); save();
+    if($("rhot").textContent.includes("DUE")) tactic("fallacy");
+  },4600);
+}
+$("rSpin").onclick=()=>rSpin(S.bet);
+$("rDouble").onclick=()=>{ tactic("chase"); rSpin(rLastLoss*2); };
+renderRoulette();
+TACTICS.houseedge.d=`Over the long run Slots pays back ${Math.round(SLOT_RTP*100)}%, Plinko ${Math.round(PLINKO_RTP*100)}% and Roulette 97.3% of what you bet. The rest is kept.`;
+
 // ---------- Daily login streak ----------
 const STREAK=[{l:"◆ 50",f:()=>S.gems+=50},{l:"● 500",f:()=>S.coins+=500},{l:"◆ 100",f:()=>S.gems+=100},
   {l:"Pack",f:()=>setTimeout(()=>openPack("standard",{}),400)},{l:"◆ 150",f:()=>S.gems+=150},{l:"● 1,000",f:()=>S.coins+=1000},{l:"PREMIUM",f:()=>setTimeout(()=>openPack("premium",{}),400)}];
@@ -782,6 +1136,7 @@ function debrief(){
       <tr><td>Record</td><td>${S.wins}–${S.losses} (${S.games?Math.round(S.wins/S.games*100):0}% wins)</td></tr>
       <tr><td>Expected cost of ONE Galaxy card</td><td>~${money(stdCost)} via Standard packs, ~${money(prmCost)} via Premium (at the "best value" gem rate)</td></tr>
       <tr><td>Expected cost to "complete" a 12-card Galaxy set</td><td>${money(set12)}+ (more with duplicates). Then a new season starts.</td></tr>
+      <tr><td>Arcade (slots, Plinko, roulette)</td><td>Bet ● ${fmt(S.arc.bet)}, paid back ● ${fmt(S.arc.paid)}. Long-run payback: Slots ${Math.round(SLOT_RTP*100)}%, Plinko ${Math.round(PLINKO_RTP*100)}%, Roulette 97.3%.</td></tr>
       <tr><td>Wins needed to earn ONE Standard pack</td><td>~${Math.round(7500/200)} wins</td></tr>
     </table>
     <h3 style="font-size:24px">Tactics in this game <span class="small muted" style="font-family:Inter">(highlighted = you ran into it)</span></h3>
