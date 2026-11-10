@@ -37,10 +37,18 @@ Other options: set Chrome as the device's default browser, or bookmark the link 
 3. **How you present it:**
    - **We take turns reading (she sees the text):** the passage appears as a graphic-novel page with one comic panel per paragraph. Choose turns by paragraph or by sentence, and who reads first. A bar at the bottom says whose turn it is (pink for her, blue for you), and she taps **Next turn** after each one. Turn on **Blur my turns** to keep your parts blurred, so she reads her parts and listens to yours. That keeps listening practice in the shared reading.
    - **She reads it herself:** the same graphic-novel page, but every part is hers. She reads the pink paragraph or sentence aloud and taps **Next part**. Choose whether one paragraph or one sentence is highlighted at a time. You can follow along with the blurred script in Teacher tools.
-   - **Follow along (word highlighting):** for *We take turns* and *She reads it herself*, check **Follow along**. She taps **Start reading**, and as she reads aloud each word she says gets a pink underline, with her next word in gold. The highlight moves to the next part on its own when she finishes one. In turn-taking, the microphone listens only on her turns, so your reading isn't tracked. If it loses her place, tap any word to move the highlight there.
-     - Works on the hosted page in Chrome, Edge or the Claude desktop app, for people in your organization. It isn't available in Safari, the Claude mobile apps, or when `index.html` is opened as a file.
-     - The first time, the page asks permission to use the microphone. Speech is turned into text by Anthropic's speech-to-text, and the page receives only the words, never a recording. Check your district's policy on student voice data before using it.
-     - Speech recognition can miss words, especially with young readers or speech that differs from typical patterns. Treat the highlighting as a reading support, not a measure of accuracy. The app doesn't score it.
+   - **Word highlighting (follow along):** for *We take turns* and *She reads it herself*, pick a highlighting mode. Words already read get a pink underline, and the current word is gold. Tap any word to move the highlight there.
+     - **Her finger:** she slides her finger under the words (or taps one) and each word lights up. Works everywhere, including iPad, with no microphone.
+     - **Pacer:** tap **Start pacer** and the highlight moves word by word at the speed you set (20–120 words a minute). It moves on to the next part by itself when she is reading alone. Works everywhere, including iPad.
+     - **Her voice (microphone):** the app listens and highlights each word as she says it. On the claude.ai link this works only in Chrome, Edge or the Claude desktop app, not on iPad. The page receives only text, never a recording. Speech recognition can miss words with young readers, so treat it as a support, not a score. Check your district's policy on student voice data.
+
+#### Voice highlighting on an iPad
+Apple doesn't allow the claude.ai page's microphone feature in iPad browsers. The workaround is to host `index.html` on a regular web address, such as a school website, Google Sites embed, or GitHub Pages, and open it in Safari. Outside claude.ai, the app uses the iPad's built-in speech recognition instead.
+- On the iPad, turn on **Settings → General → Keyboard → Enable Dictation** (and Siri if asked). Allow the microphone when Safari asks.
+- Apple's speech recognition may send audio to Apple to process it, so check your district's policy first.
+- When opened this way, data is saved only on that iPad in Safari, not to your claude.ai account. Safari can clear a website's saved data if it isn't opened for several weeks. Use **Teacher data → Backup** regularly, or add the page to the Home Screen.
+- I tested this path only in an emulator, not on a real iPad. Try a short passage first.
+
    - **I read it aloud (text hidden):** the original listening task. Flynn shows "Listening ears on!" while you read.
 4. **The teacher script** (teacher mode, or **Teacher tools** in student mode) is blurred until you press and hold. Key details are highlighted, each turn is labeled *Me* or *Her*, and `/ pause /` marks show where to stop when chunking is on. In turn-taking mode, the computer voice reads only the current turn.
 5. Count repetitions with **+ Repeated**. The goal allows one, so a second repetition marks the trial as not meeting criterion.
