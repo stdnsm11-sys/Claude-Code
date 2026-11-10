@@ -88,6 +88,8 @@ p{margin:0}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;min-height:44px;font-weight:700}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.seg button[disabled]{opacity:.5;cursor:not-allowed;border-style:dashed}
+.voice-why{display:block;margin-top:4px}
 .check{display:flex;gap:10px;align-items:flex-start;padding:4px 0;cursor:pointer}
 .check input{width:22px;height:22px;flex:none;margin-top:2px;accent-color:var(--pink-d)}
 select,input[type=text],textarea{border:2px solid var(--line);border-radius:10px;background:var(--paper);padding:8px 10px;min-height:44px;width:100%}
@@ -979,7 +981,7 @@ function genPassage(theme,example){
     main:kidfix(P.main),wrong:P.wrong.map(kidfix)};
 }
 function presentText(){
-  const fa=hlOn()?`; word highlighting: ${L.hl==='voice'?'her voice':L.hl==='finger'?'her finger':'pacer at '+L.wpm+' wpm'}`:'';
+  const fa=hlOn()?`; word highlighting: ${effHL()==='voice'?'her voice':effHL()==='finger'?'her finger':'pacer at '+L.wpm+' wpm'}`:'';
   if(L.present==='solo')return `Student read the whole passage herself (step by ${turnUnitBy()==='para'?'paragraph':'sentence'}${fa})`;
   if(L.present!=='turns')return 'Presented orally (text hidden)';
   return `Took turns reading by ${turnUnitBy()==='para'?'paragraph':'sentence'} (${L.first==='teacher'?'teacher':'student'} started${L.hideT?'; teacher turns blurred':''}${fa})`;
@@ -1005,17 +1007,22 @@ function renderListen(){
   seg($('#l-pres'),L.present,v=>{L.present=v;resetTrial();saveLessonCfg();renderListen()});
   seg($('#l-turnby'),L.turnBy,v=>{L.turnBy=v;L.turn=0;saveLessonCfg();renderListen()});
   seg($('#l-first'),L.first,v=>{L.first=v;L.turn=0;saveLessonCfg();renderListen()});
-  $('#l-hidet').checked=L.hideT;seg($('#l-hl'),L.hl,v=>{L.hl=v;faStop();paceStop();FA.item=null;saveLessonCfg();renderListen()});
+  $('#l-hidet').checked=L.hideT;seg($('#l-hl'),effHL(),v=>{L.hl=v;faStop();paceStop();FA.item=null;saveLessonCfg();renderListen()});
   $('#l-wpm').value=L.wpm;$('#l-wpm-v').textContent=L.wpm+' words a minute';$('#l-wpm-row').hidden=L.hl!=='pacer';
   const fn=$('#l-follow-note');
   if(L.hl==='off'){fn.textContent=''}
   else if(L.hl==='finger'){fn.textContent='She slides her finger under the words (or taps a word) and that word lights up. Words before it get a pink underline. Works on iPad, no microphone.'}
   else if(L.hl==='pacer'){fn.textContent='Tap Start pacer and the gold highlight moves word by word at the speed above. Tap any word to jump there. Works on iPad, no microphone.'}
   else if(DICT){fn.textContent=SR_MODE?'Uses this device\'s built-in speech recognition. She taps Start reading on her turn. Tap any word to move the highlight if it loses her place.':'She taps Start reading on her turn. Tap any word to move the highlight if it loses her place. The page gets only text, never a recording.'}
-  else if(IS_IOS){fn.innerHTML='Voice highlighting can\'t run inside the claude.ai page on an iPad. Choose <b>Her finger</b> or <b>Pacer</b>, which work here. See the README for a way to use the iPad\'s own speech recognition.'}
-  else{fn.innerHTML=`Word highlighting needs this app's link opened in <b>Google Chrome</b> (or the Claude desktop app). Copy the link and open it in Chrome:<br><input type="text" id="l-app-link" readonly value="${APP_URL}" aria-label="App link" style="margin-top:6px"> <button class="sbtn" id="l-copy-link" type="button" style="margin-top:6px">Copy link</button>`;
-    $('#l-copy-link').onclick=()=>copyText(APP_URL,$('#l-app-link'),'Link copied. Paste it into Chrome.');
-    $('#l-app-link').onclick=e=>e.target.select();}$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
+  else if(DICT_READY){fn.textContent='This lesson is set to Her voice for the SMART Board. On this device it uses Her finger instead.'}
+  else{fn.textContent='Checking whether this device can do voice highlighting…'}
+  // Her voice can't run here: grey the button out and say why, whichever mode is chosen
+  const vb=$('#l-hl [data-v="voice"]');vb.disabled=DICT_READY&&!DICT;vb.textContent=DICT?'Her voice (microphone)':'Her voice (not on this device)';
+  if(DICT_READY&&!DICT){const why=document.createElement('span');why.className='voice-why';
+    if(IS_IOS){why.innerHTML='<b>Her voice</b> is greyed out because voice highlighting can\'t run on an iPad. Apple\'s browsers don\'t support the speech feature this page uses. Use <b>Her finger</b> or <b>Pacer</b> here, or use <b>Her voice</b> on the SMART Board computer in Chrome or Edge.'}
+    else{why.innerHTML=`<b>Her voice</b> is greyed out because it needs this app's link opened in <b>Chrome</b> or <b>Edge</b> while signed in to claude.ai. Copy the link and open it there:<br><input type="text" id="l-app-link" readonly value="${APP_URL}" aria-label="App link" style="margin-top:6px"> <button class="sbtn" id="l-copy-link" type="button" style="margin-top:6px">Copy link</button>`}
+    if(fn.textContent)fn.appendChild(document.createElement('br'));fn.appendChild(why);
+    if($('#l-copy-link')){$('#l-copy-link').onclick=()=>copyText(APP_URL,$('#l-app-link'),'Link copied. Paste it into Chrome or Edge.');$('#l-app-link').onclick=e=>e.target.select();}}$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
   $('#l-pass-field').hidden=L.type!=='passage';
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
@@ -1094,7 +1101,7 @@ function pageHTML(live){
     const tag=live&&by==='para'?`<span class="tag ${w}">${L.present==='solo'?'Read this part':w==='s'?'Your turn':'Teacher reads'}</span>`:'';
     const fa=live&&hlOn();
     return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${fa?FA.words.map((w,k)=>w.s===i?`<span class="w" data-w="${k}">${esc(w.t)}</span>`:'').filter(Boolean).join(' '):esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
-  return `<article class="gpage${live&&hlOn()&&L.hl==='finger'?' finger':''}"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
+  return `<article class="gpage${live&&hlOn()&&effHL()==='finger'?' finger':''}"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
 }
 function renderReadPage(st){
   const it=L.item,us=units(),n=us.length,cur=Math.min(L.turn,n-1),w=whoOf(cur),last=cur>=n-1;
@@ -1107,7 +1114,7 @@ function renderReadPage(st){
     ${accOn('listen','song')?`<div class="tip">${I.note}<div><b>Sing it back!</b> When you read or hear a detail, sing it in your head to a tune you know.</div></div>`:''}
     ${pageHTML(true)}
     <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">${solo?'Part':'Turn'} ${cur+1} of ${n}</span> <span class="fa-status" id="r-fa-status"></span></span></div>
-      <div class="btns">${voiceOn()&&w==='s'?`<button class="btn pink" id="r-mic" aria-pressed="false">Start reading</button>`:''}${hlOn()&&L.hl==='pacer'?`<button class="btn pink" id="r-pace" aria-pressed="false">Start pacer</button>`:''}<button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':solo?'Next part':'Next turn'}</button></div></div>`;
+      <div class="btns">${voiceOn()&&w==='s'?`<button class="btn pink" id="r-mic" aria-pressed="false">Start reading</button>`:''}${hlOn()&&effHL()==='pacer'?`<button class="btn pink" id="r-pace" aria-pressed="false">Start pacer</button>`:''}<button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':solo?'Next part':'Next turn'}</button></div></div>`;
   const goTo=u=>{L.turn=u;
     if(voiceOn()){const listening=FA.state!=='idle';faStartUnit(u);
       if(L.present!=='solo'){if(whoOf(u)==='s'){if(!listening)faStart()}else faStop()}}
@@ -1117,7 +1124,7 @@ function renderReadPage(st){
   $('#r-next').onclick=()=>{if(last){faStop();paceStop();L.phase='recall';renderStage();renderScorePanel();window.scrollTo({top:0});return}goTo(cur+1)};
   if($('#r-mic'))$('#r-mic').onclick=()=>{if(FA.state!=='idle'){faStop()}else{faStart()}};
   if($('#r-pace'))$('#r-pace').onclick=()=>{FA.pacer?paceStop():paceStart()};
-  if(hlOn()&&L.hl==='finger'){const pg=$('.gpage',st);let down=false;
+  if(hlOn()&&effHL()==='finger'){const pg=$('.gpage',st);let down=false;
     const at=e=>{const el=document.elementFromPoint(e.clientX,e.clientY);const wEl=el&&el.closest&&el.closest('.w');if(wEl){FA.pos=+wEl.dataset.w;faApply()}};
     pg.addEventListener('pointerdown',e=>{down=true;at(e)});pg.addEventListener('pointermove',e=>{if(down)at(e)});
     ['pointerup','pointercancel','pointerleave'].forEach(ev=>pg.addEventListener(ev,()=>down=false));}
@@ -1206,8 +1213,11 @@ function wMatch(a,b){if(!a||!b)return false;if(a===b)return true;
 function faWords(){const out=[];L.item.plain.forEach((s,si)=>s.split(/\s+/).filter(Boolean).forEach(t=>out.push({s:si,t,n:normW(t)})));return out}
 const APP_URL='https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ';
 const followOn=()=>voiceOn();
+let DICT_READY=!(window.claude&&window.claude.use);
+/* A lesson set to Her voice on the SMART Board uses Her finger on a device that can't do voice (like the iPad). */
+const effHL=()=>(L.hl==='voice'&&DICT_READY&&!DICT)?'finger':L.hl;
 const voiceOn=()=>!!(L.hl==='voice'&&DICT&&shown());
-const hlOn=()=>!!(shown()&&L.hl&&L.hl!=='off'&&(L.hl!=='voice'||DICT));
+const hlOn=()=>{const h=effHL();return !!(shown()&&h&&h!=='off'&&(h!=='voice'||DICT))};
 const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 let SR_MODE=false;
 function paceStart(){paceStop();const ms=Math.round(60000/(L.wpm||50));
@@ -1225,11 +1235,11 @@ function faAlign(text){let p=FA.base;
   return p}
 function unitWordRange(u){const sents=units()[u];let a=-1,b=-1;FA.words.forEach((w,k)=>{if(sents.includes(w.s)){if(a<0)a=k;b=k+1}});return [a,b]}
 function faApply(){
-  const showNext=FA.state!=='idle'||!!FA.pacer||L.hl==='finger';
+  const showNext=FA.state!=='idle'||!!FA.pacer||effHL()==='finger';
   $$('#l-stage .w').forEach(el=>{const k=+el.dataset.w;el.classList.toggle('read',k<FA.pos);el.classList.toggle('next',k===FA.pos&&showNext)});
   const pb=$('#r-pace');if(pb){pb.textContent=FA.pacer?'Pause pacer':'Start pacer';pb.classList.toggle('pink',!FA.pacer);pb.setAttribute('aria-pressed',String(!!FA.pacer))}
   const btn=$('#r-mic');if(btn){const on=FA.state!=='idle';btn.textContent=on?'Stop listening':'Start reading';btn.classList.toggle('pink',!on);btn.setAttribute('aria-pressed',String(on))}
-  const stEl=$('#r-fa-status');if(stEl)stEl.textContent=FA.state==='listening'?'Listening… keep reading!':FA.state==='starting'?'Getting the microphone ready…':(L.hl==='finger'&&hlOn())?'Slide your finger under the words.':FA.pacer?'Read along with the gold word!':'';
+  const stEl=$('#r-fa-status');if(stEl)stEl.textContent=FA.state==='listening'?'Listening… keep reading!':FA.state==='starting'?'Getting the microphone ready…':(effHL()==='finger'&&hlOn())?'Slide your finger under the words.':FA.pacer?'Read along with the gold word!':'';
 }
 function faStartUnit(u){
   const [a,b]=unitWordRange(u);
@@ -1279,7 +1289,7 @@ function srAdapter(){const SRc=window.SpeechRecognition||window.webkitSpeechReco
   return {start(){want=true;rec=rec||make();set('starting');try{rec.start()}catch(e){}return Promise.resolve()},
     stop(){want=false;try{rec&&rec.stop()}catch(e){}set('idle','stopped');return Promise.resolve()},active:()=>state!=='idle',
     onFinal:h=>{H.f.push(h);return()=>{}},onPartial:h=>{H.p.push(h);return()=>{}},onState:h=>{H.s.push(h);return()=>{}}};}
-if(window.claude&&window.claude.use){window.claude.use('dictation').then(d=>{if(!d)return;wireDict(d);renderListen()}).catch(()=>{})}
+if(window.claude&&window.claude.use){window.claude.use('dictation').then(d=>{DICT_READY=true;if(d)wireDict(d);FA.item=null;renderListen()}).catch(()=>{DICT_READY=true;renderListen()})}
 else{const a=srAdapter();if(a){SR_MODE=true;wireDict(a)}}
 
 function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-spp-v').textContent=$('#l-spp').value;
