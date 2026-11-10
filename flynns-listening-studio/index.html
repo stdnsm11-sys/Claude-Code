@@ -224,6 +224,26 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .celebrate span{position:absolute;top:-60px;animation:fall 2.2s ease-in forwards}
 .celebrate svg{width:44px;height:44px}
 @keyframes fall{to{transform:translateY(115vh) rotate(260deg)}}
+
+/* modes: student mode hides every teacher surface; teacher mode shows setup beside a live student preview */
+body.student .teacher,body.student .t-only{display:none!important}
+body:not(.student) .s-only{display:none!important}
+body.student .split{grid-template-columns:minmax(0,1fr)}
+body.student main{max-width:1300px}
+body.student .stage{padding-block:24px}
+.modebar{display:flex;align-items:center;gap:8px}
+.hold{position:relative;overflow:hidden;border:2px dashed var(--muted);background:var(--paper);color:var(--muted);border-radius:999px;padding:6px 14px;min-height:44px;font-weight:700;font-size:.85em}
+.hold .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--lav);z-index:0}
+.hold.holding .fill{width:100%;transition:width 1.2s linear}
+.hold span{position:relative;z-index:1}
+.tbanner{background:var(--lav);border-bottom:3px solid var(--ink);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px;
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-weight:700}
+.tbanner .mini{font-weight:400;color:var(--ink)}
+.tbanner .btn{margin-left:auto;min-height:46px;font-size:.95em}
+.preview-tag{margin-left:auto;font-family:var(--body);font-size:.75em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:2px 10px}
+.tdrawer{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:15;display:grid;justify-items:end;gap:10px}
+.td-sheet{width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(43,47,85,.25);font-size:.92em}
+.example{font-size:.8em;font-weight:700;color:var(--pink-d)}
 </style>
 
 <header class="top">
@@ -232,10 +252,13 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
     <button class="tab" role="tab" id="tab-listen" aria-selected="true" data-view="listen"></button>
     <button class="tab" role="tab" id="tab-ald" aria-selected="false" data-view="ald"></button>
     <button class="tab" role="tab" id="tab-speak" aria-selected="false" data-view="speak"></button>
-    <button class="tab t-data" role="tab" id="tab-data" aria-selected="false" data-view="data">Teacher data</button>
+    <button class="tab t-data t-only" role="tab" id="tab-data" aria-selected="false" data-view="data">Teacher data</button>
   </nav>
   <div class="stickers" title="Stickers earned" id="stickers"></div>
+  <div class="modebar s-only"><button class="hold" id="go-teacher" aria-label="Teacher mode: press and hold"><i class="fill"></i><span>Teacher: hold</span></button></div>
 </header>
+<div class="tbanner t-only" role="status">Teacher mode <span class="mini">Set up the lesson and accommodations here. The pink panels are a preview of exactly what she will see.</span>
+  <button class="btn pink" id="go-student">Start student mode</button></div>
 
 <main>
   <!-- ========== LISTEN & REMEMBER (Goals 1 & 2) ========== -->
@@ -255,11 +278,12 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
           <div class="seg" id="l-keys"><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="99">All</button></div></div>
         <div class="field"><span class="label">How she answers</span>
           <div class="seg" id="l-mode"><button data-v="open">She tells or signs me (I check)</button><button data-v="tap">She taps answer choices</button></div></div>
-        <details>
+        <details open>
           <summary class="label" style="cursor:pointer;padding:6px 0">Accommodations used this trial</summary>
           <div id="l-acc" class="stack" style="gap:2px;padding-top:6px"></div>
         </details>
-        <button class="btn pink" id="l-new">New passage</button>
+        <div class="row"><button class="btn pink" id="l-new">New passage</button><button class="btn blue" id="l-present">Present in student mode</button></div>
+        <p class="mini" id="l-example"></p>
 
         <div class="field">
           <div class="row" style="justify-content:space-between"><span class="label">Script · read this aloud</span>
@@ -279,7 +303,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
       </aside>
 
       <section class="panel" aria-live="polite">
-        <div class="panel-head"><h2 id="l-title">Listen &amp; Remember</h2><span class="mini" id="l-sub"></span></div>
+        <div class="panel-head"><h2 id="l-title">Listen &amp; Remember</h2><span class="mini t-only" id="l-sub"></span><span class="preview-tag t-only">Student preview</span></div>
         <div class="stage" id="l-stage"></div>
       </section>
     </div>
@@ -298,7 +322,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
         <p class="mini">Step names come from <b>Teacher data → Settings</b>, so they can match her actual device.</p>
       </aside>
       <section class="panel">
-        <div class="panel-head blue"><h2 id="a-title">My Listening Device</h2></div>
+        <div class="panel-head blue"><h2 id="a-title">My Listening Device</h2><span class="preview-tag t-only">Student preview</span></div>
         <div class="stack">
           <div class="subtabs" id="a-sub">
             <button data-v="learn" aria-pressed="true">1 · Learn it</button>
@@ -306,7 +330,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
             <button data-v="order" aria-pressed="false">3 · Put steps in order</button>
             <button data-v="when" aria-pressed="false">4 · When do I use it?</button>
             <button data-v="why" aria-pressed="false">5 · Why does it help?</button>
-            <button data-v="demo" aria-pressed="false">6 · Show me (teacher checks)</button>
+            <button data-v="demo" aria-pressed="false" class="t-only">6 · Show me (teacher checks)</button>
           </div>
           <div id="a-stage" class="stage"></div>
         </div>
@@ -336,7 +360,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
         <label class="check"><input type="checkbox" id="sp-counts" checked> <span>Save practice score to data</span></label>
       </aside>
       <section class="panel">
-        <div class="panel-head lav"><h2>Speak Up!</h2><span class="mini">Know when you need it. Say what you need.</span></div>
+        <div class="panel-head lav"><h2>Speak Up!</h2><span class="mini">Know when you need it. Say what you need.</span><span class="preview-tag t-only">Student preview</span></div>
         <div class="stack">
           <div class="subtabs" id="s-sub">
             <button data-v="cards" aria-pressed="true">My Speak-Up cards</button>
@@ -389,6 +413,18 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
   </section>
 </main>
 <div class="celebrate" id="celebrate" aria-hidden="true"></div>
+<div class="tdrawer s-only" id="tdrawer">
+  <div class="td-sheet" id="td-sheet" hidden>
+    <b>Teacher tools</b>
+    <div class="script" id="td-script" tabindex="0" aria-label="Teacher script. Press and hold to read."><div class="txt" id="td-script-txt"></div><div class="hint">Press and hold to read</div></div>
+    <div class="row"><button class="sbtn" id="td-say">Computer voice: read it</button></div>
+    <div class="reps"><span class="label">Repetitions</span><button class="sbtn" id="td-rep-minus" aria-label="Remove a repetition">−</button><span class="count" id="td-reps">0</span><button class="sbtn" id="td-rep-plus">+ Repeated</button></div>
+    <div id="td-rep-warn"></div>
+    <p class="mini" id="td-hint"></p>
+    <div class="row"><button class="btn" id="td-score">Score in teacher mode</button><button class="sbtn" id="td-close">Close</button></div>
+  </div>
+  <button class="hold" id="td-open" aria-label="Teacher tools: press and hold"><i class="fill"></i><span>Teacher tools: hold</span></button>
+</div>
 
 <script>
 (()=>{
@@ -658,6 +694,7 @@ async function connect(){
     saveLocal();
     $('#save-state').textContent='Saved privately to your account';
     renderAll();
+    if(S.lesson&&S.lesson.item&&S.lesson.item.html&&S.lesson.item!==L.item&&L.phase==='listen')loadLesson();
   }catch(e){ $('#save-state').textContent='Saved on this device'; }
 }
 
@@ -696,33 +733,55 @@ function renderHeader(){
   $('#tab-speak').innerHTML=`${tabIcon.speak}Speak Up!`;
   $('#stickers').innerHTML=`${I.paw}<span>${S.stickers||0}</span>`;
 }
-function showView(v){$$('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===v)));
+function showView(v){if(v==='data'&&document.body.classList.contains('student'))v='listen';
+  S.view=v;saveLocal();$('#tdrawer').hidden=v!=='listen';
+  $$('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===v)));
   ['listen','ald','speak','data'].forEach(x=>$('#view-'+x).hidden=x!==v);
   if(v==='data')renderData(); try{speechSynthesis.cancel()}catch(e){} stopSong();
   try{history.replaceState(null,'','#'+v)}catch(e){}}
 $$('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
+function setMode(m){
+  document.body.classList.toggle('student',m==='student');
+  $('#td-sheet').hidden=true;
+  const cur=($$('.tab').find(t=>t.getAttribute('aria-selected')==='true')||{}).dataset?.view||'listen';
+  showView(m==='student'&&cur==='data'?'listen':cur);
+  if(typeof renderALD==='function'){renderALD();}
+  window.scrollTo(0,0);
+}
+function holdButton(btn,ms,fn){let t=null;
+  const start=e=>{if(t)return;btn.classList.add('holding');t=setTimeout(()=>{stop();fn()},ms)};
+  const stop=()=>{clearTimeout(t);t=null;btn.classList.remove('holding')};
+  btn.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));
+  btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();start()}});btn.addEventListener('keyup',stop);
+  btn.addEventListener('contextmenu',e=>e.preventDefault());}
+holdButton($('#go-teacher'),1200,()=>setMode('teacher'));
+holdButton($('#td-open'),1200,()=>{$('#td-sheet').hidden=false});
+$('#td-close').onclick=()=>$('#td-sheet').hidden=true;
+$('#td-score').onclick=()=>{setMode('teacher');showView('listen')};
+$('#go-student').onclick=()=>setMode('student');
 
 /* ================= LISTEN & REMEMBER ================= */
 const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Short passage',lens:[8],unit:'sentences'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
 const L={goal:1,type:'sentences',len:4,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
 
-function fillSlots(templates,qmap){
+function fillSlots(templates,qmap,preset){
   const vals={},used={},details=[];
   const out=templates.map((tpl,si)=>tpl.replace(/\{(\w+)(?::(\w+))?\}/g,(m,key,pool)=>{
     if(key==='DOG')return m; if(key in vals)return `[[${key}]]`; pool=pool||key; if(!POOLS[pool])return m;
-    if(!(key in vals)){used[pool]=used[pool]||[];const opts=POOLS[pool].filter(v=>!used[pool].includes(v));const v=rnd(opts);vals[key]=v;used[pool].push(v);
+    if(!(key in vals)){used[pool]=used[pool]||[];const opts=POOLS[pool].filter(v=>!used[pool].includes(v));const v=preset&&preset[key]&&opts.includes(preset[key])?preset[key]:rnd(opts);vals[key]=v;used[pool].push(v);
       if(qmap&&qmap[key])details.push({key,pool,si,a:v});}
     return `[[${key}]]`;}));
   details.forEach(d=>{d.choices=shuffle([d.a,...shuffle(POOLS[d.pool].filter(v=>!used[d.pool].includes(v))).slice(0,2)])});
   return {out,vals,details};
 }
-function generate(){
+const EXAMPLE={day:'Saturday',time:'morning',kid:'Maya',place:'park',toy:'squeaky ball',color:'blue',num:'three',treat:'peanut butter biscuit'};
+function generate(example){
   const pickTheme=th=>th==='any'?rnd(['flynn','music','comic','animals']):th;
   const theme=pickTheme(L.theme); let item;
   if(L.type==='sentences'||L.type==='passage'){
-    const fr=rnd(FRAMES.filter(f=>f.theme===theme));
+    const fr=example?FRAMES[0]:rnd(FRAMES.filter(f=>f.theme===theme));
     const n=L.type==='passage'?fr.s.length:L.len;
-    const {out,vals,details}=fillSlots(fr.s.slice(0,n),fr.q);
+    const {out,vals,details}=fillSlots(fr.s.slice(0,n),fr.q,example?EXAMPLE:null);
     const render=(s,mark)=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>mark&&mark.has(k)?`<mark>${esc(vals[k])}</mark>`:esc(vals[k])));
     const plain=s=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>vals[k]));
     item={kind:'story',theme,title:plain(fr.title.replace(/\{kid\}/g,'[[kid]]')),
@@ -754,28 +813,34 @@ function generate(){
   }
   // choose key details
   const k=Math.min(L.keys,item.details.length);
-  const keyIdx=new Set(shuffle(item.details.map((_,i)=>i)).slice(0,k));
+  const keyIdx=new Set(example?item.details.map((_,i)=>i).slice(0,k):shuffle(item.details.map((_,i)=>i)).slice(0,k));
   item.keys=item.details.filter((_,i)=>keyIdx.has(i));
   item.mainChoices=shuffle([item.main,...item.wrong]);
-  L.item=item;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';
+  const keyIds=new Set(item.keys.map(d=>d.id));
+  item.html=item.sentences.map((s,i)=>item.kind==='story'?item.render(s,keyIds):item.kind==='directions'?item.render(s,keyIds.has('step'+i)):item.render(s,item.keys.some(d=>d.si===i)));
+  delete item.render;delete item.sentences;item.example=!!example;item.made=today();
+  L.item=item;resetTrial();
+  if(!example){S.lesson={cfg:{goal:L.goal,type:L.type,len:L.len,theme:L.theme,keys:L.keys,mode:L.mode},item};saveSettings()}
   renderListen();
 }
+function resetTrial(){L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
+function saveLessonCfg(){if(S.lesson){S.lesson.cfg={goal:L.goal,type:L.type,len:L.len,theme:L.theme,keys:L.keys,mode:L.mode};saveSettings()}}
 function scriptHTML(){
-  const it=L.item, keyIds=new Set(it.keys.map(d=>d.id));
+  const it=L.item;
   const pause=accOn('listen','chunk')?'<span class="pause" title="pause">/ pause /</span>':' ';
-  if(it.kind==='story') return `<b>${esc(it.title)}</b><br>`+it.sentences.map(s=>it.render(s,keyIds)).join(pause);
-  if(it.kind==='directions') return it.sentences.map((s,i)=>it.render(s,keyIds.has('step'+i))).join(pause);
-  return `<b>${esc(it.title)}</b><br>`+it.sentences.map((s,i)=>it.render(s,it.keys.some(d=>d.si===i))).join(pause);
+  return (it.kind==='directions'?'':`<b>${esc(it.title)}</b><br>`)+it.html.join(pause);
 }
 function renderListen(){
   seg($('#l-goal'),L.goal,v=>{L.goal=+v;if(L.goal===2&&L.type==='sentences'){L.type='passage';L.len=8}buildTypeSeg();generate()});
   buildTypeSeg();
   seg($('#l-theme'),L.theme,v=>{L.theme=v;generate()});
   seg($('#l-keys'),L.keys,v=>{L.keys=+v;generate()});
-  seg($('#l-mode'),L.mode,v=>{L.mode=v;renderListen()});
-  $('#l-script-txt').innerHTML=scriptHTML();
-  $('#l-reps').textContent=L.reps;
-  $('#l-rep-warn').innerHTML=L.reps>1?`<div class="warn">More than one repetition. The goal allows one, so this trial won't meet criterion.</div>`:'';
+  seg($('#l-mode'),L.mode,v=>{L.mode=v;saveLessonCfg();renderListen()});
+  $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
+  $('#l-reps').textContent=$('#td-reps').textContent=L.reps;
+  $('#l-rep-warn').innerHTML=$('#td-rep-warn').innerHTML=L.reps>1?`<div class="warn">More than one repetition. The goal allows one, so this trial won't meet criterion.</div>`:'';
+  $('#l-example').innerHTML=L.item.example?'<span class="example">Example lesson.</span> Choose options above or press New passage to make her first real lesson.':`Current lesson, made ${esc(fmtDate(L.item.made))}. Student mode opens on this lesson until you make a new one.`;
+  $('#td-hint').textContent=L.mode==='open'?'She tells or signs what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.';
   $('#l-title').textContent=L.item.title;
   $('#l-sub').textContent=`Goal ${L.goal} · ${TYPES[L.type].name}${L.type==='passage'?'':' · '+L.len+' '+TYPES[L.type].unit}`;
   $('#l-voice-note').textContent=(!synthOK||!S.voice)?'(off in Settings)':'';
@@ -808,7 +873,7 @@ function renderStage(){
       <button class="btn big pink" id="l-go">I'm ready to remember</button>`;
     $('#l-go').onclick=()=>{L.phase='recall';try{speechSynthesis.cancel()}catch(e){}renderStage();renderScorePanel()};
   } else if(L.phase==='recall'&&L.mode==='open'){
-    st.innerHTML=`<div class="bubble">Tell me everything you remember!</div>
+    st.innerHTML=`<div class="bubble">Tell your teacher everything you remember!</div>
       ${accOn('listen','check')?`<div class="tip">${I.chat}<div><b>Check:</b> What was it about? Who or what did you hear about?</div></div>`:''}
       ${accOn('listen','organizer')?organizerHTML():flynnSVG('flynn')}
       <p class="mini">Teacher: tap each detail she recalls in the panel.</p>`;
@@ -838,7 +903,7 @@ function questions(){
 function finishTap(){
   L.marked=new Set(L.answers.filter(a=>a.right&&!a.isMain).map((a,i)=>a.q));
   const m=L.answers.find(a=>a.isMain); L.main=m?(m.right?'yes':'no'):null;
-  L.phase='review';renderStage();renderScorePanel();
+  L.phase='review';saveListen(true);renderStage();renderScorePanel();
 }
 function reviewHTML(){
   const it=L.item;
@@ -874,7 +939,7 @@ function renderScorePanel(){
     <div class="field"><span class="label">Support given</span><select id="l-support">${SUPPORTS.map(s=>`<option ${s===L.support?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
     <div class="field"><span class="label">Notes</span><textarea id="l-notes" placeholder="Details she added, how she answered…">${esc(L.notes)}</textarea></div>
     <label class="check"><input type="checkbox" id="l-counts" ${L.counts?'checked':''}> <span>Count as a data collection opportunity</span></label>
-    <div class="row">${L.mode==='open'&&L.phase==='recall'&&accOn('listen','visual')?`<button class="sbtn" id="l-show">Show her the comic recap</button>`:''}<button class="btn good" id="l-save">Save trial</button></div>`;
+    <div class="row">${L.mode==='open'&&L.phase==='recall'&&accOn('listen','visual')?`<button class="sbtn" id="l-show">Show her the comic recap</button>`:''}<button class="btn good" id="l-save">${L.savedId?'Update saved trial':'Save trial'}</button></div>${L.savedId?'<p class="mini">Saved ✓ Change support or notes, then update. Press <b>New passage</b> for the next trial.</p>':''}`;
   p.innerHTML=h;
   $$('.dchip[data-id]',p).forEach(b=>b.onclick=()=>{const id=b.dataset.id;L.marked.has(id)?L.marked.delete(id):L.marked.add(id);renderScorePanel()});
   if($('#l-main'))seg($('#l-main'),L.main,v=>{L.main=v;renderScorePanel()});
@@ -882,31 +947,36 @@ function renderScorePanel(){
   $('#l-notes').oninput=e=>L.notes=e.target.value;
   $('#l-counts').onchange=e=>L.counts=e.target.checked;
   if($('#l-show'))$('#l-show').onclick=()=>{$('#l-stage').innerHTML=reviewHTML()};
-  $('#l-save').onclick=saveListen;
+  $('#l-save').onclick=()=>saveListen(false);
 }
-function saveListen(){
+function saveListen(auto){
   const it=L.item,sc=score();
-  const t={id:uid(),date:today(),goal:L.goal,kind:'listen',activity:TYPES[L.type].name+(L.type==='passage'?'':` (${L.len} ${TYPES[L.type].unit})`),
+  const t={id:L.savedId||uid(),date:today(),goal:L.goal,kind:'listen',activity:TYPES[L.type].name+(L.type==='passage'?'':` (${L.len} ${TYPES[L.type].unit})`),
     title:it.title,theme:it.theme,correct:sc.correct+(sc.mainOk?1:0),total:sc.total+(L.goal===2?1:0),details:sc.correct,keyTotal:sc.total,
     main:L.goal===2?!!sc.mainOk:null,pct:sc.pct,reps:L.reps,mode:L.mode==='open'?'Told/signed (teacher checked)':'Tapped choices',
     support:L.support,acc:accNames('listen'),notes:L.notes,counts:L.counts,meets:sc.meets,
     items:it.keys.map(d=>d.a+(L.mode==='open'?(L.marked.has(d.id)?' ✓':' ✗'):''))};
-  store.trials.push(t);putDoc('t_',t);addSticker();toast('Trial saved. New passage ready.');generate();
+  const i=store.trials.findIndex(x=>x.id===t.id);
+  if(i>=0){t.date=store.trials[i].date;store.trials[i]=t;putDoc('t_',t);toast('Trial updated.')}
+  else{store.trials.push(t);putDoc('t_',t);addSticker();toast(auto?'Great job! Your answers are saved.':'Trial saved.')}
+  L.savedId=t.id;renderScorePanel();
 }
-$('#l-new').onclick=generate;
-$('#l-rep-plus').onclick=()=>{L.reps++;renderListen()};
-$('#l-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
-$('#l-say').onclick=()=>speak(L.item.kind==='story'?[L.item.title,...L.item.plain]:L.item.plain,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')});
-const scr=$('#l-script');
-const showS=()=>scr.classList.add('show'), hideS=()=>{if(!$('#l-peek').checked)scr.classList.remove('show')};
-scr.addEventListener('pointerdown',showS);scr.addEventListener('pointerup',hideS);scr.addEventListener('pointerleave',hideS);scr.addEventListener('pointercancel',hideS);
-scr.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();showS()}});scr.addEventListener('keyup',hideS);
-$('#l-peek').onchange=e=>scr.classList.toggle('show',e.target.checked);
+$('#l-new').onclick=()=>generate();
+$('#l-present').onclick=()=>{resetTrial();renderListen();setMode('student')};
+$('#l-rep-plus').onclick=$('#td-rep-plus').onclick=()=>{L.reps++;renderListen()};
+$('#l-rep-minus').onclick=$('#td-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
+$('#l-say').onclick=$('#td-say').onclick=()=>speak(L.item.kind==='story'?[L.item.title,...L.item.plain]:L.item.plain,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')});
+[[$('#l-script'),true],[$('#td-script'),false]].forEach(([scr,peek])=>{
+  const showS=()=>scr.classList.add('show'), hideS=()=>{if(!(peek&&$('#l-peek').checked))scr.classList.remove('show')};
+  scr.addEventListener('pointerdown',showS);scr.addEventListener('pointerup',hideS);scr.addEventListener('pointerleave',hideS);scr.addEventListener('pointercancel',hideS);
+  scr.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();showS()}});scr.addEventListener('keyup',hideS);});
+$('#l-peek').onchange=e=>$('#l-script').classList.toggle('show',e.target.checked);
 
 /* ================= MY LISTENING DEVICE ================= */
 const A={sub:'learn',seq:null,when:null,why:null,demo:{}};
 const steps=()=>S.steps.map(sub);
 function renderALD(){
+  if(document.body.classList.contains('student')&&A.sub==='demo')A.sub='learn';
   seg($('#a-sub'),A.sub,v=>{A.sub=v;stopSong();renderALD()});
   $('#a-title').textContent=`My ${sub('{ALD}').replace(/^my /i,'')}`.replace(/^My (\w)/,(m,c)=>'My '+c.toUpperCase());
   const st=$('#a-stage');
@@ -1225,8 +1295,13 @@ function renderAll(){
 }
 supportSelect($('#a-support'));supportSelect($('#sp-support'));
 $$('.seg button').forEach(b=>b.type='button');
-renderAll();generate();
-const start=(location.hash||'').slice(1);if(['listen','ald','speak','data'].includes(start))showView(start);
+document.body.classList.add('student');
+function loadLesson(){
+  if(S.lesson&&S.lesson.item&&S.lesson.item.html){Object.assign(L,S.lesson.cfg||{});L.item=S.lesson.item;resetTrial();renderListen()}
+  else{L.goal=1;L.type='sentences';L.len=4;L.theme='flynn';L.keys=5;L.mode='tap';generate(true)}
+}
+renderAll();loadLesson();
+const start=(location.hash||'').slice(1);showView(['listen','ald','speak'].includes(start)?start:(['listen','ald','speak'].includes(S.view)?S.view:'listen'));
 connect();
 })();
 </script>

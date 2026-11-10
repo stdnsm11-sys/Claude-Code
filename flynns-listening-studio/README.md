@@ -4,6 +4,13 @@ A classroom app for I.S., a 3rd-grade student who is Deaf/Hard of Hearing. It pr
 
 Open `index.html` in any browser (no install). `app.html` is the same page without the document wrapper, used for the hosted version.
 
+## Two modes
+- **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (*Flynn's Muddy Day*) before you've made one.
+- **Teacher mode:** press and hold **Teacher: hold** (top right) for about a second. A quick tap does nothing, so she won't wander in by accident. Here you choose the goal, passage category, theme, length, key details, how she answers and the accommodations, score trials and see **Teacher data**. The pink panels show a live **student preview**. Press **Present in student mode** or **Start student mode** to hand the screen back.
+- **Teacher tools while she listens:** in student mode, press and hold **Teacher tools: hold** (bottom right) for the blurred script, the repetition counter and computer voice. You can read aloud without leaving her screen. **Score in teacher mode** takes you straight to the detail checklist.
+- When she taps her answers, the trial saves on its own when she finishes. You can add support and notes later in teacher mode and press **Update saved trial**.
+- The ALD **Show me** checklist and all Goal 4 classroom logging are teacher-mode only.
+
 ## Built around her interests
 - **Look:** pastel blue and pink, drawn as a graphic novel. Every student screen is a comic panel with speech bubbles.
 - **Flynn, her dog,** is the guide on every screen. Stickers are paw prints and music notes.
