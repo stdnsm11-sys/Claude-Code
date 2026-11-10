@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.E. TV Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Luckiest+Guy&display=swap">
+<style>
+/* J.E. TV Studio: a YouTube-style smart board app for a Deaf-Blind student.
+   - Everything sized in rem off one root size, so the Aa button scales the whole app.
+   - The "video player" is always dark (like YouTube) for the best contrast and least glare.
+   - Each goal has one color everywhere: Speak It = pink, Word Twins = purple, Device Check = teal.
+   - Scores always pair color + icon + word (never color alone). */
+:root{
+  --scale:1; --cap-scale:1;
+  --yt:#ff0033;
+  --g1:#ff3b6b; --g2:#a855f7; --g3:#14b8a6;
+  --ind:#15803d; --pro:#b45309; --not:#b91c1c; --nr:#4b5563;
+  --stage-bg:#0b0b0b; --stage-text:#ffffff; --stage-hi:#ffe14d;
+  --display:"Luckiest Guy","Arial Black",Impact,sans-serif;
+  --body:"Atkinson Hyperlegible",Verdana,Arial,sans-serif;
+  --radius:18px;
+}
+html[data-theme="dark"]{--bg:#0f0f0f;--surface:#1f1f1f;--surface2:#2c2c2c;--line:#3f3f3f;--text:#ffffff;--muted:#d4d4d4;--focus:#3ea6ff;--bw:2px}
+html[data-theme="light"]{--bg:#ffffff;--surface:#f1f1f1;--surface2:#e3e3e3;--line:#c9c9c9;--text:#0f0f0f;--muted:#333333;--focus:#065fd4;--bw:2px}
+html[data-theme="contrast"]{--bg:#000;--surface:#000;--surface2:#141400;--line:#ffeb00;--text:#ffeb00;--muted:#ffeb00;--focus:#00e5ff;
+  --g1:#ffeb00;--g2:#ffeb00;--g3:#ffeb00;--yt:#ffeb00;--stage-bg:#000;--stage-text:#ffeb00;--stage-hi:#00e5ff;--bw:3px}
+*{box-sizing:border-box}
+html{font-size:calc(22px * var(--scale))}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.35;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+[hidden]{display:none!important}
+h1,h2,h3{margin:.2em 0 .4em;line-height:1.15}
+
+/* ---------- Top bar ---------- */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;background:var(--bg);border-bottom:var(--bw) solid var(--line);min-height:4rem}
+.logo{display:flex;align-items:center;gap:.4rem;background:none;border:0;padding:.2rem;font-family:var(--display);font-size:1.6rem;letter-spacing:.5px;white-space:nowrap}
+.logo .play{display:inline-grid;place-items:center;width:2.3rem;height:1.65rem;background:var(--yt);border-radius:.45rem;color:#fff;font-size:.9rem}
+html[data-theme="contrast"] .logo .play{color:#000}
+.logo sup{font-family:var(--body);font-size:.6rem;color:var(--muted);font-weight:700}
+.search{flex:1;display:flex;max-width:34rem;margin:0 auto}
+.search input{flex:1;min-width:0;height:2.6rem;padding:0 1rem;border:var(--bw) solid var(--line);border-right:0;border-radius:2rem 0 0 2rem;background:var(--bg)}
+.search button{width:3.6rem;border:var(--bw) solid var(--line);border-radius:0 2rem 2rem 0;background:var(--surface);font-size:1.1rem}
+.tools{display:flex;gap:.4rem;align-items:center}
+.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:3.6rem;height:3.3rem;padding:0 .4rem;border-radius:.9rem;border:var(--bw) solid transparent;background:var(--surface);font-weight:700;font-size:.62rem;gap:.1rem}
+.tool b{font-size:1.15rem;line-height:1}
+.tool[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.tool[aria-pressed="false"]{opacity:.75;text-decoration:line-through}
+.avatar{display:grid;place-items:center;width:3rem;height:3rem;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));font-size:1.6rem;flex:none}
+html[data-theme="contrast"] .avatar{background:#000;border:3px solid var(--line)}
+
+/* ---------- Shell ---------- */
+.shell{display:flex;min-height:calc(100vh - 4rem)}
+.side{width:12rem;flex:none;padding:.6rem;border-right:var(--bw) solid var(--line);position:sticky;top:4rem;height:calc(100vh - 4rem);overflow:auto}
+.nav{display:flex;align-items:center;gap:.7rem;width:100%;padding:.7rem .8rem;margin-bottom:.25rem;border:var(--bw) solid transparent;border-radius:.9rem;background:none;font-weight:700;font-size:.95rem;text-align:left}
+.nav span{font-size:1.4rem}
+.nav[aria-current="page"]{background:var(--surface2)}
+html[data-theme="contrast"] .nav[aria-current="page"]{border-color:var(--line)}
+.side hr{border:0;border-top:var(--bw) solid var(--line);margin:.6rem 0}
+.side .mini{font-size:.75rem;color:var(--muted);padding:.2rem .8rem}
+.side .mini b{color:var(--text);font-size:1rem}
+main{flex:1;min-width:0;padding:1rem 1.4rem 6rem}
+
+/* ---------- Channel banner ---------- */
+.banner{border-radius:var(--radius);padding:1.4rem 1.6rem;background:linear-gradient(115deg,#ff0050 0%,#ff7a00 35%,#a855f7 70%,#14b8a6 100%);color:#fff;position:relative;overflow:hidden}
+html[data-theme="contrast"] .banner{background:#000;border:3px solid var(--line);color:var(--text)}
+.banner .row{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+.banner .big-av{width:6rem;height:6rem;border-radius:50%;display:grid;place-items:center;font-size:3.4rem;background:#111;border:5px solid #fff}
+.banner h1{font-family:var(--display);font-size:2.6rem;letter-spacing:1px;margin:0;text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.banner .sub{font-weight:700;font-size:1rem;opacity:.95}
+.subbtn{margin-left:auto;padding:.8rem 1.6rem;border-radius:2rem;border:0;background:#fff;color:#0f0f0f;font-weight:700;font-size:1.05rem}
+.subbtn.on{background:#272727;color:#fff}
+html[data-theme="contrast"] .subbtn{background:var(--line);color:#000}
+
+.section-title{display:flex;align-items:center;gap:.6rem;font-size:1.4rem;font-weight:700;margin:1.4rem 0 .7rem}
+.make-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.8rem}
+.make{display:flex;align-items:center;gap:.8rem;padding:1rem 1.1rem;border-radius:var(--radius);border:var(--bw) solid var(--line);background:var(--surface);font-weight:700;font-size:1.1rem;text-align:left;min-height:5rem}
+.make .ic{font-size:2.2rem}
+.make small{display:block;font-weight:400;font-size:.8rem;color:var(--muted)}
+.make.g1{border-left:10px solid var(--g1)} .make.g2{border-left:10px solid var(--g2)} .make.g3{border-left:10px solid var(--g3)}
+
+/* ---------- Video grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1.2rem 1rem}
+.card{background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:.5rem}
+.thumb{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:0 6%;color:#fff}
+html[data-theme="contrast"] .thumb{border:3px solid var(--line);background:#000!important;color:var(--text)}
+.thumb .te{font-size:4.2rem;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.thumb .tt{font-family:var(--display);font-size:1.75rem;line-height:1;text-align:right;max-width:60%;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:3px 3px 0 #000;transform:rotate(-3deg)}
+.thumb .dur{position:absolute;right:.4rem;bottom:.4rem;background:rgba(0,0,0,.85);color:#fff;font-weight:700;font-size:.75rem;padding:.1rem .4rem;border-radius:.3rem}
+.thumb .watched{position:absolute;left:0;bottom:0;height:6px;background:var(--yt)}
+.thumb .new{position:absolute;left:.4rem;top:.4rem;background:var(--yt);color:#fff;font-weight:700;font-size:.7rem;padding:.1rem .5rem;border-radius:.3rem}
+.meta{display:flex;gap:.6rem}
+.meta .avatar{width:2.4rem;height:2.4rem;font-size:1.2rem}
+.meta .vt{font-weight:700;font-size:1rem;line-height:1.25}
+.meta .vs{font-size:.8rem;color:var(--muted)}
+.empty{padding:2rem;border:var(--bw) dashed var(--line);border-radius:var(--radius);text-align:center;color:var(--muted)}
+
+/* ---------- Goal page ---------- */
+.goalhead{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.goalhead .gi{font-size:3rem}
+.goalhead h1{font-family:var(--display);font-size:2.4rem;letter-spacing:1px;margin:0}
+details.iep{margin:.8rem 0;border:var(--bw) solid var(--line);border-radius:var(--radius);background:var(--surface);padding:.6rem 1rem}
+details.iep summary{font-weight:700;cursor:pointer;padding:.3rem 0}
+details.iep p{font-size:.95rem;margin:.4rem 0 .6rem}
+.types{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.8rem}
+.type{padding:1rem;border-radius:var(--radius);border:var(--bw) solid var(--line);background:var(--surface);text-align:left;min-height:6.5rem}
+.type .ic{font-size:2.2rem;display:block}
+.type b{font-size:1.1rem}
+.type small{display:block;color:var(--muted);font-size:.78rem;margin-top:.2rem}
+.type.surprise{background:linear-gradient(135deg,var(--g1),var(--g2),var(--g3));color:#fff;border:0}
+html[data-theme="contrast"] .type.surprise{background:#000;color:var(--text);border:3px solid var(--line)}
+
+/* ---------- Watch page ---------- */
+.watch{display:grid;grid-template-columns:minmax(0,1fr) 20rem;gap:1.4rem;align-items:start}
+.player{background:var(--stage-bg);color:var(--stage-text);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;min-height:50vh;border:var(--bw) solid #000}
+html[data-theme="contrast"] .player{border-color:var(--line)}
+.stage{flex:1;padding:1.4rem 1.8rem;display:flex;flex-direction:column;gap:1rem;position:relative;background:radial-gradient(ellipse at top,rgba(255,255,255,.07),transparent 70%)}
+.cap{background:#000;color:#fff;font-weight:700;text-align:center;font-size:calc(1.9rem * var(--cap-scale));padding:.5rem 1rem;min-height:calc(2.9rem * var(--cap-scale));border-top:2px solid #333;line-height:1.25}
+html[data-theme="contrast"] .cap{color:#ffeb00;border-top-color:#ffeb00}
+.cap .cc{display:inline-block;font-size:.55em;border:2px solid currentColor;border-radius:.3rem;padding:0 .25rem;margin-right:.5rem;vertical-align:middle}
+.pbar{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:#111;border-top:2px solid #222}
+html[data-theme="contrast"] .pbar{background:#000;border-top-color:#ffeb00}
+.pbtn{min-width:3.4rem;height:3rem;border-radius:.7rem;border:2px solid #444;background:#222;color:#fff;font-size:1.2rem;font-weight:700;padding:0 .6rem}
+html[data-theme="contrast"] .pbtn{background:#000;border-color:#ffeb00;color:#ffeb00}
+.pbtn[aria-pressed="true"]{background:#fff;color:#000}
+.progress{flex:1;height:10px;background:#444;border-radius:5px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--yt);transition:width .4s}
+.pcount{color:#fff;font-weight:700;font-size:.9rem;white-space:nowrap}
+html[data-theme="contrast"] .pcount{color:#ffeb00}
+.vtitle{font-size:1.5rem;margin:.8rem 0 .4rem}
+.vrow{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.vrow .who b{display:block}
+.vrow .who small{color:var(--muted)}
+.pill{padding:.6rem 1.1rem;border-radius:2rem;border:var(--bw) solid var(--line);background:var(--surface);font-weight:700;font-size:.95rem;min-height:3rem}
+.pill.red{background:var(--text);color:var(--bg);border-color:var(--text)}
+.desc{margin-top:.8rem;background:var(--surface);border-radius:var(--radius);padding:.8rem 1rem;font-size:.9rem}
+.upnext h3{font-size:1.1rem}
+.upnext .card{flex-direction:row;margin-bottom:.8rem}
+.upnext .thumb{width:9rem;flex:none}
+.upnext .thumb .te{font-size:2.2rem}.upnext .thumb .tt{font-size:.95rem;-webkit-text-stroke:1px #000}
+.upnext .vt{font-size:.85rem}
+
+/* ---------- Stage content ---------- */
+.tag{align-self:flex-start;display:inline-flex;gap:.4rem;align-items:center;padding:.3rem .9rem;border-radius:2rem;background:rgba(255,255,255,.14);font-weight:700;font-size:.95rem}
+html[data-theme="contrast"] .tag{background:#000;border:2px solid #ffeb00}
+.passage{font-size:3.1rem;font-weight:700;line-height:1.45;margin:.2rem 0;text-align:center}
+.passage.small{font-size:1.8rem;opacity:.85}
+.w{padding:0 .12em;border-radius:.2em;transition:background .15s,color .15s}
+.w.hf{text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.18em;text-decoration-color:var(--stage-hi)}
+.w.on{background:var(--stage-hi);color:#000}
+.bigword{font-family:var(--display);font-size:5rem;text-align:center;letter-spacing:2px;line-height:1.05}
+.prompt{font-size:2.1rem;font-weight:700;text-align:center;margin:0}
+.prompt b{color:var(--stage-hi)}
+.sent{font-size:1.8rem;text-align:center;margin:0;opacity:.95}
+.sent mark{background:var(--stage-hi);color:#000;padding:0 .15em;border-radius:.2em}
+.row{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+.sbtn{min-height:4.2rem;padding:.6rem 1.6rem;border-radius:1.2rem;border:3px solid rgba(255,255,255,.35);background:#262626;color:#fff;font-size:1.4rem;font-weight:700}
+html[data-theme="contrast"] .sbtn{background:#000;border-color:#ffeb00;color:#ffeb00}
+.sbtn.go{background:var(--yt);border-color:var(--yt);color:#fff}
+html[data-theme="contrast"] .sbtn.go{background:#ffeb00;color:#000}
+.sbtn:disabled{opacity:.4}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1rem}
+.choice{min-height:7rem;border-radius:1.4rem;border:4px solid rgba(255,255,255,.4);background:#1d1d1d;color:#fff;font-size:2rem;font-weight:700;padding:.6rem 1rem;display:flex;align-items:center;justify-content:center;gap:.6rem;text-align:center;line-height:1.15}
+html[data-theme="contrast"] .choice{background:#000;border-color:#ffeb00;color:#ffeb00}
+.choice .ce{font-size:2.8rem}
+.choice.right{background:var(--ind);border-color:#fff;color:#fff}
+.choice.wrong{opacity:.35;text-decoration:line-through}
+.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.turn{font-family:var(--display);font-size:3.4rem;text-align:center;color:var(--stage-hi);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.saybox{border:4px dashed var(--stage-hi);border-radius:1.2rem;padding:1rem 1.4rem;font-size:2.3rem;font-weight:700;text-align:center}
+.saybox small{display:block;font-size:1rem;opacity:.85;margin-bottom:.3rem}
+.nextbar{display:flex;justify-content:flex-end;margin-top:auto}
+.dots{display:flex;gap:.6rem;justify-content:center;font-size:2.4rem}
+.flash{font-family:var(--display);font-size:8rem;text-align:center;letter-spacing:3px;line-height:1}
+.ling{font-family:var(--display);font-size:9rem;text-align:center;line-height:1}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem}
+.tile{min-height:7rem;border-radius:1.4rem;border:4px solid rgba(255,255,255,.4);background:#1d1d1d;color:#fff;font-size:1.6rem;font-weight:700;display:flex;align-items:center;gap:.8rem;padding:1rem;text-align:left}
+.tile .ce{font-size:2.6rem}
+.tile.done{background:var(--ind);border-color:#fff}
+html[data-theme="contrast"] .tile{background:#000;border-color:#ffeb00;color:#ffeb00}
+html[data-theme="contrast"] .tile.done{background:#ffeb00;color:#000}
+.seq{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
+.slots{display:flex;flex-direction:column;gap:.6rem}
+.slot{min-height:4rem;border:3px dashed rgba(255,255,255,.45);border-radius:1rem;display:flex;align-items:center;gap:.6rem;padding:.4rem 1rem;font-size:1.4rem;font-weight:700}
+.slot.filled{border-style:solid;background:var(--ind);border-color:#fff}
+.slot .n{display:grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:50%;background:#fff;color:#000;flex:none}
+.typein{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.typein input{font-size:2rem;padding:.4rem 1rem;border-radius:1rem;border:3px solid rgba(255,255,255,.5);background:#000;color:#fff;width:min(22rem,90%)}
+.answers{font-size:1.6rem;text-align:center}
+.answers b{color:var(--stage-hi)}
+.result-chips{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.rchip{font-size:1.6rem;font-weight:700;padding:.4rem 1rem;border-radius:1rem;border:3px solid #fff}
+.rchip.ok{background:var(--ind)} .rchip.no{background:var(--not)}
+.finish{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;flex:1;text-align:center}
+.finish h2{font-family:var(--display);font-size:4rem;letter-spacing:2px;margin:0}
+
+/* ---------- Coach panel ---------- */
+#watchCol:fullscreen{background:var(--bg);padding:1rem;overflow:auto}
+#watchCol:fullscreen .player{min-height:62vh}
+.coach{margin-top:1rem;border:var(--bw) dashed var(--line);border-radius:var(--radius);padding:.8rem 1rem;background:var(--surface)}
+.coach .ch{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.95rem;color:var(--muted);margin-bottom:.5rem;flex-wrap:wrap}
+.coach .hint{margin:.2rem 0;font-size:.95rem}
+.scores{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+.score{min-height:4.4rem;border-radius:1rem;border:3px solid transparent;color:#fff;font-weight:700;font-size:1.05rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;line-height:1.1}
+.score b{font-size:1.5rem}
+.s-ind{background:var(--ind)} .s-pro{background:var(--pro)} .s-not{background:var(--not)} .s-nr{background:var(--nr)}
+html[data-theme="contrast"] .score{border-color:#ffeb00}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap;margin:.3rem 0 .7rem}
+.chip{min-height:2.8rem;padding:.3rem .9rem;border-radius:2rem;border:var(--bw) solid var(--line);background:var(--bg);font-weight:700;font-size:.9rem}
+.chip[aria-pressed="true"]{background:var(--ind);color:#fff;border-color:var(--ind)}
+.last{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.85rem;padding:.4rem .6rem;border-radius:.8rem;background:var(--bg);margin-bottom:.6rem}
+.last .mini{min-height:2.4rem;min-width:2.6rem;border-radius:.6rem;border:var(--bw) solid var(--line);background:var(--surface);font-size:1rem}
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .6rem;border-radius:1rem;color:#fff;font-weight:700;font-size:.85rem;white-space:nowrap}
+.rec{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.rec audio{height:2.6rem}
+
+/* ---------- Celebration ---------- */
+.party{position:fixed;inset:0;z-index:80;display:grid;place-items:center;pointer-events:none}
+.party .msg{background:var(--yt);color:#fff;font-family:var(--display);font-size:3.6rem;letter-spacing:2px;padding:1.2rem 2.4rem;border-radius:2rem;border:6px solid #fff;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:pop .9s ease-out both;text-align:center}
+html[data-theme="contrast"] .party .msg{background:#000;color:#ffeb00;border-color:#ffeb00}
+.party .msg small{display:block;font-family:var(--body);font-size:1.3rem;font-weight:700;letter-spacing:0}
+.party .fx{position:absolute;font-size:3.4rem;animation:fly 1.4s ease-out forwards}
+@keyframes pop{0%{transform:scale(.3);opacity:0}40%{transform:scale(1.12);opacity:1}70%{transform:scale(1)}100%{transform:scale(1)}}
+@keyframes fly{0%{transform:translate(0,0) scale(.5);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0}}
+.toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);z-index:70;background:#000;color:#fff;font-weight:700;font-size:calc(1.6rem * var(--cap-scale));padding:.6rem 1.4rem;border-radius:1rem;max-width:92vw;text-align:center;border:3px solid #fff}
+html[data-theme="contrast"] .toast{color:#ffeb00;border-color:#ffeb00}
+
+/* ---------- Data & settings ---------- */
+.panel{background:var(--surface);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem;border:var(--bw) solid var(--line)}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:1rem;margin-bottom:1rem}
+.gcard{border-radius:var(--radius);padding:1rem 1.2rem;background:var(--surface);border:var(--bw) solid var(--line);border-top:10px solid var(--gc)}
+.gcard .pct{font-size:3rem;font-weight:700;line-height:1}
+.gcard .bar{position:relative;height:1.1rem;background:var(--surface2);border-radius:.6rem;margin:.6rem 0 .4rem;overflow:visible}
+.gcard .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:.6rem;background:var(--gc)}
+.gcard .bar u{position:absolute;top:-.35rem;bottom:-.35rem;width:4px;background:var(--text);left:20%}
+.gcard .small{font-size:.85rem;color:var(--muted)}
+.status{display:inline-block;margin-top:.4rem;font-weight:700;font-size:.9rem;padding:.2rem .7rem;border-radius:1rem;border:var(--bw) solid var(--line)}
+.btnrow{display:flex;gap:.6rem;flex-wrap:wrap}
+.btn{min-height:3rem;padding:.4rem 1.1rem;border-radius:.9rem;border:var(--bw) solid var(--line);background:var(--surface2);font-weight:700;font-size:.95rem}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.danger{border-color:var(--not);color:var(--not)}
+html[data-theme="contrast"] .btn.danger{color:var(--text);border-color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;top:0;background:var(--surface)}
+.tablewrap{max-height:28rem;overflow:auto;border-radius:.8rem}
+.x{min-width:2.4rem;min-height:2.4rem;border-radius:.6rem;border:var(--bw) solid var(--line);background:var(--bg)}
+label.f{display:block;font-weight:700;margin:.7rem 0 .3rem;font-size:.95rem}
+.f + small,.help{display:block;color:var(--muted);font-size:.8rem;margin-bottom:.3rem}
+input.t,select.t,textarea.t{width:100%;padding:.55rem .8rem;border-radius:.8rem;border:var(--bw) solid var(--line);background:var(--bg);font-size:1rem}
+textarea.t{min-height:8rem;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.9rem;font-weight:700;margin-top:.4rem}
+.legend i{display:inline-block;width:1.6rem;height:.35rem;border-radius:.2rem;vertical-align:middle;margin-right:.3rem}
+.daily .drow{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.seg{display:flex;gap:.3rem;flex-wrap:wrap}
+.seg button{min-height:2.8rem;min-width:3rem;padding:0 .6rem;border-radius:.7rem;border:var(--bw) solid var(--line);background:var(--bg);font-weight:700;font-size:.85rem}
+.seg button[aria-pressed="true"]{color:#fff;border-color:transparent}
+.seg button[aria-pressed="true"][data-v="ind"]{background:var(--ind)}
+.seg button[aria-pressed="true"][data-v="pro"]{background:var(--pro)}
+.seg button[aria-pressed="true"][data-v="not"]{background:var(--not)}
+.seg button[aria-pressed="true"][data-v="nr"],.seg button[aria-pressed="true"][data-v="na"]{background:var(--nr)}
+.checks{display:flex;flex-wrap:wrap;gap:.5rem}
+.checks label{display:flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border-radius:2rem;border:var(--bw) solid var(--line);background:var(--bg);font-weight:700}
+.checks input{width:1.3rem;height:1.3rem}
+
+@media (max-width:1100px){.watch{grid-template-columns:1fr}.upnext{display:none}}
+@media (max-width:820px){
+  html{font-size:calc(17px * var(--scale))}
+  .shell{flex-direction:column}
+  .side{position:static;width:auto;height:auto;display:flex;overflow-x:auto;border-right:0;border-bottom:var(--bw) solid var(--line);padding:.4rem 1rem}
+  .side hr,.side .mini{display:none}
+  .nav{width:auto;white-space:nowrap}
+  .search{display:none}
+  main{padding:1rem 1rem 6rem}
+  .scores{grid-template-columns:1fr 1fr}
+  .seq,.two{grid-template-columns:1fr}
+  .tools .tool small{display:none}
+  .top{flex-wrap:wrap;gap:.4rem}
+  .tool{min-width:2.6rem;height:2.6rem}
+  .avatar{width:2.4rem;height:2.4rem;font-size:1.2rem}
+  .banner h1{font-size:1.8rem}.banner .big-av{width:4rem;height:4rem;font-size:2.2rem}
+  .seq{grid-template-columns:1fr}
+}
+@media print{
+  .top,.side,.noprint,.toast{display:none!important}
+  body{background:#fff;color:#000}
+  main{padding:0}
+  .panel,.gcard{break-inside:avoid;border-color:#999}
+  .tablewrap{max-height:none;overflow:visible}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="logo" id="logo" aria-label="Home"><span class="play">▶</span><span id="logoName">J.E. TV</span><sup>STUDIO</sup></button>
+  <form class="search" id="searchForm" role="search">
+    <input id="search" placeholder="Search videos" aria-label="Search videos">
+    <button aria-label="Search">🔍</button>
+  </form>
+  <div class="tools">
+    <button class="tool" id="tSound" aria-pressed="true" title="Sound on/off"><b>🔊</b><small>SOUND</small></button>
+    <button class="tool" id="tCC" aria-pressed="true" title="Captions on/off"><b>CC</b><small>CAPTIONS</small></button>
+    <button class="tool" id="tSize" title="Make text bigger"><b>Aa</b><small id="sizeLbl">BIG</small></button>
+    <button class="tool" id="tTheme" title="Change colors"><b>🌗</b><small id="themeLbl">DARK</small></button>
+    <button class="tool" id="tFull" title="Full screen"><b>⛶</b><small>FULL</small></button>
+    <div class="avatar" id="topAv" aria-hidden="true">😎</div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="side" aria-label="Main">
+    <button class="nav" data-go="home"><span>🏠</span>Home</button>
+    <button class="nav" data-go="goal1"><span>🗣️</span>Speak It</button>
+    <button class="nav" data-go="goal2"><span>👯</span>Word Twins</button>
+    <button class="nav" data-go="goal3"><span>🎧</span>Device Check</button>
+    <hr>
+    <button class="nav" data-go="data"><span>📊</span>Data Tracker</button>
+    <button class="nav" data-go="settings"><span>⚙️</span>Studio Settings</button>
+    <hr>
+    <div class="mini">Today's trials<br><b id="todayCount">0</b></div>
+    <div class="mini">Subscribers<br><b id="subCount">0</b></div>
+  </nav>
+  <main id="main" tabindex="-1"></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="party" id="party" aria-hidden="true" hidden></div>
+<input type="file" id="restoreFile" accept="application/json" hidden>
+
+<script>
+/* =====================================================================
+   DATA BANKS
+   ===================================================================== */
+const TOPICS = {
+  youtube:['YouTube','📺'], gaming:['Gaming','🎮'], food:['Food','🍕'],
+  animals:['Animals','🐶'], sports:['Sports','⚽'], music:['Music','🎵'], school:['School','🏫']
+};
+
+/* Leveled passages. lv1 = one short sentence, lv2 = two short sentences.
+   q/a/w = check-for-understanding question, right answer, wrong answers. */
+const PASSAGES = [
+ {t:'youtube',lv:1,s:'I made a video.',q:'What did I make?',a:['a video','🎬'],w:[['a cake','🎂'],['a car','🚗']]},
+ {t:'youtube',lv:2,s:'I made a new video. I put it on my channel.',q:'Where did I put it?',a:['on my channel','📺'],w:[['in my bag','🎒'],['in the car','🚗']]},
+ {t:'youtube',lv:1,s:'My video has a lot of likes.',q:'What does my video have?',a:['likes','👍'],w:[['dogs','🐶'],['rain','🌧️']]},
+ {t:'youtube',lv:2,s:'Hi, friends! Do not forget to subscribe.',q:'What should you do?',a:['subscribe','🔔'],w:[['go to sleep','😴'],['eat a snack','🍿']]},
+ {t:'youtube',lv:2,s:'I like to watch videos. I watch them after school.',q:'When do I watch videos?',a:['after school','🏫'],w:[['in the pool','🏊'],['at the zoo','🦁']]},
+ {t:'youtube',lv:1,s:'I can make a funny video.',q:'What kind of video?',a:['a funny video','😂'],w:[['a sad video','😢'],['a scary video','👻']]},
+ {t:'gaming',lv:1,s:'I like to play games.',q:'What do I like to play?',a:['games','🎮'],w:[['the piano','🎹'],['in the mud','🟤']]},
+ {t:'gaming',lv:2,s:'I play a game with my friend. We win!',q:'Who do I play with?',a:['my friend','🧑'],w:[['my cat','🐱'],['a robot','🤖']]},
+ {t:'gaming',lv:2,s:'I got a new game. It is so much fun.',q:'What did I get?',a:['a new game','🎮'],w:[['a new hat','🧢'],['a new dog','🐶']]},
+ {t:'gaming',lv:1,s:'We play on the big TV.',q:'Where do we play?',a:['on the big TV','📺'],w:[['in the car','🚗'],['in the tree','🌳']]},
+ {t:'food',lv:1,s:'I want to eat pizza.',q:'What do I want to eat?',a:['pizza','🍕'],w:[['soup','🍲'],['an apple','🍎']]},
+ {t:'food',lv:2,s:'The pizza is hot. I eat it fast.',q:'How is the pizza?',a:['hot','🔥'],w:[['cold','🧊'],['blue','🔵']]},
+ {t:'food',lv:2,s:'I am hungry. Can I have a snack?',q:'How do I feel?',a:['hungry','😋'],w:[['sleepy','😴'],['mad','😠']]},
+ {t:'food',lv:1,s:'I like cold ice cream.',q:'What do I like?',a:['ice cream','🍦'],w:[['hot soup','🍲'],['rocks','🪨']]},
+ {t:'animals',lv:1,s:'The big dog can run.',q:'What can the dog do?',a:['run','🏃'],w:[['fly','🕊️'],['read','📖']]},
+ {t:'animals',lv:2,s:'I see a little cat. It is black and white.',q:'What do I see?',a:['a cat','🐱'],w:[['a bus','🚌'],['a fish','🐟']]},
+ {t:'animals',lv:2,s:'The bird is in the tree. It can fly.',q:'Where is the bird?',a:['in the tree','🌳'],w:[['in the car','🚗'],['in a box','📦']]},
+ {t:'sports',lv:1,s:'We play ball at the park.',q:'Where do we play?',a:['at the park','🏞️'],w:[['at the store','🏪'],['in bed','🛏️']]},
+ {t:'sports',lv:2,s:'I kick the ball. It goes in the goal!',q:'What do I kick?',a:['the ball','⚽'],w:[['the door','🚪'],['the cake','🎂']]},
+ {t:'sports',lv:2,s:'We run fast. Our team wins!',q:'Who wins?',a:['our team','🏆'],w:[['the dog','🐶'],['the bus','🚌']]},
+ {t:'music',lv:1,s:'I like this song.',q:'What do I like?',a:['this song','🎵'],w:[['this shoe','👟'],['this book','📚']]},
+ {t:'music',lv:2,s:'I put on my music. I sing and dance.',q:'What do I do?',a:['sing and dance','💃'],w:[['sleep','😴'],['cook','🍳']]},
+ {t:'school',lv:1,s:'I ride the bus to school.',q:'How do I get to school?',a:['the bus','🚌'],w:[['a boat','⛵'],['a plane','✈️']]},
+ {t:'school',lv:2,s:'I go to class. I say hi to my teacher.',q:'Who do I say hi to?',a:['my teacher','👩‍🏫'],w:[['a dog','🐶'],['the bus','🚌']]},
+ {t:'school',lv:2,s:'It is time for lunch. I sit with my friends.',q:'What time is it?',a:['lunch time','🥪'],w:[['bed time','🛏️'],['bath time','🛁']]}
+];
+
+/* High-frequency (sight) words: Dolch pre-primer to 1st grade + a few common words. */
+const HF = new Set(('a and away big blue can come down find for funny go help here i in is it jump little look make me my not one play red run said see the three to two up we where yellow you all am are at ate be black brown but came did do eat four get good have he into like must new no now on our out please pretty ran ride saw say she so soon that there they this too under want was well went what white who will with yes after again an any as ask by could every fly from give going had has her him his how just know let live may of old once open over put round some stop take thank them then think walk were when hot cold fast time friend friends school day').split(' '));
+
+/* Word bank for synonyms/antonyms. T1 = everyday words, T2 = academic words. */
+const WORDS = [
+ {w:'big',e:'🐘',tier:'T1',syn:['large','huge'],ant:['small','little'],s:'The elephant is big.'},
+ {w:'happy',e:'😀',tier:'T1',syn:['glad','joyful'],ant:['sad','upset'],s:'I am happy today.'},
+ {w:'fast',e:'🏎️',tier:'T1',syn:['quick','speedy'],ant:['slow'],s:'The race car is fast.'},
+ {w:'hot',e:'🔥',tier:'T1',syn:['warm'],ant:['cold','cool'],s:'The soup is hot.'},
+ {w:'loud',e:'📢',tier:'T1',syn:['noisy'],ant:['quiet','soft'],s:'The music is loud.'},
+ {w:'easy',e:'✅',tier:'T1',syn:['simple'],ant:['hard','difficult'],s:'This game is easy.'},
+ {w:'good',e:'👍',tier:'T1',syn:['great','nice'],ant:['bad'],s:'That was a good video.'},
+ {w:'laugh',e:'😂',tier:'T1',syn:['giggle'],ant:['cry'],s:'My videos make people laugh.'},
+ {w:'shout',e:'📣',tier:'T1',syn:['yell'],ant:['whisper'],s:'Please do not shout in class.'},
+ {w:'full',e:'🥤',tier:'T1',syn:['filled'],ant:['empty'],s:'My cup is full.'},
+ {w:'new',e:'✨',tier:'T1',syn:['fresh'],ant:['old'],s:'I got a new game.'},
+ {w:'near',e:'📍',tier:'T1',syn:['close'],ant:['far'],s:'The park is near my house.'},
+ {w:'smile',e:'😊',tier:'T1',syn:['grin'],ant:['frown'],s:'I smile at the camera.'},
+ {w:'tired',e:'😴',tier:'T1',syn:['sleepy'],ant:['awake','rested'],s:'I am tired after the game.'},
+ {w:'similar',e:'🟰',tier:'T2',syn:['alike','same'],ant:['different'],s:'These two pictures are similar.'},
+ {w:'increase',e:'📈',tier:'T2',syn:['grow','rise'],ant:['decrease','shrink'],s:'My subscribers increase every day.'},
+ {w:'correct',e:'✔️',tier:'T2',syn:['right','accurate'],ant:['wrong','incorrect'],s:'Your answer is correct.'},
+ {w:'complete',e:'🏁',tier:'T2',syn:['finish','done'],ant:['incomplete','unfinished'],s:'I complete my work.'},
+ {w:'include',e:'➕',tier:'T2',syn:['add'],ant:['exclude','leave out'],s:'Include a picture in your video.'},
+ {w:'important',e:'⭐',tier:'T2',syn:['main','key'],ant:['unimportant','minor'],s:'This is an important rule.'},
+ {w:'before',e:'⏪',tier:'T2',syn:['earlier'],ant:['after'],s:'Charge it before school.'},
+ {w:'first',e:'🥇',tier:'T2',syn:['beginning'],ant:['last'],s:'First, turn it on.'},
+ {w:'many',e:'🔢',tier:'T2',syn:['lots','a lot'],ant:['few'],s:'Many people watch my channel.'},
+ {w:'above',e:'⬆️',tier:'T2',syn:['over'],ant:['below','under'],s:'The title is above the video.'},
+ {w:'connect',e:'🔗',tier:'T2',syn:['join','attach'],ant:['separate','disconnect'],s:'Connect the charger.'},
+ {w:'create',e:'🎨',tier:'T2',syn:['make','build'],ant:['destroy'],s:'I create videos.'},
+ {w:'true',e:'💯',tier:'T2',syn:['real','correct'],ant:['false'],s:'That fact is true.'},
+ {w:'whole',e:'🍕',tier:'T2',syn:['entire','all'],ant:['part'],s:'I ate the whole pizza.'}
+];
+
+const LING = [
+ {s:'ah',say:'ahh',hint:'as in "hot"'},{s:'oo',say:'ooo',hint:'as in "moon"'},{s:'ee',say:'eee',hint:'as in "see"'},
+ {s:'sh',say:'shhh',hint:'as in "shoe"'},{s:'s',say:'sss',hint:'as in "sun"'},{s:'m',say:'mmm',hint:'as in "mom"'}
+];
+
+/* {d} is replaced with the device name from Studio Settings. */
+const FIXES = [
+ {e:'🔇',p:'My {d} has NO sound.',a:['Check that it is ON and check the battery','🔋'],w:[['Keep going and say nothing','🤐'],['Put it in my pocket','👖']],say:'My {d} has no sound. Can you help me check it?'},
+ {e:'📢',p:'My {d} is whistling or squealing.',a:['Push it in all the way and check the fit','👂'],w:[['Turn it up louder','🔊'],['Shake it hard','🫨']],say:'My {d} is whistling. I need to fix the fit.'},
+ {e:'🪫',p:'My {d} says the battery is LOW.',a:['Charge it or change the battery','🔌'],w:[['Throw it away','🗑️'],['Put it in water','💧']],say:'My battery is low. I need to charge it.'},
+ {e:'🤏',p:'The sound is quiet or fuzzy.',a:['Check for wax or dirt and tell an adult','🧽'],w:[['Hit it on the desk','✊'],['Just ignore it','🙈']],say:'My {d} sounds fuzzy. Can you help me clean it?'},
+ {e:'💦',p:'My {d} got wet.',a:['Take it off, dry it, and tell an adult','🧻'],w:[['Keep wearing it wet','🌊'],['Hide it in my bag','🎒']],say:'My {d} got wet. I need help drying it.'},
+ {e:'🫳',p:'My {d} fell on the floor.',a:['Pick it up gently and do a sound check','🎧'],w:[['Leave it there','🚶'],['Step on it','👟']],say:'My {d} fell. I need to do a sound check.'},
+ {e:'🌙',p:'It is the end of the school day.',a:['Put my {d} on the charger','🔌'],w:[['Leave it in my backpack','🎒'],['Give it to a friend','🧑']],say:'It is time to charge my {d}.'},
+ {e:'〰️',p:'The sound keeps cutting in and out.',a:['Check the battery door and tell my teacher','🙋'],w:[['Turn it off and on 50 times','🔁'],['Say nothing','🤐']],say:'My {d} keeps cutting out. Can you help me?'}
+];
+
+const SPEAK = [
+ {e:'🛑',p:'Your {d} stops working in class.',say:'Excuse me. My {d} is not working. Can you help me?'},
+ {e:'🪫',p:'Your battery is almost dead.',say:'My battery is low. Can I charge my {d}, please?'},
+ {e:'🔊',p:'The room is too loud. You cannot hear.',say:'It is too loud. Can I move to a quiet spot?'},
+ {e:'🎙️',p:"Your teacher's microphone is off.",say:'Please turn on your microphone. I cannot hear you.'},
+ {e:'📺',p:'The class is watching a video with no captions.',say:'Can you turn on the captions, please?'},
+ {e:'📢',p:'Your {d} is whistling.',say:'My {d} is whistling. Can I have a minute to fix it?'},
+ {e:'🗣️',p:'You did not hear what your friend said.',say:'Can you say that again, please?'}
+];
+
+const ROUTINES = [
+ {name:'End-of-Day Charge',e:'🌙',steps:['Take off my {d}','Wipe it clean','Put it on the charger','Check that the light is on']},
+ {name:'Morning Start',e:'☀️',steps:['Take my {d} off the charger','Put it on','Turn it on','Do a sound check']},
+ {name:'Sound Check',e:'🎧',steps:['Put my {d} on','Turn it on','Listen to the 6 sounds','Tell an adult if something is wrong']},
+ {name:'No Sound? Fix It',e:'🔧',steps:['Check that it is ON','Check the battery','Check that it is in all the way','Ask an adult for help']}
+];
+
+const DAILY = [
+ 'Arrived with device charged',
+ 'Completed sound check',
+ 'Advocated when device was not working',
+ 'Did small troubleshooting',
+ 'Put device on charger / stored it safely'
+];
+
+const GOALS = {
+ 1:{name:'Speak It!',short:'Speak It',icon:'🗣️',cls:'g1',color:'var(--g1)',
+    measure:'Oral expression of a short leveled passage (1–2 sentences), audible and intelligible',
+    text:"By the end of the 2nd 9 weeks, when provided a leveled text aligned to students' interests, checks for understanding, and repetition of high-frequency vocabulary, J.E. will be able to orally express a short leveled passage (simple 1 to 2 sentences) with 20% mastery (audibly and intelligibly) as evidenced by language samples and observation."},
+ 2:{name:'Word Twins',short:'Word Twins',icon:'👯',cls:'g2',color:'var(--g2)',
+    measure:'Identify a synonym and an antonym for key vocabulary (T1/T2) and say or write them',
+    text:"By the end of the 2nd 9 weeks, when presented with leveled texts containing high-frequency vocabulary and T1 Academic vocabulary, J.E. will be able to identify synonyms and antonyms (at least one of each) for key vocabulary (T1/T2 academic language) and repeat them orally and/or in writing with 20% mastery, as evidenced by observations and work samples."},
+ 3:{name:'Device Check',short:'Device Check',icon:'🎧',cls:'g3',color:'var(--g3)',
+    measure:'Maintain devices: sound checks, advocating, small troubleshooting, keeping devices charged',
+    text:"By the end of the 2nd 9 weeks, when provided mock practice, strategies, and visual supports, J.E. will be able to maintain his devices while on campus (completing sound checks, advocating when the device is not operating, small troubleshooting, keeping devices charged) with 20% mastery, as evidenced by data logs and observations."}
+};
+
+const TYPES = {
+ readsay:{goal:1,name:'Read & Say',e:'📖',tt:'SAY IT!',bg:['#ff3b6b','#ff8a00'],desc:'Listen to a short passage, then say it out loud.',titles:['READ & SAY: {topic} Edition {te}','I Read This Out Loud!! {te}','Speak It Challenge #{n} {te}']},
+ echo:{goal:1,name:'Echo x3',e:'🔁',tt:'ECHO x3',bg:['#ff3b6b','#ffcc00'],desc:'Hear it, say it, 3 times in a row.',titles:['ECHO CHALLENGE x3 {te}','Say It 3 Times (Can I Do It?) {te}']},
+ cfu:{goal:1,name:'Check It!',e:'❓',tt:'QUIZ?!',bg:['#e11d48','#7c3aed'],desc:'Listen, answer a question, then say the passage.',titles:['Did You Get It?? Quiz Time {te}','Listen & Answer Challenge {te}']},
+ hfw:{goal:1,name:'Word Power',e:'⚡',tt:'WORD POWER',bg:['#f43f5e','#0ea5e9'],desc:'Practice the sight words, then say the whole passage.',titles:['Word Power UP ⚡ {topic}','Sight Word Speedrun ⚡ {te}']},
+ syn:{goal:2,name:'Word Twins',e:'👯',tt:'TWINS!',bg:['#a855f7','#ec4899'],desc:'Find the word that means the SAME.',titles:['Find the WORD TWINS 👯 #{n}','Same Meaning Challenge 👯']},
+ ant:{goal:2,name:'Opposite Day',e:'🔄',tt:'OPPOSITE',bg:['#7c3aed','#f97316'],desc:'Find the word that means the OPPOSITE.',titles:['OPPOSITE DAY Challenge 🔄','Opposites Attack!! 🔄']},
+ sameopp:{goal:2,name:'Same or Opposite?',e:'🤔',tt:'SAME??',bg:['#9333ea','#06b6d4'],desc:'Two words: are they the same or opposite?',titles:['Same or Opposite?? 🤔 (Hard Mode)','Twins or Opposites? 🤔']},
+ sayboth:{goal:2,name:'Say Both',e:'🎤',tt:'SAY BOTH',bg:['#a855f7','#22c55e'],desc:'Say (or write) a synonym AND an antonym.',titles:['Say BOTH Words Challenge 🎤','Synonym + Antonym Mic Drop 🎤']},
+ soundcheck:{goal:3,name:'Sound Check',e:'🎧',tt:'SOUND CHECK',bg:['#14b8a6','#3b82f6'],desc:'Get ready, then do the 6-sound check.',titles:['Daily Sound Check Vlog 🎧','Mic Check 1-2! Sound Check 🎧']},
+ fixit:{goal:3,name:'Fix It!',e:'🔧',tt:'FIX IT!',bg:['#0d9488','#f59e0b'],desc:'Something is wrong. What do you do?',titles:['My Device is BROKEN?! 🔧 Fix It','Troubleshoot Like a Pro 🔧']},
+ speakup:{goal:3,name:'Speak Up!',e:'🙋',tt:'SPEAK UP',bg:['#0f766e','#ec4899'],desc:'Practice asking for help with your device.',titles:['Speak Up Storytime 🙋','How to Ask for Help (Real Talk) 🙋']},
+ routine:{goal:3,name:'Charge Routine',e:'🔋',tt:'CHARGE!',bg:['#14b8a6','#84cc16'],desc:'Put the device-care steps in order.',titles:['Charging Routine Speedrun 🔋','Get Ready With Me: Device Routine 🔋']}
+};
+
+const SCORES = [
+ {k:'ind',icon:'✅',label:'Independent'},
+ {k:'pro',icon:'🤝',label:'With prompt'},
+ {k:'not',icon:'🔁',label:'Not yet'},
+ {k:'nr', icon:'➖',label:'No response'}
+];
+const SCORE = Object.fromEntries(SCORES.map(s=>[s.k,s]));
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const KEY = 'je-tv-studio-v1';
+function defaults(){
+  return {
+    settings:{sound:true,captions:true,scale:1,capScale:1,theme:'dark',rate:0.85,voice:'',
+      channel:'J.E. TV',handle:'@JE',avatar:'😎',student:'J.E.',device:'hearing aid',
+      interests:Object.keys(TOPICS),level:'mix',customPassages:'',customWords:''},
+    log:[], uploads:[], subs:1250, subscribed:false, n:0
+  };
+}
+let store;
+try{ store = JSON.parse(localStorage.getItem(KEY)) || defaults(); }catch(e){ store = defaults(); }
+{ const d = defaults(); store = Object.assign(d, store); store.settings = Object.assign(defaults().settings, store.settings||{}); }
+const S = store.settings;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){ toast('⚠️ Could not save. Export a backup from Data Tracker.'); } sideStats(); }
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $ = s=>document.querySelector(s);
+const $$ = s=>[...document.querySelectorAll(s)];
+const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = ()=>Math.random().toString(36).slice(2,10);
+const rand = a=>a[Math.floor(Math.random()*a.length)];
+const shuffle = a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const sample = (a,n)=>shuffle(a).slice(0,n);
+const today = ()=>new Date().toLocaleDateString('en-CA');
+const D = s=>String(s).replaceAll('{d}',S.device||'device');
+const cap1 = s=>s.charAt(0).toUpperCase()+s.slice(1);
+const ago = ts=>{const m=Math.round((Date.now()-ts)/60000); if(m<1)return'just now'; if(m<60)return m+' min ago'; const h=Math.round(m/60); if(h<24)return h+' hours ago'; const d=Math.round(h/24); return d===1?'1 day ago':d+' days ago';};
+const fmtViews = n=>n>=1000?(n/1000).toFixed(n>=10000?0:1)+'K':String(n);
+let timers=[];
+function later(fn,ms){ const t=setTimeout(fn,ms); timers.push(t); return t; }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+
+/* ---------- Speech + captions ---------- */
+let voices=[];
+function loadVoices(){ if(!('speechSynthesis' in window))return; voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)); }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function pickVoice(){ return voices.find(v=>v.name===S.voice) || voices.find(v=>/en[-_]US/i.test(v.lang)) || voices[0]; }
+let lastSaid='', capTimer=null;
+function say(text,{caption=true}={}){
+  text=String(text); lastSaid=text;
+  if(caption) showCaption(text);
+  if(S.sound && 'speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=S.rate; u.volume=1; const v=pickVoice(); if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }
+}
+function showCaption(text){
+  if(!S.captions) return;
+  const strip=$('#cap');
+  if(strip){ strip.innerHTML='<span class="cc">CC</span>'+esc(text); return; }
+  toast(text, 2500+text.split(' ').length*450/S.rate);
+}
+function toast(text,ms=2600){
+  const t=$('#toast'); t.textContent=text; t.hidden=false;
+  clearTimeout(capTimer); capTimer=setTimeout(()=>t.hidden=true,ms);
+}
+/* Short "ding" for correct answers (helps with residual hearing). */
+let actx;
+function ding(good=true){
+  if(!S.sound) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const notes=good?[660,880,1320]:[300,220];
+    notes.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,actx.currentTime+i*.12);g.gain.exponentialRampToValueAtTime(.35,actx.currentTime+i*.12+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+i*.12+.25);o.connect(g).connect(actx.destination);
+      o.start(actx.currentTime+i*.12);o.stop(actx.currentTime+i*.12+.3);});
+  }catch(e){}
+}
+function celebrate(msg){
+  store.subs+=1; save();
+  ding(true); if(navigator.vibrate) try{navigator.vibrate([80,40,80]);}catch(e){}
+  const p=$('#party');
+  const fx=['🎉','🔔','👍','⭐','🔥','💯','✨'];
+  p.innerHTML=`<div class="msg">${esc(msg||rand(['NICE!','AWESOME!','LET\'S GO!','YOU GOT IT!']))}<small>🔔 +1 subscriber · ${store.subs.toLocaleString()}</small></div>`+
+    Array.from({length:14},()=>{const a=Math.random()*Math.PI*2,r=260+Math.random()*260;
+      return `<span class="fx" style="--dx:${Math.cos(a)*r}px;--dy:${Math.sin(a)*r}px">${rand(fx)}</span>`;}).join('');
+  p.hidden=false; clearTimeout(p._t); p._t=setTimeout(()=>p.hidden=true,1500);
+}
+
+/* =====================================================================
+   CONTENT GENERATION
+   ===================================================================== */
+function customPassages(){
+  return (S.customPassages||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const [s,q,a,w1,w2]=l.split('|').map(x=>(x||'').trim());
+    const p={t:'custom',lv:0,s};
+    if(q&&a&&w1) Object.assign(p,{q,a:[a,'✅'],w:[[w1,'❌'],[w2||'something else','❌']]});
+    return p;
+  }).filter(p=>p.s);
+}
+function customWords(){
+  return (S.customWords||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const [w,syn,ant,s]=l.split('|').map(x=>(x||'').trim());
+    return {w,e:'⭐',tier:'Custom',syn:(syn||'').split(',').map(x=>x.trim()).filter(Boolean),ant:(ant||'').split(',').map(x=>x.trim()).filter(Boolean),s:s||''};
+  }).filter(x=>x.w&&x.syn.length&&x.ant.length);
+}
+function passagePool(needQ){
+  let pool=PASSAGES.filter(p=>S.interests.includes(p.t));
+  if(S.level==='1') pool=pool.filter(p=>p.lv===1);
+  if(S.level==='2') pool=pool.filter(p=>p.lv===2);
+  pool=pool.concat(customPassages());
+  if(needQ) pool=pool.filter(p=>p.q);
+  if(pool.length<3) pool=pool.concat(PASSAGES.filter(p=>!needQ||p.q));
+  return pool;
+}
+function wordPool(){ const c=customWords(); return c.length>=3?c.concat(WORDS):WORDS.concat(c); }
+function makeChoices(w,kind){
+  const right=rand(w[kind]);
+  const other=rand(w[kind==='syn'?'ant':'syn']);
+  const pool=wordPool().filter(x=>x.w!==w.w && ![...w.syn,...w.ant].includes(x.w));
+  const filler=rand(pool).w;
+  return shuffle([{label:right,ok:true},{label:other},{label:filler}]);
+}
+function generate(goal,type){
+  goal=+goal;
+  if(!type) type=rand(Object.keys(TYPES).filter(k=>TYPES[k].goal===goal));
+  const T=TYPES[type]; store.n=(store.n||0)+1;
+  const act={id:uid(),goal:T.goal,type,created:Date.now(),views:Math.floor(800+Math.random()*48000),
+    dur:`${2+Math.floor(Math.random()*7)}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,items:[],done:0};
+  const wp=wordPool();
+  switch(type){
+    case 'readsay': act.items=sample(passagePool(),3); break;
+    case 'echo': act.items=sample(passagePool(),2); break;
+    case 'cfu': act.items=sample(passagePool(true),3); break;
+    case 'hfw': act.items=sample(passagePool(),2); break;
+    case 'syn': act.items=sample(wp,5).map(w=>({w,choices:makeChoices(w,'syn')})); break;
+    case 'ant': act.items=sample(wp,5).map(w=>({w,choices:makeChoices(w,'ant')})); break;
+    case 'sameopp': act.items=sample(wp,6).map(w=>{const rel=Math.random()<.5?'syn':'ant';return {w,rel,b:rand(w[rel])};}); break;
+    case 'sayboth': act.items=sample(wp,4).map(w=>({w})); break;
+    case 'soundcheck': act.items=[{}]; break;
+    case 'fixit': act.items=sample(FIXES,4).map(f=>({...f,choices:shuffle([{label:f.a[0],e:f.a[1],ok:true},...f.w.map(([l,e])=>({label:l,e}))])})); break;
+    case 'speakup': act.items=sample(SPEAK,3); break;
+    case 'routine': act.items=sample(ROUTINES,2).map(r=>({...r,order:shuffle(r.steps.map((s,i)=>i))})); break;
+  }
+  const first=act.items[0]||{};
+  const topicKey=first.t&&TOPICS[first.t]?first.t:null;
+  act.te = topicKey?TOPICS[topicKey][1]:(first.w&&first.w.e)||first.e||T.e;
+  act.title = rand(T.titles).replace('{topic}',topicKey?TOPICS[topicKey][0]:'Custom').replace('{te}',act.te).replace('{n}',store.n);
+  store.uploads.unshift(act);
+  store.uploads=store.uploads.slice(0,48);
+  save();
+  return act;
+}
+
+/* =====================================================================
+   DATA LOGGING
+   ===================================================================== */
+let lastEntry=null;
+function logTrial(o){
+  const e={id:uid(),ts:Date.now(),date:today(),goal:o.goal||(P&&P.act.goal),type:o.type,act:P?P.act.title:'',
+    item:o.item||'',score:o.score,detail:o.detail||'',primary:o.primary!==false};
+  store.log.push(e); save(); lastEntry=e; if(P) P.results.push(e);
+  renderLast();
+  if(o.quiet) return e;
+  if(e.score==='ind') celebrate();
+  else if(e.score==='pro') { ding(true); toast('👍 Good work!'); }
+  return e;
+}
+function renderLast(){
+  const el=$('#lastSaved'); if(!el) return;
+  if(!lastEntry||!store.log.includes(lastEntry)){ el.hidden=true; return; }
+  const s=SCORE[lastEntry.score];
+  el.hidden=false;
+  el.innerHTML=`<span>💾 Saved:</span><span class="badge s-${s.k}">${s.icon} ${s.label}</span><span>${esc(lastEntry.item).slice(0,60)}</span>
+    <span style="margin-left:auto">Change:</span>${SCORES.map(x=>`<button class="mini" data-fix="${x.k}" title="${x.label}" aria-label="Change to ${x.label}">${x.icon}</button>`).join('')}
+    <button class="mini" data-fix="del" title="Delete" aria-label="Delete this entry">🗑️</button>`;
+  el.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.fix==='del'){ store.log=store.log.filter(x=>x!==lastEntry); if(P) P.results=P.results.filter(x=>x!==lastEntry); lastEntry=null; save(); renderLast(); toast('Entry deleted'); return; }
+    lastEntry.score=b.dataset.fix; save(); renderLast(); toast('Score changed');
+  });
+}
+function sideStats(){
+  const t=today();
+  $('#todayCount').textContent=store.log.filter(e=>e.date===t).length;
+  $('#subCount').textContent=store.subs.toLocaleString();
+}
+
+/* =====================================================================
+   ROUTER + VIEWS
+   ===================================================================== */
+let view='home', P=null;
+function go(v,arg){
+  clearTimers(); if('speechSynthesis' in window) speechSynthesis.cancel(); stopRec();
+  view=v; if(v!=='watch') P=null;
+  $$('.nav').forEach(n=>n.setAttribute('aria-current',n.dataset.go===v?'page':'false'));
+  const m=$('#main');
+  ({home:viewHome,goal1:()=>viewGoal(1),goal2:()=>viewGoal(2),goal3:()=>viewGoal(3),data:viewData,settings:viewSettings,watch:()=>viewWatch(arg)})[v]();
+  m.scrollTop=0; window.scrollTo(0,0);
+}
+function thumbHTML(a){
+  const T=TYPES[a.type];
+  const pct=a.done?100:0;
+  const isNew=Date.now()-a.created<36e5 && !a.done;
+  return `<div class="thumb" style="background:linear-gradient(135deg,${T.bg[0]},${T.bg[1]})">
+    <span class="te">${a.te}</span><span class="tt">${esc(T.tt)}</span>
+    ${isNew?'<span class="new">NEW</span>':''}<span class="dur">${a.dur}</span>${pct?`<span class="watched" style="width:${pct}%"></span>`:''}</div>`;
+}
+function cardHTML(a){
+  return `<button class="card" data-open="${a.id}">${thumbHTML(a)}
+    <div class="meta"><div class="avatar" aria-hidden="true">${esc(S.avatar)}</div><div>
+    <div class="vt">${esc(a.title)}</div>
+    <div class="vs">${esc(S.channel)} · ${GOALS[a.goal].icon} ${TYPES[a.type].name}</div>
+    <div class="vs">${fmtViews(a.views)} views · ${ago(a.created)}</div></div></div></button>`;
+}
+function bindCards(root=document){
+  root.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>go('watch',b.dataset.open));
+  root.querySelectorAll('[data-gen]').forEach(b=>b.onclick=()=>{
+    const [g,t]=b.dataset.gen.split(':'); const a=generate(g,t||null); go('watch',a.id);
+  });
+}
+let searchQ='';
+function viewHome(){
+  const list=store.uploads.filter(a=>!searchQ||(a.title+' '+TYPES[a.type].name+' '+GOALS[a.goal].name+' '+JSON.stringify(a.items)).toLowerCase().includes(searchQ));
+  $('#main').innerHTML=`
+  <section class="banner"><div class="row">
+    <div class="big-av">${esc(S.avatar)}</div>
+    <div><h1>${esc(S.channel)}</h1><div class="sub">${esc(S.handle)} · ${store.subs.toLocaleString()} subscribers · ${store.uploads.length} videos</div></div>
+    <button class="subbtn ${store.subscribed?'on':''}" id="subBtn">${store.subscribed?'🔔 Subscribed':'Subscribe'}</button>
+  </div></section>
+  <div class="section-title">✨ Make a new video</div>
+  <div class="make-row">
+    ${[1,2,3].map(g=>`<button class="make ${GOALS[g].cls}" data-gen="${g}"><span class="ic">${GOALS[g].icon}</span><span>New ${GOALS[g].name} video<small>${GOALS[g].measure}</small></span></button>`).join('')}
+  </div>
+  <div class="section-title">${searchQ?`🔍 Results for “${esc(searchQ)}”`:'🎬 Latest uploads'}</div>
+  ${list.length?`<div class="grid">${list.map(cardHTML).join('')}</div>`:`<div class="empty">No videos yet. Tap a ✨ button above to make one!</div>`}`;
+  bindCards();
+  $('#subBtn').onclick=()=>{store.subscribed=!store.subscribed; if(store.subscribed) celebrate('SUBSCRIBED!'); else save(); viewHome();};
+}
+function viewGoal(g){
+  const G=GOALS[g];
+  const list=store.uploads.filter(a=>a.goal===g);
+  const types=Object.entries(TYPES).filter(([,t])=>t.goal===g);
+  $('#main').innerHTML=`
+  <div class="goalhead"><span class="gi">${G.icon}</span><h1 style="color:${G.color}">${G.name}</h1></div>
+  <details class="iep"><summary>📋 IEP goal (teacher view)</summary><p>${esc(G.text)}</p><p><b>Mastery target:</b> 20% of trials scored <b>Independent</b>. See 📊 Data Tracker.</p></details>
+  <div class="section-title">✨ Make a new video</div>
+  <div class="types">
+    <button class="type surprise" data-gen="${g}"><span class="ic">🎲</span><b>Surprise me!</b><small style="color:inherit">Random activity type</small></button>
+    ${types.map(([k,t])=>`<button class="type" data-gen="${g}:${k}"><span class="ic">${t.e}</span><b>${t.name}</b><small>${t.desc}</small></button>`).join('')}
+  </div>
+  <div class="section-title">🎬 ${G.short} videos</div>
+  ${list.length?`<div class="grid">${list.map(cardHTML).join('')}</div>`:`<div class="empty">No ${G.short} videos yet. Make one above!</div>`}`;
+  bindCards();
+}
+
+/* =====================================================================
+   WATCH PAGE (activity player)
+   ===================================================================== */
+function viewWatch(id){
+  const act=store.uploads.find(a=>a.id===id); if(!act) return go('home');
+  act.views+=1; save();
+  P={act,i:0,phase:null,results:[],round:0};
+  lastEntry=null;
+  const G=GOALS[act.goal], T=TYPES[act.type];
+  const next=store.uploads.filter(a=>a.id!==id).slice(0,8);
+  $('#main').innerHTML=`
+  <div class="watch">
+    <div id="watchCol">
+      <div class="player" id="player">
+        <div class="stage" id="stage" aria-live="polite"></div>
+        <div class="cap" id="cap" aria-live="polite" ${S.captions?'':'hidden'}><span class="cc">CC</span></div>
+        <div class="pbar">
+          <button class="pbtn" id="pReplay" title="Say it again" aria-label="Say it again">🔁</button>
+          <button class="pbtn" id="pSkip" title="Skip to next" aria-label="Skip to next">⏭</button>
+          <div class="progress" aria-hidden="true"><i id="pProg" style="width:0"></i></div>
+          <span class="pcount" id="pCount"></span>
+          <button class="pbtn" id="pSound" aria-pressed="${S.sound}" title="Sound">🔊</button>
+          <button class="pbtn" id="pCC" aria-pressed="${S.captions}" title="Captions">CC</button>
+          <button class="pbtn" id="pFull" title="Full screen player" aria-label="Full screen player">⛶</button>
+        </div>
+      </div>
+      <div class="coach noprint" id="coach">
+        <div class="ch">🧑‍🏫 COACH PANEL <span style="font-weight:400">· ${G.icon} ${G.short} · ${T.name}</span></div>
+        <div class="last" id="lastSaved" hidden></div>
+        <div id="coachBody"></div>
+      </div>
+      <h2 class="vtitle">${esc(act.title)}</h2>
+      <div class="vrow">
+        <div class="avatar" aria-hidden="true">${esc(S.avatar)}</div>
+        <div class="who"><b>${esc(S.channel)}</b><small>${store.subs.toLocaleString()} subscribers</small></div>
+        <button class="pill red" id="wSub">${store.subscribed?'🔔 Subscribed':'Subscribe'}</button>
+        <button class="pill" id="wLike">👍 Like</button>
+        <button class="pill" data-gen="${act.goal}:${act.type}">✨ New video like this</button>
+        <button class="pill" data-gen="${act.goal}">🎲 Different ${G.short} video</button>
+      </div>
+      <div class="desc"><b>${fmtViews(act.views)} views · ${ago(act.created)}</b><br>${T.desc}<br><b>IEP goal:</b> ${esc(G.measure)}.</div>
+    </div>
+    <aside class="upnext"><h3>Up next</h3>${next.map(cardHTML).join('')||'<p class="vs">Make more videos to fill this list.</p>'}</aside>
+  </div>`;
+  bindCards();
+  $('#pReplay').onclick=()=>{ if(lastSaid) say(lastSaid); };
+  $('#pSkip').onclick=()=>nextItem();
+  $('#pSound').onclick=()=>{toggleSound();};
+  $('#pCC').onclick=()=>{toggleCC();};
+  $('#pFull').onclick=()=>fullscreen($('#watchCol'));
+  $('#wLike').onclick=()=>celebrate('THANKS FOR THE LIKE!');
+  $('#wSub').onclick=()=>{store.subscribed=!store.subscribed; if(store.subscribed) celebrate('SUBSCRIBED!'); else save(); $('#wSub').textContent=store.subscribed?'🔔 Subscribed':'Subscribe';};
+  runStep();
+}
+const stage = h=>{ $('#stage').innerHTML=h; };
+const coach = h=>{ $('#coachBody').innerHTML=h; };
+const bind = (id,fn)=>{ const el=document.getElementById(id); if(el) el.onclick=fn; };
+function progress(){
+  const n=P.act.items.length;
+  $('#pProg').style.width=Math.round(P.i/n*100)+'%';
+  $('#pCount').textContent=`${Math.min(P.i+1,n)} / ${n}`;
+}
+function runStep(){ clearTimers(); stopRec(); progress(); RUN[P.act.type](P.act.items[P.i]); }
+function rerender(){ runStep(); }
+function nextItem(){
+  if(!P) return;
+  P.i++; P.phase=null; P.round=0;
+  if(P.i>=P.act.items.length) return finish();
+  runStep();
+}
+function showNext(label='Next ▶'){
+  const st=$('#stage'); if(!st||st.querySelector('.nextbar')) return;
+  st.insertAdjacentHTML('beforeend',`<div class="nextbar"><button class="sbtn go" id="nextBtn">${P.i+1>=P.act.items.length?'Finish 🏁':label}</button></div>`);
+  bind('nextBtn',nextItem);
+}
+function finish(){
+  clearTimers();
+  P.act.done=1; save();
+  $('#pProg').style.width='100%';
+  const r=P.results.filter(e=>e.primary);
+  const c=k=>r.filter(e=>e.score===k).length;
+  stage(`<div class="finish"><div style="font-size:5rem">🏆</div><h2>VIDEO COMPLETE!</h2>
+    <div class="result-chips">${SCORES.map(s=>`<span class="rchip" style="background:var(--${s.k})">${s.icon} ${c(s.k)}</span>`).join('')}</div>
+    <div class="row"><button class="sbtn" id="again">🔁 Watch again</button><button class="sbtn go" data-gen="${P.act.goal}">✨ New video</button><button class="sbtn" id="homeBtn">🏠 Home</button></div></div>`);
+  coach(`<p class="hint">This video saved <b>${P.results.length}</b> data point(s) (${r.length} goal measures). Open <b>📊 Data Tracker</b> to see progress.</p>`);
+  bindCards($('#stage'));
+  bind('again',()=>go('watch',P.act.id));
+  bind('homeBtn',()=>go('home'));
+  say('Video complete! Great job!');
+  celebrate('VIDEO COMPLETE!');
+}
+
+/* ---------- Shared pieces ---------- */
+function passageHTML(s,id='psg',small=false){
+  return `<p class="passage${small?' small':''}" id="${id}">`+s.split(/\s+/).map((w,i)=>{
+    const clean=w.toLowerCase().replace(/[^a-z']/g,'');
+    return `<span class="w${HF.has(clean)?' hf':''}" data-i="${i}">${esc(w)}</span>`;
+  }).join(' ')+'</p>';
+}
+/* Read-along: highlights each word as it is read. */
+function readAlong(s,id='psg',done){
+  clearTimers();
+  say(s);
+  const spans=$$('#'+id+' .w');
+  let i=0;
+  const step=()=>{ spans.forEach(x=>x.classList.remove('on')); if(i>=spans.length){ done&&done(); return; }
+    spans[i].classList.add('on'); const len=spans[i].textContent.length; i++; later(step,(300+len*75)/S.rate); };
+  later(step,150);
+}
+function scoreButtons(){ return `<div class="scores">${SCORES.map(s=>`<button class="score s-${s.k}" data-score="${s.k}"><b>${s.icon}</b>${s.label}</button>`).join('')}</div>`; }
+function onScore(cb){ $$('#coachBody [data-score]').forEach(b=>b.onclick=()=>cb(b.dataset.score)); }
+const RUBRIC=[['aud','🔊 Audible'],['int','💬 Intelligible'],['whole','📝 Whole passage']];
+function rubricHTML(){ return `<div class="hint">Check what you observed, then score:</div><div class="chips">${RUBRIC.map(([k,l])=>`<button class="chip" data-rub="${k}" aria-pressed="false">${l}</button>`).join('')}</div>`; }
+function bindRubric(){ $$('#coachBody [data-rub]').forEach(b=>b.onclick=()=>b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true')); }
+function rubricText(){ return RUBRIC.map(([k,l])=>{const b=document.querySelector(`#coachBody [data-rub="${k}"]`);return l.slice(2).trim()+(b&&b.getAttribute('aria-pressed')==='true'?' ✓':' ✗');}).join(', '); }
+/* Suggest a score from the rubric so the teacher can tap once. */
+function rubricAutoHint(){
+  $$('#coachBody [data-rub]').forEach(b=>b.addEventListener('click',()=>{
+    const on=$$('#coachBody [data-rub][aria-pressed="true"]').length;
+    $$('#coachBody [data-score]').forEach(x=>x.style.outline='');
+    const k=on===3?'ind':on>0?'pro':null;
+    if(k){ const el=document.querySelector(`#coachBody [data-score="${k}"]`); if(el) el.style.outline='5px solid var(--text)'; }
+  }));
+}
+function choiceGrid(choices){
+  return `<div class="choices" id="choices">${choices.map((c,i)=>`<button class="choice" data-c="${i}">${c.e?`<span class="ce">${c.e}</span>`:''}<span>${esc(D(c.label))}</span></button>`).join('')}</div>`;
+}
+/* Tap choices: first-try correct = Independent, correct after a miss = With prompt. */
+function bindChoices(choices,onDone){
+  let misses=0, done=false;
+  $$('#choices [data-c]').forEach(b=>b.onclick=()=>{
+    if(done) return;
+    const c=choices[+b.dataset.c];
+    if(c.ok){ done=true; b.classList.add('right'); onDone(misses,c); }
+    else { misses++; b.classList.add('wrong','shake'); ding(false); say('Not yet. Try again!'); }
+  });
+}
+
+/* ---------- Language sample recorder ---------- */
+let rec=null, recChunks=[], recStream=null;
+function recorderHTML(){ return `<div class="rec"><button class="chip" id="recBtn">🎙️ Record language sample</button><span id="recOut"></span></div>`; }
+function bindRecorder(label){
+  const btn=$('#recBtn'); if(!btn) return;
+  if(!navigator.mediaDevices||!window.MediaRecorder){ btn.disabled=true; btn.textContent='🎙️ Recording not supported here'; return; }
+  btn.onclick=async()=>{
+    if(rec&&rec.state==='recording'){ rec.stop(); return; }
+    try{
+      recStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      rec=new MediaRecorder(recStream); recChunks=[];
+      rec.ondataavailable=e=>recChunks.push(e.data);
+      rec.onstop=()=>{
+        recStream.getTracks().forEach(t=>t.stop());
+        const blob=new Blob(recChunks,{type:rec.mimeType||'audio/webm'}); const url=URL.createObjectURL(blob);
+        const name=`${S.student.replace(/\W/g,'')}-sample-${today()}-${label.replace(/\W+/g,'-').slice(0,30)}.webm`;
+        const out=$('#recOut'); if(out) out.innerHTML=`<audio controls src="${url}"></audio> <a class="chip" href="${url}" download="${name}">💾 Save sample</a>`;
+        if(P) P.sampled=true;
+        btn.textContent='🎙️ Record again'; btn.setAttribute('aria-pressed','false');
+      };
+      rec.start(); btn.textContent='⏹️ Stop recording'; btn.setAttribute('aria-pressed','true');
+    }catch(e){ toast('Microphone not available'); }
+  };
+}
+function stopRec(){ try{ if(rec&&rec.state==='recording') rec.stop(); }catch(e){} }
+
+/* =====================================================================
+   ACTIVITY RUNNERS
+   ===================================================================== */
+const RUN = {
+  /* ---- Goal 1: Read & Say ---- */
+  readsay(item){
+    stage(`<div class="tag">📖 Read & Say · Passage ${P.i+1}</div>${passageHTML(item.s)}
+      <div class="row"><button class="sbtn" id="listen">🔊 Listen</button><button class="sbtn go" id="myturn">🗣️ My turn!</button></div>
+      <div class="turn" id="turn" hidden>🗣️ YOUR TURN! SAY IT!</div>`);
+    bind('listen',()=>readAlong(item.s));
+    bind('myturn',()=>{ $('#turn').hidden=false; say('Your turn! Say it.'); });
+    coach(rubricHTML()+scoreButtons()+recorderHTML());
+    bindRubric(); rubricAutoHint(); bindRecorder(item.s);
+    onScore(sc=>{ logTrial({type:'Read & Say',item:item.s,score:sc,detail:rubricText()+(P.sampled?', sample recorded':'')}); P.sampled=false; coach('<p class="hint">Saved. Tap <b>Next ▶</b>.</p>'); showNext(); });
+    later(()=>readAlong(item.s,'psg',()=>{ $('#turn').hidden=false; say('Your turn! Say it.'); }),700);
+  },
+  /* ---- Goal 1: Echo x3 (repetition) ---- */
+  echo(item){
+    P.round=P.round||1;
+    stage(`<div class="tag">🔁 Echo x3 · Round ${P.round} of 3</div>
+      <div class="dots">${[1,2,3].map(r=>r<P.round?'⭐':r===P.round?'🎤':'⚪').join('')}</div>
+      ${passageHTML(item.s)}
+      <div class="row"><button class="sbtn" id="listen">🔊 Listen</button><button class="sbtn go" id="myturn">🗣️ My turn!</button></div>
+      <div class="turn" id="turn" hidden>🗣️ ECHO IT!</div>`);
+    bind('listen',()=>readAlong(item.s));
+    bind('myturn',()=>{ $('#turn').hidden=false; say('Echo it!'); });
+    coach(rubricHTML()+scoreButtons()+recorderHTML());
+    bindRubric(); rubricAutoHint(); bindRecorder(item.s);
+    onScore(sc=>{
+      logTrial({type:'Echo x3',item:item.s,score:sc,detail:`Round ${P.round}; `+rubricText()});
+      if(P.round<3){ P.round++; later(rerender,900); }
+      else { coach('<p class="hint">3 rounds done! Tap <b>Next ▶</b>.</p>'); showNext(); }
+    });
+    later(()=>readAlong(item.s,'psg',()=>{ $('#turn').hidden=false; say('Echo it!'); }),700);
+  },
+  /* ---- Goal 1: Check It (CFU) ---- */
+  cfu(item){
+    const ph=P.phase||'listen';
+    if(ph==='listen'){
+      stage(`<div class="tag">❓ Check It · Listen first</div>${passageHTML(item.s)}
+        <div class="row"><button class="sbtn" id="listen">🔊 Listen again</button><button class="sbtn go" id="toQ">❓ Question time</button></div>`);
+      coach('<p class="hint">Read the passage together (repeat as needed). Then tap <b>Question time</b>.</p>');
+      bind('listen',()=>readAlong(item.s)); bind('toQ',()=>{P.phase='q';rerender();});
+      later(()=>readAlong(item.s),700);
+    } else if(ph==='q'){
+      const choices=shuffle([{label:item.a[0],e:item.a[1],ok:true},...item.w.map(([l,e])=>({label:l,e}))]);
+      stage(`<div class="tag">❓ Check It · Question</div>${passageHTML(item.s,'psg',true)}<p class="prompt">${esc(item.q)}</p>${choiceGrid(choices)}`);
+      coach('<p class="hint">Student taps an answer. First try = Independent. The score saves by itself.</p>');
+      say(item.q);
+      bindChoices(choices,(misses)=>{
+        logTrial({type:'Check It (question)',item:item.q+' → '+item.a[0],score:misses?'pro':'ind',detail:misses?`${misses} miss(es) first`:'First try',primary:false});
+        later(()=>{P.phase='say';rerender();},1700);
+      });
+    } else {
+      stage(`<div class="tag">🗣️ Now say the whole thing!</div>${passageHTML(item.s)}
+        <div class="row"><button class="sbtn" id="listen">🔊 Listen</button></div><div class="turn">🗣️ YOUR TURN!</div>`);
+      bind('listen',()=>readAlong(item.s));
+      say('Now say the whole thing!');
+      coach(rubricHTML()+scoreButtons()+recorderHTML());
+      bindRubric(); rubricAutoHint(); bindRecorder(item.s);
+      onScore(sc=>{ logTrial({type:'Check It (say passage)',item:item.s,score:sc,detail:rubricText()+(P.sampled?', sample recorded':'')}); P.sampled=false; coach('<p class="hint">Saved. Tap <b>Next ▶</b>.</p>'); showNext(); });
+    }
+  },
+  /* ---- Goal 1: Word Power (high-frequency words, then passage) ---- */
+  hfw(item){
+    const words=[...new Set(item.s.split(/\s+/).map(w=>w.toLowerCase().replace(/[^a-z']/g,'')).filter(w=>HF.has(w)))].slice(0,5);
+    const k=P.phase??0;
+    if(k<words.length){
+      const w=words[k];
+      stage(`<div class="tag">⚡ Word Power · Word ${k+1} of ${words.length}</div>
+        <div class="flash">${esc(w)}</div>
+        <div class="row"><button class="sbtn" id="listen">🔊 Hear it</button></div><div class="turn">🗣️ SAY IT!</div>`);
+      bind('listen',()=>say(w));
+      later(()=>say(w),500);
+      coach('<p class="hint">Sight word practice (counts as practice, not a goal measure).</p>'+scoreButtons());
+      onScore(sc=>{ logTrial({type:'Word Power (sight word)',item:w,score:sc,primary:false,quiet:sc!=='ind'}); P.phase=k+1; later(rerender,800); });
+    } else {
+      stage(`<div class="tag">⚡ Word Power · Now the whole passage!</div>${passageHTML(item.s)}
+        <div class="row"><button class="sbtn" id="listen">🔊 Listen</button><button class="sbtn go" id="myturn">🗣️ My turn!</button></div>
+        <div class="turn" id="turn" hidden>🗣️ YOUR TURN!</div>`);
+      bind('listen',()=>readAlong(item.s));
+      bind('myturn',()=>{ $('#turn').hidden=false; say('Your turn!'); });
+      coach(rubricHTML()+scoreButtons()+recorderHTML());
+      bindRubric(); rubricAutoHint(); bindRecorder(item.s);
+      onScore(sc=>{ logTrial({type:'Word Power (say passage)',item:item.s,score:sc,detail:rubricText()+(P.sampled?', sample recorded':'')}); P.sampled=false; coach('<p class="hint">Saved. Tap <b>Next ▶</b>.</p>'); showNext(); });
+      later(()=>readAlong(item.s),700);
+    }
+  },
+  /* ---- Goal 2: Synonyms / Antonyms ---- */
+  syn(item){ wordQuestion(item,'syn'); },
+  ant(item){ wordQuestion(item,'ant'); },
+  sameopp(item){
+    const w=item.w;
+    stage(`<div class="tag">🤔 Same or Opposite? · ${P.i+1} of ${P.act.items.length}</div>
+      <div class="bigword">${esc(w.w)} <span style="opacity:.6">&amp;</span> ${esc(item.b)}</div>
+      <p class="prompt">Do these words mean the <b>SAME</b> or the <b>OPPOSITE</b>?</p>
+      <div class="choices" id="choices"><button class="choice" data-c="0"><span class="ce">🤝</span>SAME</button><button class="choice" data-c="1"><span class="ce">↔️</span>OPPOSITE</button></div>`);
+    say(`${w.w} and ${item.b}. Same, or opposite?`);
+    coach('<p class="hint">Student taps SAME or OPPOSITE. First try = Independent (saves by itself). Then have the student say both words.</p>');
+    const choices=[{label:'SAME',ok:item.rel==='syn'},{label:'OPPOSITE',ok:item.rel==='ant'}];
+    bindChoices(choices,(misses)=>{
+      const rel=item.rel==='syn'?'mean the SAME (synonyms)':'are OPPOSITES (antonyms)';
+      logTrial({type:'Same or Opposite',item:`${w.w} / ${item.b} → ${item.rel==='syn'?'synonym':'antonym'}`,score:misses?'pro':'ind'});
+      $('#stage').insertAdjacentHTML('beforeend',`<div class="saybox"><small>Say it!</small>${esc(cap1(w.w))} and ${esc(item.b)} ${rel}.</div>`);
+      later(()=>say(`${cap1(w.w)} and ${item.b} ${rel}. Say it!`),1200);
+      oralFollowUp(); showNext();
+    });
+  },
+  sayboth(item){
+    const w=item.w; const ph=P.phase||'syn';
+    const isSyn=ph==='syn'; const list=w[ph];
+    stage(`<div class="tag">🎤 Say Both · ${isSyn?'Step 1: SAME':'Step 2: OPPOSITE'} · Word ${P.i+1} of ${P.act.items.length}</div>
+      <div class="bigword">${w.e} ${esc(w.w)}</div>
+      ${w.s?`<p class="sent">${markWord(w.s,w.w)}</p>`:''}
+      <p class="prompt">Say a word that means the <b>${isSyn?'SAME 🤝':'OPPOSITE ↔️'}</b> as <b>${esc(w.w)}</b>.</p>
+      <div class="typein"><input id="typeIn" placeholder="✏️ or write it here" autocomplete="off" aria-label="Write your word"><button class="sbtn" id="check">Check ✔️</button><button class="sbtn" id="reveal">👀 Show answers</button></div>
+      <div class="answers" id="answers" aria-live="polite"></div>`);
+    say(`Say a word that means the ${isSyn?'same':'opposite'} as ${w.w}.`);
+    bind('check',()=>{
+      const v=$('#typeIn').value.trim().toLowerCase(); if(!v) return;
+      const ok=list.some(x=>x.toLowerCase()===v);
+      $('#answers').innerHTML=ok?`✅ Yes! <b>${esc(v)}</b> ${isSyn?'means the same as':'is the opposite of'} ${esc(w.w)}.`:`🤔 <b>${esc(v)}</b> is not on my list. Ask your teacher!`;
+      if(ok){ ding(true); say(`Yes! ${v}.`);} else ding(false);
+      P.typed=v;
+    });
+    bind('reveal',()=>{ $('#answers').innerHTML=`${isSyn?'Same':'Opposite'}: <b>${list.map(esc).join(', ')}</b>`; say(`${isSyn?'Same':'Opposite'}: ${list.join(', ')}`); P.revealed=true; });
+    coach('<p class="hint">Listen (or read the written word), then score. Tell me if answers were revealed before the response.</p>'+scoreButtons());
+    onScore(sc=>{
+      logTrial({type:`Say Both (${isSyn?'synonym':'antonym'})`,item:`${w.w} → ${isSyn?'synonym':'antonym'}`,score:sc,
+        detail:[P.typed?`Wrote: ${P.typed}`:'Oral',P.revealed?'answers shown':''].filter(Boolean).join('; ')});
+      P.typed=''; P.revealed=false;
+      if(isSyn){ P.phase='ant'; later(rerender,900); } else { coach('<p class="hint">Both done! Tap <b>Next ▶</b>.</p>'); showNext(); }
+    });
+  },
+  /* ---- Goal 3: Sound Check (Ling 6) ---- */
+  soundcheck(){
+    const ph=P.phase||'prep';
+    if(ph==='prep'){
+      P.prep=P.prep||[false,false,false];
+      const tiles=[['🔛',`My ${D('{d}')} is ON`],['🔋','The battery is good'],['👂','It is in place']];
+      stage(`<div class="tag">🎧 Sound Check · Get ready</div><p class="prompt">Tap each step when it is done.</p>
+        <div class="tiles">${tiles.map(([e,t],i)=>`<button class="tile ${P.prep[i]?'done':''}" data-t="${i}"><span class="ce">${P.prep[i]?'✅':e}</span>${esc(t)}</button>`).join('')}</div>
+        <div class="row"><button class="sbtn go" id="startLing" ${P.prep.every(Boolean)?'':'disabled'}>Start the 6 sounds ▶</button></div>`);
+      $$('[data-t]').forEach(b=>b.onclick=()=>{P.prep[+b.dataset.t]=!P.prep[+b.dataset.t]; if(P.prep[+b.dataset.t]) ding(true); rerender();});
+      bind('startLing',()=>{P.phase='ling';P.lk=0;P.ling=[];rerender();});
+      coach('<p class="hint">Student checks the device and taps each step. Help only as needed. You will score the whole sound check at the end.</p>');
+      if(!P.prep.some(Boolean)) say('Get ready for your sound check.');
+    } else if(ph==='ling'){
+      const L=LING[P.lk];
+      stage(`<div class="tag">🎧 Sound Check · Sound ${P.lk+1} of 6</div><div class="ling">${L.s}</div>
+        <p class="sent">${esc(L.hint)}</p>
+        <div class="choices" id="lingBtns"><button class="choice" data-h="1"><span class="ce">✅</span>I heard it</button><button class="choice" data-h="0"><span class="ce">❌</span>I did not hear it</button></div>`);
+      coach(`<p class="hint">Adult: say <b>“${L.s}”</b> live, with your mouth covered (best), or tap <button class="chip" id="ttsLing">🔊 play it</button>. Student repeats it or taps a button.</p>`);
+      bind('ttsLing',()=>say(L.say,{caption:false}));
+      $$('#lingBtns [data-h]').forEach(b=>b.onclick=()=>{ P.ling[P.lk]=b.dataset.h==='1'; ding(P.ling[P.lk]); P.lk++; if(P.lk>=6) P.phase='result'; later(rerender,350); });
+    } else {
+      const heard=P.ling.filter(Boolean).length;
+      stage(`<div class="tag">🎧 Sound Check · Results</div>
+        <div class="result-chips">${LING.map((L,i)=>`<span class="rchip ${P.ling[i]?'ok':'no'}">${P.ling[i]?'✅':'❌'} ${L.s}</span>`).join('')}</div>
+        <p class="prompt">Is your ${esc(D('{d}'))} working?</p>
+        <div class="choices" id="workBtns"><button class="choice" data-wk="1"><span class="ce">👍</span>YES</button><button class="choice" data-wk="0"><span class="ce">👎</span>NO</button></div>
+        <div id="adv"></div>`);
+      say(`You heard ${heard} of 6 sounds. Is your ${D('{d}')} working?`);
+      $$('#workBtns [data-wk]').forEach(b=>b.onclick=()=>{
+        P.working=b.dataset.wk==='1';
+        $$('#workBtns .choice').forEach(x=>x.classList.remove('right')); b.classList.add('right');
+        $('#adv').innerHTML=P.working?`<div class="saybox">🎉 Great! Your sound check is done.</div>`:`<div class="saybox"><small>Tell an adult:</small>“${esc(D('My {d} is not working. Can you help me?'))}”</div>`;
+        say(P.working?'Great! Your sound check is done.':D('Tell an adult: My {d} is not working. Can you help me?'));
+      });
+      coach('<p class="hint">How independently did the student do the WHOLE sound check (get ready, 6 sounds, report)?</p>'+scoreButtons());
+      onScore(sc=>{
+        const missed=LING.filter((L,i)=>!P.ling[i]).map(L=>L.s);
+        logTrial({type:'Sound Check',item:'Sound check (Ling 6)',score:sc,detail:`Heard ${heard}/6${missed.length?'; missed: '+missed.join(' '):''}; working: ${P.working===undefined?'not answered':P.working?'yes':'no'}`});
+        showNext('Done ▶');
+      });
+    }
+  },
+  /* ---- Goal 3: Fix It (troubleshooting) ---- */
+  fixit(item){
+    stage(`<div class="tag">🔧 Fix It! · Problem ${P.i+1} of ${P.act.items.length}</div>
+      <div class="bigword" style="font-size:4.4rem">${item.e}</div><p class="prompt">${esc(D(item.p))}<br>What do you do?</p>${choiceGrid(item.choices)}`);
+    say(D(item.p)+' What do you do?');
+    coach('<p class="hint">Student taps an answer. First try = Independent (saves by itself). Then practice saying the help sentence.</p>');
+    bindChoices(item.choices,(misses)=>{
+      logTrial({type:'Fix It (troubleshoot)',item:D(item.p)+' → '+D(item.a[0]),score:misses?'pro':'ind'});
+      $('#stage').insertAdjacentHTML('beforeend',`<div class="saybox"><small>Then say:</small>“${esc(D(item.say))}”</div>`);
+      later(()=>say(D(item.say)),1300);
+      showNext();
+    });
+  },
+  /* ---- Goal 3: Speak Up (advocacy) ---- */
+  speakup(item){
+    stage(`<div class="tag">🙋 Speak Up! · ${P.i+1} of ${P.act.items.length}</div>
+      <div class="bigword" style="font-size:4.4rem">${item.e}</div><p class="prompt">${esc(D(item.p))}<br>What can you say?</p>
+      <div class="row"><button class="sbtn" id="hint">💡 Show me what to say</button><button class="sbtn" id="hear">🔊 Hear it</button></div>
+      <div id="script"></div>`);
+    say(D(item.p)+' What can you say?');
+    bind('hint',()=>{ $('#script').innerHTML=`<div class="saybox"><small>You can say:</small>“${esc(D(item.say))}”</div>`; P.hinted=true; });
+    bind('hear',()=>{ $('#script').innerHTML=`<div class="saybox"><small>You can say:</small>“${esc(D(item.say))}”</div>`; say(D(item.say)); P.hinted=true; });
+    coach('<p class="hint">Role-play: you are the adult. Score the student\'s request. (If you showed the script first, that is usually “With prompt”.)</p>'+scoreButtons());
+    onScore(sc=>{ logTrial({type:'Speak Up (advocacy)',item:D(item.p),score:sc,detail:P.hinted?'Script shown':'No script'}); P.hinted=false; coach('<p class="hint">Saved. Tap <b>Next ▶</b>.</p>'); showNext(); });
+  },
+  /* ---- Goal 3: Routine sequencing ---- */
+  routine(item){
+    P.placed=P.placed||[]; P.err=P.err||0;
+    const steps=item.steps.map(D);
+    const nextIdx=P.placed.length;
+    stage(`<div class="tag">${item.e} ${esc(item.name)} · Put the steps in order</div>
+      <div class="seq">
+        <div class="slots">${steps.map((s,i)=>`<div class="slot ${i<nextIdx?'filled':''}"><span class="n">${i+1}</span>${i<nextIdx?esc(s):''}</div>`).join('')}</div>
+        <div class="slots">${item.order.filter(i=>!P.placed.includes(i)).map(i=>`<button class="tile" data-s="${i}" style="min-height:4rem;font-size:1.3rem">${esc(steps[i])}</button>`).join('')}</div>
+      </div>`);
+    if(nextIdx===0) say(`${item.name}. What comes first?`);
+    coach('<p class="hint">Student taps the steps in order. 0 mistakes = Independent, otherwise With prompt (saves by itself).</p>');
+    $$('[data-s]').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.s;
+      if(i===nextIdx){ P.placed.push(i); ding(true); say(steps[i]);
+        if(P.placed.length===steps.length){
+          logTrial({type:'Charge Routine (sequence)',item:item.name,score:P.err?'pro':'ind',detail:`${P.err} mistake(s)`});
+          P.placed=[]; P.err=0;
+          $$('.slot').forEach(s=>s.classList.add('filled'));
+          $$('.seq .slots')[0].innerHTML=steps.map((s,k)=>`<div class="slot filled"><span class="n">${k+1}</span>${esc(s)}</div>`).join('');
+          $$('.seq .slots')[1].innerHTML='<div class="saybox">🎉 All in order!</div>';
+          showNext();
+        } else later(rerender,250);
+      } else { P.err++; b.classList.add('shake'); ding(false); say('Not yet. What comes next?'); setTimeout(()=>b.classList.remove('shake'),500); }
+    });
+  }
+};
+function markWord(s,w){ return esc(s).replace(new RegExp(`\\b(${w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})\\b`,'i'),'<mark>$1</mark>'); }
+function wordQuestion(item,kind){
+  const w=item.w, isSyn=kind==='syn';
+  stage(`<div class="tag">${isSyn?'👯 Word Twins':'🔄 Opposite Day'} · ${w.tier} word · ${P.i+1} of ${P.act.items.length}</div>
+    <div class="bigword">${w.e} ${esc(w.w)}</div>
+    ${w.s?`<p class="sent">${markWord(w.s,w.w)}</p>`:''}
+    <p class="prompt">Which word means ${isSyn?'the <b>SAME</b> as':'the <b>OPPOSITE</b> of'} <b>${esc(w.w)}</b>?</p>
+    ${choiceGrid(item.choices)}`);
+  say(`${w.s} Which word means the ${isSyn?'same as':'opposite of'} ${w.w}?`);
+  coach('<p class="hint">Student taps a word. First try = Independent (saves by itself). Then the student says the pair out loud.</p>');
+  bindChoices(item.choices,(misses,c)=>{
+    logTrial({type:isSyn?'Word Twins (synonym)':'Opposite Day (antonym)',item:`${w.w} → ${c.label}`,score:misses?'pro':'ind'});
+    const line=isSyn?`${cap1(w.w)} and ${c.label} mean the same.`:`${cap1(w.w)} is the opposite of ${c.label}.`;
+    $('#stage').insertAdjacentHTML('beforeend',`<div class="saybox"><small>Say it!</small>${esc(line)}</div>`);
+    later(()=>say(line+' Say it!'),1300);
+    oralFollowUp(); showNext();
+  });
+}
+/* After a tap answer, the teacher can note whether the student said it aloud (adds to the saved entry). */
+function oralFollowUp(){
+  coach(`<p class="hint">Did the student <b>say it out loud</b> (or write it)?</p><div class="chips">
+    <button class="chip" data-oral="Said it independently">🗣️ Said it</button><button class="chip" data-oral="Said it with a model">🤝 Said it with a model</button>
+    <button class="chip" data-oral="Wrote it">✏️ Wrote it</button><button class="chip" data-oral="Did not say it">➖ Did not say it</button></div>`);
+  const entry=lastEntry;
+  $$('#coachBody [data-oral]').forEach(b=>b.onclick=()=>{
+    $$('#coachBody [data-oral]').forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true');
+    if(entry){ entry.detail=b.dataset.oral; save(); }
+  });
+}
+
+/* =====================================================================
+   DATA TRACKER
+   ===================================================================== */
+let dataRange='all', dataGoal='all';
+function inRange(e){
+  if(dataRange==='all') return true;
+  const days=+dataRange; return Date.now()-e.ts <= days*864e5;
+}
+function stats(goal,entries){
+  const e=entries.filter(x=>x.goal===goal&&x.primary);
+  const c=k=>e.filter(x=>x.score===k).length;
+  const n=e.length;
+  return {n,ind:c('ind'),pro:c('pro'),not:c('not'),nr:c('nr'),pct:n?Math.round(c('ind')/n*100):0,practice:entries.filter(x=>x.goal===goal&&!x.primary).length,
+    last:e.length?e[e.length-1].date:null};
+}
+function chartSVG(entries){
+  const dates=[...new Set(entries.filter(e=>e.primary).map(e=>e.date))].sort();
+  if(!dates.length) return '<div class="empty">The chart appears after the first scored trial.</div>';
+  const W=900,H=300,L=56,R=20,T=16,B=50;
+  const x=i=>dates.length===1?L+(W-L-R)/2:L+i*(W-L-R)/(dates.length-1);
+  const y=v=>T+(100-v)*(H-T-B)/100;
+  let g='';
+  [0,20,40,60,80,100].forEach(v=>{ g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-10}" y="${y(v)+5}" text-anchor="end" font-size="14" fill="var(--muted)">${v}%</text>`; });
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(20)}" y2="${y(20)}" stroke="var(--text)" stroke-width="2.5" stroke-dasharray="8 6"/><text x="${W-R}" y="${y(20)-8}" text-anchor="end" font-size="14" font-weight="700" fill="var(--text)">Goal 20%</text>`;
+  const step=Math.ceil(dates.length/8);
+  dates.forEach((d,i)=>{ if(i%step===0||i===dates.length-1) g+=`<text x="${x(i)}" y="${H-B+24}" text-anchor="middle" font-size="13" fill="var(--muted)">${d.slice(5)}</text>`; });
+  const dash={1:'',2:'10 5',3:'3 5'};
+  [1,2,3].forEach(goal=>{
+    const pts=dates.map((d,i)=>{ const e=entries.filter(z=>z.goal===goal&&z.primary&&z.date===d); return e.length?[x(i),y(Math.round(e.filter(z=>z.score==='ind').length/e.length*100)),e.length]:null; }).filter(Boolean);
+    if(!pts.length) return;
+    g+=`<polyline fill="none" stroke="${GOALS[goal].color}" stroke-width="4" stroke-dasharray="${dash[goal]}" stroke-linejoin="round" points="${pts.map(p=>p[0]+','+p[1]).join(' ')}"/>`;
+    pts.forEach(p=>{ g+=`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="${GOALS[goal].color}" stroke="var(--surface)" stroke-width="2"><title>${GOALS[goal].short}: ${Math.round(100-(p[1]-T)/(H-T-B)*100)}% (${p[2]} trials)</title></circle>`; });
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Percent of trials independent per day, by goal">${g}</svg>
+   <div class="legend">${[1,2,3].map(g=>`<span><i style="background:${GOALS[g].color}"></i>${GOALS[g].icon} ${GOALS[g].short}</span>`).join('')}<span>- - - 20% goal</span></div>`;
+}
+function viewData(){
+  const entries=store.log.filter(inRange);
+  const rows=entries.filter(e=>dataGoal==='all'||e.goal===+dataGoal).slice().reverse();
+  $('#main').innerHTML=`
+  <div class="goalhead"><span class="gi">📊</span><h1>Data Tracker</h1>
+    <div class="btnrow noprint" style="margin-left:auto">
+      <select class="t" id="range" style="width:auto"><option value="all">All dates</option><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option><option value="63">Last 9 weeks</option></select>
+    </div></div>
+  <p class="help">Student: <b>${esc(S.student)}</b> · Mastery = % of goal-measure trials scored <b>✅ Independent</b>. Target: <b>20%</b>. Practice items (sight words, quiz taps) are counted separately.</p>
+  <div class="gcards">${[1,2,3].map(g=>{const s=stats(g,entries);const G=GOALS[g];return `
+    <div class="gcard" style="--gc:${G.color}">
+      <div style="font-weight:700;font-size:1.1rem">${G.icon} Goal ${g}: ${G.short}</div>
+      <div class="small">${esc(G.measure)}</div>
+      <div style="display:flex;align-items:baseline;gap:.6rem;margin-top:.5rem"><span class="pct">${s.pct}%</span><span class="small">independent of ${s.n} trial${s.n===1?'':'s'}</span></div>
+      <div class="bar" aria-hidden="true"><i style="width:${s.pct}%"></i><u></u></div>
+      <div class="small">✅ ${s.ind} · 🤝 ${s.pro} · 🔁 ${s.not} · ➖ ${s.nr}${s.practice?` · practice: ${s.practice}`:''}</div>
+      <div class="small">With prompt or better: <b>${s.n?Math.round((s.ind+s.pro)/s.n*100):0}%</b>${s.last?` · Last: ${s.last}`:''}</div>
+      <span class="status">${!s.n?'⏳ No data yet':s.pct>=20?'🎯 Meeting 20% target':'📈 Working toward 20%'}</span>
+    </div>`;}).join('')}</div>
+  <div class="panel chart"><h3>📈 Progress by day</h3>${chartSVG(entries)}</div>
+
+  <div class="two">
+    <div class="panel daily noprint" id="dailyPanel"><h3>🎧 Daily Device Log (Goal 3)</h3>
+      <p class="help">Quick end-of-day log for device care. Leave “N/A” for anything that did not come up.</p>
+      <label class="f" for="dDate">Date</label><input class="t" type="date" id="dDate" value="${today()}" style="max-width:14rem">
+      ${DAILY.map((b,i)=>`<div class="drow"><span>${esc(b)}</span><div class="seg" data-row="${i}">
+        ${[['na','N/A'],['ind','✅'],['pro','🤝'],['not','🔁'],['nr','➖']].map(([v,l])=>`<button data-v="${v}" aria-pressed="${v==='na'}" title="${v==='na'?'Not applicable':SCORE[v].label}">${l}</button>`).join('')}
+      </div></div>`).join('')}
+      <label class="f" for="dNote">Notes</label><input class="t" id="dNote" placeholder="e.g., battery died 2nd period; asked teacher for help">
+      <div class="btnrow" style="margin-top:.7rem"><button class="btn primary" id="saveDaily">💾 Save daily log</button></div>
+    </div>
+    <div class="panel noprint"><h3>📝 Add an observation</h3>
+      <p class="help">For anything that happened outside the app (class, hallway, cafeteria).</p>
+      <label class="f" for="oGoal">Goal</label>
+      <select class="t" id="oGoal">${[1,2,3].map(g=>`<option value="${g}">${GOALS[g].icon} Goal ${g}: ${GOALS[g].short}</option>`).join('')}</select>
+      <label class="f" for="oDate">Date</label><input class="t" type="date" id="oDate" value="${today()}" style="max-width:14rem">
+      <label class="f" for="oItem">What happened</label><input class="t" id="oItem" placeholder="e.g., Told teacher “my hearing aid is not working”">
+      <label class="f" for="oNote">Notes / language sample</label><input class="t" id="oNote" placeholder="Exact words the student said">
+      <div class="seg" id="oScore" style="margin-top:.7rem">${SCORES.map(s=>`<button data-v="${s.k}" aria-pressed="${s.k==='ind'}">${s.icon} ${s.label}</button>`).join('')}</div>
+      <div class="btnrow" style="margin-top:.7rem"><button class="btn primary" id="saveObs">💾 Save observation</button></div>
+    </div>
+  </div>
+
+  <div class="panel"><div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap"><h3 style="margin:0">🗂️ Data log</h3>
+    <select class="t noprint" id="fGoal" style="width:auto"><option value="all">All goals</option>${[1,2,3].map(g=>`<option value="${g}">${GOALS[g].icon} ${GOALS[g].short}</option>`).join('')}</select>
+    <span class="help" style="margin:0">${rows.length} entr${rows.length===1?'y':'ies'}</span></div>
+    <div class="tablewrap" style="margin-top:.6rem">${rows.length?`<table><thead><tr><th>Date</th><th>Goal</th><th>Activity</th><th>Item</th><th>Score</th><th>Notes</th><th class="noprint"></th></tr></thead><tbody>
+      ${rows.slice(0,400).map(e=>`<tr><td>${e.date}<br><span class="help">${new Date(e.ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span></td>
+        <td>${GOALS[e.goal].icon} ${e.goal}</td><td>${esc(e.type)}${e.primary?'':' <span class="help">(practice)</span>'}</td><td>${esc(e.item)}</td>
+        <td><span class="badge s-${e.score}">${SCORE[e.score].icon} ${SCORE[e.score].label}</span></td><td>${esc(e.detail)}</td>
+        <td class="noprint"><button class="x" data-del="${e.id}" aria-label="Delete entry">🗑️</button></td></tr>`).join('')}
+    </tbody></table>`:'<div class="empty">No data yet. Play a video or add an observation.</div>'}</div>
+  </div>
+
+  <div class="panel noprint"><h3>📤 Export &amp; backup</h3>
+    <p class="help">Data is saved in this browser on this device only. Export often, and use initials, not full names.</p>
+    <div class="btnrow">
+      <button class="btn primary" id="csv">⬇️ Download CSV (Excel/Sheets)</button>
+      <button class="btn" id="print">🖨️ Print progress report</button>
+      <button class="btn" id="backup">💾 Backup (all data + settings)</button>
+      <button class="btn" id="restore">📂 Restore backup</button>
+      <button class="btn danger" id="clear">🗑️ Clear all data</button>
+    </div>
+  </div>`;
+  $('#range').value=dataRange; $('#range').onchange=e=>{dataRange=e.target.value;viewData();};
+  $('#fGoal').value=dataGoal; $('#fGoal').onchange=e=>{dataGoal=e.target.value;viewData();};
+  $$('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');}));
+  $$('[data-del]').forEach(b=>b.onclick=()=>{ if(!confirm('Delete this entry?')) return; store.log=store.log.filter(e=>e.id!==b.dataset.del); save(); viewData(); });
+  const stamp=d=>{ const t=new Date(d+'T12:00:00'); return isNaN(t)?Date.now():(d===today()?Date.now():t.getTime()); };
+  bind('saveDaily',()=>{
+    const d=$('#dDate').value||today(); let n=0;
+    $$('#dailyPanel .seg').forEach(seg=>{ const v=seg.querySelector('[aria-pressed="true"]').dataset.v; if(v==='na') return;
+      store.log.push({id:uid(),ts:stamp(d),date:d,goal:3,type:'Daily Device Log',act:'',item:DAILY[+seg.dataset.row],score:v,detail:$('#dNote').value.trim(),primary:true}); n++; });
+    if(!n) return toast('Pick a score for at least one row.');
+    store.log.sort((a,b)=>a.ts-b.ts); save(); toast(`💾 Saved ${n} daily log entr${n===1?'y':'ies'}`); viewData();
+  });
+  bind('saveObs',()=>{
+    const item=$('#oItem').value.trim(); if(!item) return toast('Write what happened first.');
+    const d=$('#oDate').value||today();
+    store.log.push({id:uid(),ts:stamp(d),date:d,goal:+$('#oGoal').value,type:'Observation',act:'',item,score:$('#oScore [aria-pressed="true"]').dataset.v,detail:$('#oNote').value.trim(),primary:true});
+    store.log.sort((a,b)=>a.ts-b.ts); save(); toast('💾 Observation saved'); viewData();
+  });
+  bind('csv',exportCSV);
+  bind('print',()=>window.print());
+  bind('backup',()=>download(`JE-TV-backup-${today()}.json`,JSON.stringify(store,null,1),'application/json'));
+  bind('restore',()=>$('#restoreFile').click());
+  bind('clear',()=>{ if(confirm('Delete ALL data entries? (Export a backup first!)')&&confirm('Are you sure? This cannot be undone.')){ store.log=[]; save(); viewData(); } });
+}
+function download(name,text,type){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+function exportCSV(){
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const head=['Student','Date','Time','Goal #','Goal','Activity','Video','Item','Score','Counts toward goal','Notes'];
+  const lines=store.log.map(e=>[S.student,e.date,new Date(e.ts).toLocaleTimeString(),e.goal,GOALS[e.goal].short,e.type,e.act,e.item,SCORE[e.score].label,e.primary?'Yes':'Practice',e.detail].map(q).join(','));
+  download(`${S.student.replace(/\W/g,'')}-IEP-data-${today()}.csv`,[head.map(q).join(','),...lines].join('\r\n'),'text/csv');
+}
+$('#restoreFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!Array.isArray(d.log)) throw 0;
+      if(!confirm(`Restore ${d.log.length} entries? This replaces the current data.`)) return;
+      Object.assign(store,d); Object.assign(S,d.settings||{}); store.settings=S; save(); applySettings(); go('data'); toast('Backup restored'); }catch(err){ toast('That file is not a J.E. TV backup.'); } };
+  r.readAsText(f); e.target.value='';
+};
+
+/* =====================================================================
+   SETTINGS
+   ===================================================================== */
+function viewSettings(){
+  $('#main').innerHTML=`
+  <div class="goalhead"><span class="gi">⚙️</span><h1>Studio Settings</h1></div>
+  <div class="two">
+    <div class="panel"><h3>📺 Channel</h3>
+      <label class="f" for="sCh">Channel name</label><input class="t" id="sCh" value="${esc(S.channel)}">
+      <label class="f" for="sHa">Handle</label><input class="t" id="sHa" value="${esc(S.handle)}">
+      <label class="f" for="sAv">Channel picture (emoji)</label><input class="t" id="sAv" value="${esc(S.avatar)}" style="max-width:8rem">
+      <label class="f" for="sSt">Student initials (for data and exports)</label><input class="t" id="sSt" value="${esc(S.student)}" style="max-width:10rem">
+      <label class="f" for="sDev">Device name (used in Device Check)</label><input class="t" id="sDev" value="${esc(S.device)}">
+      <small class="help">e.g., hearing aid, hearing aids, cochlear implant, CI processor, FM system</small>
+    </div>
+    <div class="panel"><h3>♿ Seeing &amp; hearing</h3>
+      <div class="checks"><label><input type="checkbox" id="sSound" ${S.sound?'checked':''}> 🔊 Sound (computer voice)</label><label><input type="checkbox" id="sCC" ${S.captions?'checked':''}> CC Captions</label></div>
+      <label class="f" for="sScale">Text size: <span id="scaleV">${Math.round(S.scale*100)}%</span></label><input type="range" id="sScale" min="0.8" max="1.8" step="0.1" value="${S.scale}" style="width:100%">
+      <label class="f" for="sCap">Caption size: <span id="capV">${Math.round(S.capScale*100)}%</span></label><input type="range" id="sCap" min="0.8" max="2" step="0.1" value="${S.capScale}" style="width:100%">
+      <label class="f" for="sTheme">Colors</label><select class="t" id="sTheme"><option value="dark">Dark (YouTube dark mode)</option><option value="light">Light</option><option value="contrast">High contrast (yellow on black)</option></select>
+      <label class="f" for="sRate">Voice speed: <span id="rateV">${S.rate}</span></label><input type="range" id="sRate" min="0.5" max="1.3" step="0.05" value="${S.rate}" style="width:100%">
+      <label class="f" for="sVoice">Voice</label><select class="t" id="sVoice"><option value="">Default</option>${voices.map(v=>`<option ${v.name===S.voice?'selected':''}>${esc(v.name)}</option>`).join('')}</select>
+      <div class="btnrow" style="margin-top:.6rem"><button class="btn" id="testVoice">🔊 Test voice &amp; captions</button></div>
+    </div>
+  </div>
+  <div class="panel"><h3>🎯 Interests &amp; levels (Goal 1 passages)</h3>
+    <div class="checks">${Object.entries(TOPICS).map(([k,[n,e]])=>`<label><input type="checkbox" data-int="${k}" ${S.interests.includes(k)?'checked':''}> ${e} ${n}</label>`).join('')}</div>
+    <label class="f" for="sLevel">Passage level</label>
+    <select class="t" id="sLevel" style="max-width:24rem"><option value="mix">Mixed (1 and 2 sentences)</option><option value="1">Level 1: one short sentence</option><option value="2">Level 2: two short sentences</option></select>
+  </div>
+  <div class="panel"><h3>✍️ Your own content</h3>
+    <label class="f" for="sCP">Custom passages (one per line)</label>
+    <small class="help">Format: <code>passage | question | right answer | wrong answer | wrong answer</code>. The question part is optional. Example:<br><code>I post a video on Friday. My fans like it! | When do I post? | on Friday | on Monday | at night</code></small>
+    <textarea class="t" id="sCP">${esc(S.customPassages)}</textarea>
+    <label class="f" for="sCW">Custom vocabulary (one per line)</label>
+    <small class="help">Format: <code>word | synonym, synonym | antonym, antonym | example sentence</code>. Example:<br><code>brave | bold, fearless | scared, afraid | The hero is brave.</code></small>
+    <textarea class="t" id="sCW">${esc(S.customWords)}</textarea>
+    <div class="btnrow" style="margin-top:.7rem"><button class="btn primary" id="saveSet">💾 Save settings</button><span class="help" id="cwCount"></span></div>
+  </div>`;
+  $('#sTheme').value=S.theme; $('#sLevel').value=S.level;
+  const live=()=>{ S.scale=+$('#sScale').value; S.capScale=+$('#sCap').value; S.rate=+$('#sRate').value; S.theme=$('#sTheme').value;
+    S.sound=$('#sSound').checked; S.captions=$('#sCC').checked; S.voice=$('#sVoice').value;
+    $('#scaleV').textContent=Math.round(S.scale*100)+'%'; $('#capV').textContent=Math.round(S.capScale*100)+'%'; $('#rateV').textContent=S.rate;
+    applySettings(); save(); };
+  ['sScale','sCap','sRate'].forEach(id=>$('#'+id).oninput=live);
+  ['sTheme','sSound','sCC','sVoice'].forEach(id=>$('#'+id).onchange=live);
+  bind('testVoice',()=>say(`Hi! Welcome to ${S.channel}. Do not forget to subscribe!`));
+  bind('saveSet',()=>{
+    S.channel=$('#sCh').value.trim()||'J.E. TV'; S.handle=$('#sHa').value.trim(); S.avatar=$('#sAv').value.trim()||'😎';
+    S.student=$('#sSt').value.trim()||'J.E.'; S.device=$('#sDev').value.trim()||'hearing aid';
+    const ints=$$('[data-int]').filter(c=>c.checked).map(c=>c.dataset.int); S.interests=ints.length?ints:Object.keys(TOPICS);
+    S.level=$('#sLevel').value; S.customPassages=$('#sCP').value; S.customWords=$('#sCW').value;
+    save(); applySettings();
+    toast(`💾 Saved · ${customPassages().length} custom passage(s), ${customWords().length} custom word(s)`);
+  });
+}
+
+/* =====================================================================
+   GLOBAL CONTROLS
+   ===================================================================== */
+const SIZES=[1,1.2,1.4,1.6], SIZE_L={1:'BIG',1.2:'BIGGER',1.4:'HUGE',1.6:'GIANT'};
+const THEMES=['dark','light','contrast'], THEME_L={dark:'DARK',light:'LIGHT',contrast:'HI-CON'};
+function applySettings(){
+  document.documentElement.style.setProperty('--scale',S.scale);
+  document.documentElement.style.setProperty('--cap-scale',S.capScale);
+  document.documentElement.dataset.theme=S.theme;
+  $('#tSound').setAttribute('aria-pressed',S.sound); $('#tCC').setAttribute('aria-pressed',S.captions);
+  $('#sizeLbl').textContent=SIZE_L[S.scale]||Math.round(S.scale*100)+'%';
+  $('#themeLbl').textContent=THEME_L[S.theme];
+  $('#logoName').textContent=S.channel; $('#topAv').textContent=S.avatar;
+  const cap=$('#cap'); if(cap) cap.hidden=!S.captions;
+  const ps=$('#pSound'); if(ps) ps.setAttribute('aria-pressed',S.sound);
+  const pc=$('#pCC'); if(pc) pc.setAttribute('aria-pressed',S.captions);
+  sideStats();
+}
+function toggleSound(){ S.sound=!S.sound; if(!S.sound&&'speechSynthesis' in window) speechSynthesis.cancel(); save(); applySettings(); toast(S.sound?'🔊 Sound ON':'🔇 Sound OFF'); }
+function toggleCC(){ S.captions=!S.captions; save(); applySettings(); toast(S.captions?'CC Captions ON':'Captions OFF'); }
+function fullscreen(el){
+  const d=document;
+  if(d.fullscreenElement||d.webkitFullscreenElement){ (d.exitFullscreen||d.webkitExitFullscreen).call(d); return; }
+  const t=el||d.documentElement; (t.requestFullscreen||t.webkitRequestFullscreen||(()=>{})).call(t);
+}
+$('#tSound').onclick=toggleSound;
+$('#tCC').onclick=toggleCC;
+$('#tSize').onclick=()=>{ const i=SIZES.indexOf(S.scale); S.scale=SIZES[(i+1)%SIZES.length]; save(); applySettings(); };
+$('#tTheme').onclick=()=>{ S.theme=THEMES[(THEMES.indexOf(S.theme)+1)%THEMES.length]; save(); applySettings(); };
+$('#tFull').onclick=()=>fullscreen();
+$('#logo').onclick=()=>{searchQ='';$('#search').value='';go('home');};
+$$('.nav').forEach(n=>n.onclick=()=>go(n.dataset.go));
+$('#searchForm').onsubmit=e=>{e.preventDefault(); searchQ=$('#search').value.trim().toLowerCase(); go('home');};
+
+/* First run: make a couple of videos for each goal so the channel isn't empty. */
+if(!store.uploads.length){ [3,3,2,2,1,1].forEach(g=>generate(g)); store.uploads.forEach(a=>a.created-=Math.floor(Math.random()*5)*864e5); save(); }
+applySettings();
+go('home');
+</script>
+</body>
+</html>
