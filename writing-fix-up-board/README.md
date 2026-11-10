@@ -28,9 +28,24 @@ Tip: cover the student's name before taking the photo.
 | **Label it** | Pick a label, then tap a word or slide a finger across several | colored highlight with a label tag |
 | **Draw** | Circle, underline or point with a finger (4 colors, eraser, clear) | |
 
+## Editing on the photo (**On my paper**)
+Press **On my paper** to mark up the actual photo of the student's paper. You don't need to type the words for this. If you only add a photo in Teacher setup, **Start editing** opens straight to the photo.
+
+| Tool | What the student does |
+|---|---|
+| **Pen** | Write, circle or cross out with a finger (4 colors, 3 sizes) |
+| **Highlight** | Slide a finger over words (yellow, green, pink, blue) |
+| **Marks** | Pick a proofreading mark and tap to place it: ≡ capital, / lowercase, ‸ add here, ⊙ add period, — take out, ¶ new paragraph, (sp) spelling, ? check this, ★ great! Drag a mark to move it. |
+| **Write** | Tap the paper and type a fix with the big keyboard. Tap the words later to change them, or drag them to move them. |
+| **Label it** | Pick a label and drag a box around words. The boxed part of the photo appears in the 5 W chart. |
+| **Eraser** | Tap or rub over any mark to erase it |
+| **Move page** | Scroll around the photo with a finger. **A− / A+** zoom the photo. |
+
+Marks stay lined up with the handwriting when you zoom, and they turn with the page if you press **Turn ↻** in Teacher setup.
+
 Along the top:
 - **Undo / Redo** (also Ctrl+Z / Ctrl+Y)
-- **Marks / Clean copy**: switch between the proofreading marks and the finished writing
+- **Marks / Clean copy / On my paper**: switch between the proofreading marks, the finished writing, and the photo of the real paper
 - **A− / A+**: change the text size
 - **Read it to me**: the computer reads the writing aloud and highlights each word, which helps students hear mistakes
 - **My paper**: the original photo, with zoom

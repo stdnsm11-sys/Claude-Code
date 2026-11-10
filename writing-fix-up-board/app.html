@@ -130,6 +130,24 @@ button{cursor:pointer}
 .mode-tag .w{touch-action:none}
 canvas.ink{position:absolute;left:0;top:0;pointer-events:none}
 .mode-draw canvas.ink{pointer-events:auto;touch-action:none;cursor:crosshair}
+/* photo view: marks drawn on the real photo; SVG overlay uses a 1000-unit-wide coordinate space per page */
+.paperwrap.photo-on{background:var(--quiet)}
+.photoview{width:var(--pz,100%);padding:16px;display:flex;flex-direction:column;gap:18px}
+.pg{position:relative;border-radius:10px;overflow:hidden;box-shadow:0 0 0 3px var(--line);background:#fff}
+.pg img{display:block;width:100%;height:auto;-webkit-user-drag:none;pointer-events:none}
+svg.ov{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.pm-ppan svg.ov{pointer-events:none}
+svg.ov text{font-family:var(--body);font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:.16em;stroke-linejoin:round}
+svg.ov text.btxt{stroke:none;font-family:var(--display);font-weight:800;letter-spacing:.06em}
+svg.ov .hl{mix-blend-mode:multiply;opacity:.45}
+svg.ov .bx{mix-blend-mode:multiply}
+svg.ov .mk.flash{animation:pflash .6s ease 4}
+@keyframes pflash{50%{opacity:.15}}
+.pempty{padding:24px;font-size:1.2em;color:var(--muted)}
+.chip.st .m{font-family:var(--body);font-weight:700;font-size:1.35em;color:var(--fix)}
+.swatch{width:52px;height:52px;border-radius:14px;border:3px solid var(--ink)}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 6px var(--yellow)}
+.wcard li img{display:block;max-width:100%;max-height:140px;border-radius:8px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.85em;padding:0 6px}
 .legend b{color:var(--fix);font-size:1.15em}
 
@@ -252,6 +270,7 @@ canvas.ink{position:absolute;left:0;top:0;pointer-events:none}
     <div class="seg" role="group" aria-label="View">
       <button id="viewMarks" aria-pressed="true">Marks</button>
       <button id="viewClean" aria-pressed="false">Clean copy</button>
+      <button id="viewPhoto" aria-pressed="false">On my paper</button>
     </div>
     <div class="bar">
       <button class="btn small" id="smaller" aria-label="Smaller text">A−</button>
@@ -270,7 +289,7 @@ canvas.ink{position:absolute;left:0;top:0;pointer-events:none}
   </header>
 
   <div class="work">
-    <nav class="tools" aria-label="Editing tools">
+    <nav class="tools" id="ttools" aria-label="Editing tools">
       <button class="tool" data-mode="fix" aria-pressed="true"><span class="g" style="font-weight:700">sp</span>Fix a word</button>
       <button class="tool" data-mode="add" aria-pressed="false"><span class="g" style="color:var(--add)">‸</span>Add words</button>
       <button class="tool" data-mode="del" aria-pressed="false"><span class="g"><s>ab</s></span>Take out</button>
@@ -279,15 +298,26 @@ canvas.ink{position:absolute;left:0;top:0;pointer-events:none}
       <button class="tool" data-mode="tag" aria-pressed="false"><span class="g" style="color:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg></span>Label it</button>
       <button class="tool" data-mode="draw" aria-pressed="false"><span class="g" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M3 17c3-6 5-9 7-9s0 8 3 8 4-7 8-9"/></svg></span>Draw</button>
     </nav>
+    <nav class="tools" id="ptools" aria-label="Tools for marking the photo" hidden>
+      <button class="tool" data-mode="pdraw" aria-pressed="false"><span class="g" style="color:var(--fix)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8a2.1 2.1 0 0 0-3-3L5 16z"/></svg></span>Pen</button>
+      <button class="tool" data-mode="phl" aria-pressed="false"><span class="g" style="color:var(--yellow-d)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M9 15 4 20h5l2-2"/><path d="m9 15 9-9 3 3-9 9z"/></svg></span>Highlight</button>
+      <button class="tool" data-mode="pstamp" aria-pressed="false"><span class="g" style="font-weight:700">≡‸¶</span>Marks</button>
+      <button class="tool" data-mode="pnote" aria-pressed="false"><span class="g" style="color:var(--add);font-weight:700">Aa</span>Write</button>
+      <button class="tool" data-mode="pbox" aria-pressed="false"><span class="g" style="color:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg></span>Label it</button>
+      <button class="tool" data-mode="perase" aria-pressed="false"><span class="g" style="color:var(--pink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="m7 21-4-4L14 6l6 6-9 9z"/><path d="M7 21h13"/></svg></span>Eraser</button>
+      <button class="tool" data-mode="ppan" aria-pressed="false"><span class="g" style="color:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3"/></svg></span>Move page</button>
+    </nav>
 
     <div class="center">
       <div class="tip" id="tipBar">
         <span class="say" id="tipSay">Tap a word to fix it.</span>
         <div class="chips" id="tagChips" hidden></div>
         <div class="chips" id="drawChips" hidden></div>
+        <div class="chips" id="photoChips" hidden></div>
       </div>
       <div class="paperwrap" id="paperwrap">
         <div class="sheet marks" id="sheet" spellcheck="false"></div>
+        <div class="photoview" id="photoView" hidden></div>
       </div>
       <div class="legend" id="legend">
         <span><b>≡</b> make a capital</span><span><b>/</b> make lowercase</span><span><b style="color:var(--add)">‸</b> add a word</span>
@@ -459,7 +489,7 @@ function parse(text){
 }
 function newWork(text, extra){
   return Object.assign({id:uid(), title:"", student:"", source:text, tokens:parse(text), strokes:[],
-    labels:makeLabels("five"), set:"five", checks:{C:false,U:false,P:false,S:false}, images:[], example:false,
+    pmarks:[], labels:makeLabels("five"), set:"five", checks:{C:false,U:false,P:false,S:false}, images:[], example:false,
     created:Date.now(), updated:Date.now()}, extra || {});
 }
 
@@ -488,15 +518,16 @@ function loadWork(id){
   const w = store.get("wfb.w." + id, null);
   if (!w) return null;
   w.images = store.get("wfb.i." + id, []) || [];
+  w.pmarks = w.pmarks || [];
   return w;
 }
 opts = Object.assign(opts, store.get("wfb.opts", {}));
 const saveOpts = () => store.set("wfb.opts", opts);
 
 /* ---------- undo ---------- */
-const snap = () => JSON.stringify({tokens:S.tokens, strokes:S.strokes});
+const snap = () => JSON.stringify({tokens:S.tokens, strokes:S.strokes, pmarks:S.pmarks});
 function before(){ undoStack.push(snap()); if (undoStack.length > 150) undoStack.shift(); redoStack = []; }
-function restore(str){ const o = JSON.parse(str); S.tokens = o.tokens; S.strokes = o.strokes; }
+function restore(str){ const o = JSON.parse(str); S.tokens = o.tokens; S.strokes = o.strokes; S.pmarks = o.pmarks || []; }
 function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); changed(); }
 function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); changed(); }
 function changed(){ render(); save(); }
@@ -522,6 +553,9 @@ function wordInner(t, kind){
 }
 function render(){
   const toks = S.tokens;
+  const photo = view === "photo";
+  sheet.hidden = photo; $("#photoView").hidden = !photo; paperwrap.classList.toggle("photo-on", photo);
+  if (photo) { renderPhoto(); renderHeader(); return; }
   sheet.className = "sheet " + view + (showHints ? "" : " nohints");
   let html = S.title ? "<h2>" + esc(S.title) + "</h2>" : "";
   let open = false;
@@ -566,11 +600,13 @@ function render(){
   });
   if (mode === "add") html += '<span class="gap end" data-gap="' + toks.length + '" role="button" aria-label="Add a word at the end"></span>';
   if (open) html += "</p>";
-  if (!toks.length) html += '<p class="para" style="color:var(--muted)">No writing yet. Tap Teacher to add some.</p>';
+  if (!toks.length) html += '<p class="para" style="color:var(--muted)">No typed writing yet. Tap On my paper to mark up the photo, or tap Teacher to add the words.</p>';
   html += '<canvas class="ink" id="ink"></canvas>';
   sheet.innerHTML = html;
   setupInk();
-  // header bits
+  renderHeader();
+}
+function renderHeader(){
   $("#docTitle").textContent = S.title || "Writing Fix-Up Board";
   $("#docSub").textContent = (S.example ? "Example writing · tap Teacher to add a student's paper" : [S.student, S.title ? "" : "Untitled"].filter(Boolean).join(" · ")) || " ";
   const n = countFixes();
@@ -589,6 +625,7 @@ function countFixes(){
     if (t.del) n++; else if (t.t !== t.o) n++;
     if (t.p !== t.op) n++;
   });
+  n += S.pmarks.filter(m => m.k === "stamp" || m.k === "note").length;
   return n;
 }
 function cleanText(){
@@ -605,17 +642,26 @@ const TIPS = {
   cap:"Tap a word to switch its first letter: capital ≡ or lowercase /.",
   para:"Tap the first word of a new paragraph ¶. Tap it again to join it back.",
   tag:"Pick a label, then tap or slide your finger across the words.",
-  draw:"Draw with your finger. Circle, underline, or point."
+  draw:"Draw with your finger. Circle, underline, or point.",
+  pdraw:"Write and draw right on your paper with your finger.",
+  phl:"Slide your finger over words to highlight them.",
+  pstamp:"Pick a mark, then tap your paper to put it there. Drag a mark to move it.",
+  pnote:"Tap your paper to write a word there. Tap your words to change them.",
+  pbox:"Pick a label, then drag a box around the words. Drag a box to move it.",
+  perase:"Tap or rub over a mark to erase it.",
+  ppan:"Slide to move around your paper. Use A− and A+ to zoom."
 };
 function setMode(m){
   mode = m;
   $$(".tool").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
   $("#tipSay").textContent = TIPS[m];
-  $("#tagChips").hidden = m !== "tag";
+  $("#tagChips").hidden = m !== "tag" && m !== "pbox";
   $("#drawChips").hidden = m !== "draw";
+  $("#photoChips").hidden = !PMODES.has(m) || m === "pbox" || m === "ppan";
   $(".work").classList.toggle("mode-tag", m === "tag");
   $(".work").classList.toggle("mode-draw", m === "draw");
-  if (m === "tag") renderTagChips();
+  if (m === "tag" || m === "pbox") renderTagChips();
+  if (PMODES.has(m)) renderPhotoChips();
   if (m === "draw") renderDrawChips();
   render();
 }
@@ -631,7 +677,7 @@ function renderDrawChips(){
   $("#drawChips").innerHTML = PENS.map((c,i) => '<button class="pen" style="background:' + c + '" data-pen="' + i + '" aria-label="Pen color" aria-pressed="' + (pen === i) + '"></button>').join("") +
     '<button class="chip" data-pen="erase" aria-pressed="' + (pen === "erase") + '">Eraser</button><button class="chip" id="clearInk">Clear drawing</button>';
 }
-$(".tools").addEventListener("click", e => { const b = e.target.closest(".tool"); if (b) setMode(b.dataset.mode); });
+$$(".tools").forEach(n => n.addEventListener("click", e => { const b = e.target.closest(".tool"); if (b) setMode(b.dataset.mode); }));
 $("#tagChips").addEventListener("click", e => { const b = e.target.closest("[data-tag]"); if (!b) return; curTag = b.dataset.tag; renderTagChips(); });
 $("#drawChips").addEventListener("click", e => {
   if (e.target.closest("#clearInk")) { if (S.strokes.length) { before(); S.strokes = []; changed(); } return; }
@@ -748,6 +794,168 @@ function eraseAt([x, y]){
 }
 new ResizeObserver(() => sizeInk()).observe(sheet);
 
+/* ---------- marking up the photo ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const PMODES = new Set(["pdraw","phl","pstamp","pnote","pbox","perase","ppan"]);
+const HL = ["#ffe14d","#7ee2a8","#ff9cc8","#8cc8ff"];
+const STAMPS = [
+  {id:"cap", m:"≡", n:"Capital"}, {id:"low", m:"/", n:"Lowercase", sc:1.2}, {id:"add", m:"‸", n:"Add here", c:"#14843f", sc:1.4},
+  {id:"per", m:"⊙", n:"Add period"}, {id:"del", m:"—", n:"Take out", sc:1.5}, {id:"para", m:"¶", n:"New paragraph"},
+  {id:"sp", m:"sp", n:"Spelling", ring:true, sc:.7}, {id:"chk", m:"?", n:"Check this", c:"#6528a8"}, {id:"star", m:"★", n:"Great!", c:"#d9a200"}
+];
+let hl = 0, curStamp = "cap", markSize = "M", G = null;
+const sizeK = () => ({S:.65, M:1, L:1.5})[markSize];
+const pv = $("#photoView");
+const markById = id => S.pmarks.find(m => m.id === id);
+const imgCache = new Map(), cropCache = new Map();
+function dims(src){
+  let im = imgCache.get(src);
+  if (!im) { im = new Image(); im.onload = () => { if (view === "photo" || sideTab === "chart") render(); }; im.src = src; imgCache.set(src, im); }
+  return im.complete && im.naturalWidth ? [im.naturalWidth, im.naturalHeight] : null;
+}
+function crop(m){
+  const src = S.images[m.pg]; if (!src || !dims(src)) return "";
+  const key = m.id + ":" + [m.pg, m.x, m.y, m.w, m.h].join(",");
+  if (cropCache.has(key)) return cropCache.get(key);
+  const im = imgCache.get(src), s = im.naturalWidth / 1000, sw = m.w * s, sh = m.h * s, k = Math.min(1, 600 / sw);
+  const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+  c.getContext("2d").drawImage(im, m.x * s, m.y * s, sw, sh, 0, 0, c.width, c.height);
+  const u = c.toDataURL("image/jpeg", .85); cropCache.set(key, u); return u;
+}
+const ptsAttr = pts => pts.map(p => p[0] + "," + p[1]).join(" ");
+function markSVG(m){
+  if (m.k === "line") return '<polyline data-id="' + m.id + '"' + (m.hl ? ' class="hl"' : "") + ' points="' + ptsAttr(m.pts) + '" fill="none" stroke="' + m.c + '" stroke-width="' + m.w + '" stroke-linecap="round" stroke-linejoin="round"/>';
+  if (m.k === "stamp") {
+    const st = STAMPS.find(s => s.id === m.s) || STAMPS[0], col = st.c || "#d6331f";
+    return '<g data-id="' + m.id + '" class="mk" transform="translate(' + m.x + " " + m.y + ')">' +
+      (st.ring ? '<circle r="' + (m.size * .62) + '" fill="#fff" fill-opacity=".6" stroke="' + col + '" stroke-width="' + (m.size * .07) + '"/>' : "") +
+      '<text text-anchor="middle" dominant-baseline="central" font-size="' + Math.round(m.size * (st.sc || 1)) + '" fill="' + col + '">' + esc(st.m) + "</text></g>";
+  }
+  if (m.k === "note") return '<g data-id="' + m.id + '" class="mk" transform="translate(' + m.x + " " + m.y + ')"><text dominant-baseline="central" font-size="' + m.size + '" fill="#14843f">' + esc(m.t) + "</text></g>";
+  if (m.k === "box") {
+    const lab = labelById(m.tag); if (!lab) return "";
+    const [b, s] = COLORS[lab.c], bw = lab.name.length * 16 + 24, by = m.y >= 36 ? m.y - 34 : m.y;
+    return '<g data-id="' + m.id + '" class="mk"><rect x="' + m.x + '" y="' + m.y + '" width="' + m.w + '" height="' + m.h + '" rx="8" fill="' + b + '" fill-opacity=".45" class="bx" stroke="' + s + '" stroke-width="5"/>' +
+      '<rect x="' + m.x + '" y="' + by + '" width="' + bw + '" height="34" rx="8" fill="' + s + '"/><text class="btxt" x="' + (m.x + 12) + '" y="' + (by + 18) + '" dominant-baseline="central" font-size="22" fill="#fff">' + esc(lab.name.toUpperCase()) + "</text></g>";
+  }
+  return "";
+}
+function renderPhoto(){
+  pv.style.setProperty("--pz", (opts.pz || 100) + "%");
+  pv.className = "photoview pm-" + mode;
+  if (!S.images.length) { pv.innerHTML = '<p class="pempty">No photo of this paper yet. A teacher can add one in Teacher setup.</p>'; return; }
+  pv.innerHTML = S.images.map((src, i) => {
+    const d = dims(src), H = d ? Math.round(1000 * d[1] / d[0]) : 0;
+    return '<div class="pg"><img src="' + src + '" alt="Page ' + (i + 1) + ' of the student\'s writing" draggable="false">' +
+      (d ? '<svg class="ov" data-pg="' + i + '" viewBox="0 0 1000 ' + H + '">' + S.pmarks.filter(m => m.pg === i).map(markSVG).join("") + "</svg>" : "") + "</div>";
+  }).join("");
+}
+function renderPhotoChips(){
+  const sizeSeg = '<div class="seg" role="group" aria-label="Size">' + [["S","Small"],["M","Medium"],["L","Big"]].map(([k, n]) => '<button data-size="' + k + '" aria-pressed="' + (markSize === k) + '">' + n + "</button>").join("") + "</div>";
+  let h = "";
+  if (mode === "pdraw") h = PENS.map((c, i) => '<button class="pen" style="background:' + c + '" data-pen="' + i + '" aria-label="Pen color" aria-pressed="' + (pen === i) + '"></button>').join("") +
+    sizeSeg + '<button class="chip" id="pclear" data-what="pen">Clear pen marks</button>';
+  else if (mode === "phl") h = HL.map((c, i) => '<button class="swatch" style="background:' + c + '" data-hl="' + i + '" aria-label="Highlighter color" aria-pressed="' + (hl === i) + '"></button>').join("") +
+    '<button class="chip" id="pclear" data-what="hl">Clear highlights</button>';
+  else if (mode === "pstamp") h = STAMPS.map(st => '<button class="chip st" data-stamp="' + st.id + '" aria-pressed="' + (curStamp === st.id) + '"><span class="m"' + (st.c ? ' style="color:' + st.c + '"' : "") + ">" + esc(st.m) + "</span>" + esc(st.n) + "</button>").join("") + sizeSeg;
+  else if (mode === "pnote") h = sizeSeg;
+  else if (mode === "perase") h = '<button class="chip" id="pclear" data-what="all">Erase everything on my paper</button>';
+  $("#photoChips").innerHTML = h;
+}
+$("#photoChips").addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "pclear") {
+    if (t.dataset.armed !== "1") { t.dataset.armed = "1"; t.textContent = "Tap again to clear"; return; }
+    const w = t.dataset.what;
+    const keep = m => w === "all" ? false : w === "hl" ? !(m.k === "line" && m.hl) : !(m.k === "line" && !m.hl);
+    if (S.pmarks.some(m => !keep(m))) { before(); S.pmarks = S.pmarks.filter(keep); changed(); }
+    renderPhotoChips(); return;
+  }
+  if (t.dataset.pen != null) pen = +t.dataset.pen;
+  if (t.dataset.hl != null) hl = +t.dataset.hl;
+  if (t.dataset.stamp) curStamp = t.dataset.stamp;
+  if (t.dataset.size) markSize = t.dataset.size;
+  renderPhotoChips();
+});
+function svgPt(svg, e){
+  const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  return [Math.round(q.x * 10) / 10, Math.round(q.y * 10) / 10];
+}
+function eraseHit(e, onlyBoxes){
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const h = el && el.closest && el.closest("[data-id]");
+  if (!h || !pv.contains(h)) return;
+  const m = markById(h.dataset.id); if (!m || (onlyBoxes && m.k !== "box")) return;
+  if (!G.snapped) { before(); G.snapped = true; }
+  S.pmarks = S.pmarks.filter(x => x !== m); h.remove(); save();
+}
+pv.addEventListener("pointerdown", e => {
+  const svg = e.target.closest("svg.ov"); if (!svg || mode === "ppan") return;
+  e.preventDefault();
+  try { svg.setPointerCapture(e.pointerId); } catch {}
+  const p = svgPt(svg, e), hitEl = e.target.closest("[data-id]"), hit = hitEl && markById(hitEl.dataset.id);
+  G = {id:e.pointerId, svg, pg:+svg.dataset.pg, start:p, sx:e.clientX, sy:e.clientY, moved:false};
+  if (mode === "perase" || (mode === "pbox" && curTag === "erase")) { G.erase = true; eraseHit(e, mode === "pbox"); return; }
+  if (mode === "pdraw" || mode === "phl") {
+    before();
+    const m = {id:uid(), pg:G.pg, k:"line", hl:mode === "phl", c:mode === "phl" ? HL[hl] : PENS[pen], w:mode === "phl" ? 26 : Math.round(6 * sizeK()), pts:[p]};
+    S.pmarks.push(m); G.mark = m;
+    svg.insertAdjacentHTML("beforeend", markSVG(m)); G.el = svg.lastElementChild;
+    return;
+  }
+  const want = {pstamp:"stamp", pnote:"note", pbox:"box"}[mode];
+  if (hit && hit.k === want) { G.drag = hit; G.el = hitEl; return; }
+  if (mode === "pbox") {
+    G.el = document.createElementNS(NS, "rect");
+    const lab = labelById(curTag), col = lab ? COLORS[lab.c][1] : "#23264a";
+    G.el.setAttribute("fill", "none"); G.el.setAttribute("stroke", col); G.el.setAttribute("stroke-width", "5"); G.el.setAttribute("stroke-dasharray", "14 10");
+    svg.appendChild(G.el); G.box = true; return;
+  }
+  G.place = true;
+});
+pv.addEventListener("pointermove", e => {
+  if (!G || e.pointerId !== G.id) return;
+  if (Math.hypot(e.clientX - G.sx, e.clientY - G.sy) > 8) G.moved = true;
+  const p = svgPt(G.svg, e), dx = p[0] - G.start[0], dy = p[1] - G.start[1];
+  if (G.erase) eraseHit(e, mode === "pbox");
+  else if (G.mark) { G.mark.pts.push(p); G.el.setAttribute("points", ptsAttr(G.mark.pts)); }
+  else if (G.drag && G.moved) {
+    if (G.drag.k === "box") G.el.setAttribute("transform", "translate(" + dx + " " + dy + ")");
+    else G.el.setAttribute("transform", "translate(" + (G.drag.x + dx) + " " + (G.drag.y + dy) + ")");
+  }
+  else if (G.box) {
+    G.el.setAttribute("x", Math.min(p[0], G.start[0])); G.el.setAttribute("y", Math.min(p[1], G.start[1]));
+    G.el.setAttribute("width", Math.abs(dx)); G.el.setAttribute("height", Math.abs(dy));
+  }
+});
+function endPhoto(e){
+  if (!G || e.pointerId !== G.id) return;
+  const g = G; G = null;
+  const p = svgPt(g.svg, e), dx = p[0] - g.start[0], dy = p[1] - g.start[1], rd = v => Math.round(v * 10) / 10;
+  if (e.type === "pointercancel") { render(); return; }
+  if (g.erase) { render(); return; }
+  if (g.mark) { if (g.mark.pts.length === 1) g.mark.pts.push([g.mark.pts[0][0] + .5, g.mark.pts[0][1]]); changed(); return; }
+  if (g.drag) {
+    if (g.moved) { before(); g.drag.x = rd(g.drag.x + dx); g.drag.y = rd(g.drag.y + dy); changed(); }
+    else if (mode === "pnote") openKb("pnote", {id:g.drag.id});
+    return;
+  }
+  if (g.box) {
+    if (Math.abs(dx) > 15 && Math.abs(dy) > 15 && labelById(curTag)) {
+      before();
+      S.pmarks.push({id:uid(), pg:g.pg, k:"box", tag:curTag, x:rd(Math.min(p[0], g.start[0])), y:rd(Math.min(p[1], g.start[1])), w:rd(Math.abs(dx)), h:rd(Math.abs(dy))});
+      changed();
+    } else render();
+    return;
+  }
+  if (g.place && !g.moved) {
+    if (mode === "pstamp") { before(); S.pmarks.push({id:uid(), pg:g.pg, k:"stamp", s:curStamp, x:g.start[0], y:g.start[1], size:Math.round(60 * sizeK())}); changed(); }
+    else if (mode === "pnote") openKb("pnote", {pg:g.pg, x:g.start[0], y:g.start[1]});
+  }
+}
+pv.addEventListener("pointerup", endPhoto);
+pv.addEventListener("pointercancel", endPhoto);
+
 /* ---------- on-screen keyboard ---------- */
 let kb = {kind:null, at:0, shift:false, caps:false};
 const ROWS = [
@@ -803,6 +1011,12 @@ function openKb(kind, at){
     $("#kbOrig").hidden = t.o == null || t.o === t.t;
     $("#kbDel").hidden = false;
     if (t.hint && t.t === t.o) { hintEl.hidden = false; hintEl.innerHTML = "<b>" + HINT[t.hint.type][0] + " hint:</b> " + esc(t.hint.tip); }
+  } else if (kind === "pnote") {
+    const m = at.id && markById(at.id);
+    $("#kbTitle").textContent = m ? "Change your words" : "Write on my paper";
+    $("#kbWas").textContent = "";
+    inp.value = m ? m.t : "";
+    $("#kbOrig").hidden = true; $("#kbDel").hidden = !m;
   } else {
     $("#kbTitle").textContent = "Add words here";
     const prev = S.tokens.slice(0, at).filter(t => !t.del).pop(), next = S.tokens.slice(at).find(t => !t.del);
@@ -816,6 +1030,12 @@ function openKb(kind, at){
 }
 function closeKb(){ $("#kbModal").hidden = true; kb.kind = null; }
 function commitKb(){
+  if (kb.kind === "pnote") {
+    const v = $("#kbIn").value.trim().slice(0, 60), at = kb.at, m = at.id && markById(at.id);
+    if (m) { if (v !== m.t) { before(); if (v) m.t = v; else S.pmarks = S.pmarks.filter(x => x !== m); } }
+    else if (v) { before(); S.pmarks.push({id:uid(), pg:at.pg, k:"note", x:at.x, y:at.y, t:v, size:Math.round(44 * sizeK())}); }
+    closeKb(); changed(); return;
+  }
   const words = $("#kbIn").value.trim().split(/\s+/).filter(Boolean);
   const at = kb.at;
   if (kb.kind === "fix") {
@@ -869,8 +1089,10 @@ function renderSide(){
     p.innerHTML = "<h3>" + (S.set === "five" ? "5 W chart" : "Label chart") + "</h3>" + S.labels.map(l => {
       const [b, s] = COLORS[l.c];
       const ph = phrases(l.id);
+      const bx = S.pmarks.filter(m => m.k === "box" && m.tag === l.id);
       return '<div class="wcard" style="--tb:' + b + ";--ts:" + s + '"><h4>' + esc(l.name) + '</h4><div class="q">' + esc(l.q || "") + "</div>" +
-        (ph.length ? "<ul>" + ph.map(x => '<li><button data-flash="' + x.idx.join(",") + '">' + esc(x.text) + "</button></li>").join("") + "</ul>"
+        (ph.length || bx.length ? "<ul>" + ph.map(x => '<li><button data-flash="' + x.idx.join(",") + '">' + esc(x.text) + "</button></li>").join("") +
+          bx.map(m => { const u = crop(m); return '<li><button data-pbox="' + m.id + '">' + (u ? '<img src="' + u + '" alt="Part of page ' + (m.pg + 1) + ' labeled ' + esc(l.name) + '">' : "Box on page " + (m.pg + 1)) + "</button></li>"; }).join("") + "</ul>"
                    : '<div class="empty">Not found yet. Find it and label it!</div>') + "</div>";
     }).join("");
   } else if (sideTab === "cups") {
@@ -891,6 +1113,13 @@ function phrases(id){
   return out.map(c => ({idx:c.idx, text:c.words.join(" ")}));
 }
 $("#panel").addEventListener("click", e => {
+  const pb = e.target.closest("[data-pbox]");
+  if (pb) {
+    if (view !== "photo") setView("photo");
+    const g = $("#photoView").querySelector('[data-id="' + pb.dataset.pbox + '"]');
+    if (g) { g.classList.remove("flash"); void g.getBoundingClientRect(); g.classList.add("flash"); g.scrollIntoView({block:"center", behavior:"smooth"}); }
+    return;
+  }
   const f = e.target.closest("[data-flash]");
   if (f) {
     const ids = f.dataset.flash.split(",");
@@ -907,12 +1136,25 @@ $("#sideClose").onclick = () => { sideTab = null; $("#side").hidden = true; mark
 
 /* ---------- header controls ---------- */
 $("#undoBtn").onclick = undo; $("#redoBtn").onclick = redo;
-function setView(v){ view = v; $("#viewMarks").setAttribute("aria-pressed", v === "marks"); $("#viewClean").setAttribute("aria-pressed", v === "clean"); $("#legend").hidden = v !== "marks"; render(); }
+function setView(v){
+  view = v;
+  $("#viewMarks").setAttribute("aria-pressed", v === "marks");
+  $("#viewClean").setAttribute("aria-pressed", v === "clean");
+  $("#viewPhoto").setAttribute("aria-pressed", v === "photo");
+  $("#legend").hidden = v !== "marks";
+  $("#ttools").hidden = v === "photo";
+  $("#ptools").hidden = v !== "photo";
+  if (v === "photo" && !PMODES.has(mode)) return setMode("pdraw");
+  if (v !== "photo" && PMODES.has(mode)) return setMode("fix");
+  render();
+}
+$("#viewPhoto").onclick = () => setView("photo");
 $("#viewMarks").onclick = () => setView("marks");
 $("#viewClean").onclick = () => setView("clean");
 function setFs(px){ opts.fs = Math.max(20, Math.min(96, px)); document.documentElement.style.setProperty("--fs", opts.fs + "px"); saveOpts(); sizeInk(); }
-$("#bigger").onclick = () => setFs(parseFloat(getComputedStyle(sheet).fontSize) + 6);
-$("#smaller").onclick = () => setFs(parseFloat(getComputedStyle(sheet).fontSize) - 6);
+function setPz(d){ opts.pz = Math.max(50, Math.min(300, (opts.pz || 100) + d)); saveOpts(); render(); }
+$("#bigger").onclick = () => view === "photo" ? setPz(25) : setFs(parseFloat(getComputedStyle(sheet).fontSize) + 6);
+$("#smaller").onclick = () => view === "photo" ? setPz(-25) : setFs(parseFloat(getComputedStyle(sheet).fontSize) - 6);
 if (opts.fs) document.documentElement.style.setProperty("--fs", opts.fs + "px");
 $("#hintsBtn").onclick = () => { showHints = !showHints; render(); };
 $("#fsBtn").onclick = async () => {
@@ -968,10 +1210,13 @@ $("#studentIn").oninput = e => { S.student = e.target.value.slice(0, 30); S.exam
 $("#optKb").onchange = e => { opts.kb = e.target.checked; saveOpts(); };
 $("#optIndent").onchange = e => { opts.indent = e.target.checked; saveOpts(); };
 
-function hasEdits(){ return countFixes() > 0 || S.tokens.some(t => t.tag) || S.strokes.length; }
+function hasEdits(){ return countFixes() > 0 || S.tokens.some(t => t.tag) || S.strokes.length || S.pmarks.length; }
 function start(){
   const text = $("#textIn").value;
-  if (!text.trim()) { setStatus("Type or read the student's writing in step 2 first.", "err"); $("#textIn").focus(); return; }
+  if (!text.trim()) {
+    if (S.images.length) { if (S.source) applySource(""); showScreen("edit"); setView("photo"); return; }
+    setStatus("Add a photo in step 1 or type the writing in step 2 first.", "err"); $("#textIn").focus(); return;
+  }
   if (text !== S.source) {
     if (hasEdits()) {
       const box = $("#resetConfirm");
@@ -1007,8 +1252,24 @@ function renderThumbs(){
 }
 $("#thumbs").addEventListener("click", async e => {
   const r = e.target.closest("[data-rot]"), x = e.target.closest("[data-rm]");
-  if (r) { const i = +r.dataset.rot; S.images[i] = await rotate(S.images[i]); renderThumbs(); save(); }
-  if (x) { S.images.splice(+x.dataset.rm, 1); renderThumbs(); save(); }
+  if (r) {
+    const i = +r.dataset.rot, im = await loadImg(S.images[i]);
+    const H = 1000 * im.naturalHeight / im.naturalWidth, k = 1000 / H, rd = v => Math.round(v * 10) / 10;
+    const f = ([x, y]) => [rd((H - y) * k), rd(x * k)];   // turn marks with the page (clockwise)
+    S.pmarks.forEach(m => {
+      if (m.pg !== i) return;
+      if (m.k === "line") { m.pts = m.pts.map(f); m.w = rd(m.w * k); }
+      else if (m.k === "box") { const [nx, ny] = f([m.x, m.y + m.h]); const nw = m.h * k, nh = m.w * k; m.x = nx; m.y = ny; m.w = rd(nw); m.h = rd(nh); }
+      else { [m.x, m.y] = f([m.x, m.y]); m.size = rd(m.size * k); }
+    });
+    S.images[i] = await rotate(S.images[i]); renderThumbs(); save();
+  }
+  if (x) {
+    const i = +x.dataset.rm;
+    S.images.splice(i, 1);
+    S.pmarks = S.pmarks.filter(m => m.pg !== i); S.pmarks.forEach(m => { if (m.pg > i) m.pg--; });
+    renderThumbs(); save();
+  }
 });
 function loadImg(src){ return new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = src; }); }
 async function shrink(file){
