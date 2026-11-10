@@ -1,11 +1,11 @@
 # Flynn's Listening Studio
 
-A classroom app for I.S., a 3rd-grade student who is Deaf/Hard of Hearing. It practices and tracks her four IEP goals for listening comprehension, auditory memory, Assistive Listening Device (ALD) use and self-advocacy.
+A classroom app for I.S., a 3rd-grade student who is Deaf/Hard of Hearing and uses spoken language. It practices and tracks her four IEP goals for listening comprehension, auditory memory, Assistive Listening Device (ALD) use and self-advocacy.
 
 Open `index.html` in any browser (no install). `app.html` is the same page without the document wrapper, used for the hosted version.
 
 ## Two modes
-- **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (*Flynn's Muddy Day*) before you've made one.
+- **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (a two-paragraph *Flynn's Day at the Dog Park* that you take turns reading) before you've made one.
 - **Teacher mode:** press and hold **Teacher: hold** (top right) for about a second. A quick tap does nothing, so she won't wander in by accident. Here you choose the goal, passage category, theme, length, key details, how she answers and the accommodations, score trials and see **Teacher data**. The pink panels show a live **student preview**. Press **Present in student mode** or **Start student mode** to hand the screen back.
 - **Teacher tools while she listens:** in student mode, press and hold **Teacher tools: hold** (bottom right) for the blurred script, the repetition counter and computer voice. You can read aloud without leaving her screen. **Score in teacher mode** takes you straight to the detail checklist.
 - When she taps her answers, the trial saves on its own when she finishes. You can add support and notes later in teacher mode and press **Update saved trial**.
@@ -19,17 +19,23 @@ Open `index.html` in any browser (no install). `app.html` is the same page witho
 - All stories and lyrics are original. They don't reuse characters or songs from her favorite books and artists.
 
 ## Listen & Remember: Goals 1 and 2
-1. Choose the goal, what you present (3–5 sentences, short passage, classroom directions, teacher information), length, theme and how many key details to check (4, 5, 6 or all). Goal 2 hides the 3–5 sentence option because it targets extended information.
-2. **Read the script aloud.** It is blurred so she listens instead of reading along. Press and hold to read it. Key details are highlighted, and `/ pause /` marks show where to stop when chunking is on. A computer voice is optional.
-3. Count repetitions with **+ Repeated**. The goal allows one, so a second repetition marks the trial as not meeting criterion.
-4. She recalls in one of two ways:
-   - **She tells or signs me:** tap each key detail she recalls, and mark the main idea for Goal 2.
+1. Choose the goal, what you present (3–5 sentences, a **passage**, classroom directions, teacher information), the theme and how many key details to check (4, 5, 6 or all). Goal 2 hides the 3–5 sentence option because it targets extended information.
+2. **Passage length:** two sliders set the number of paragraphs (1–5) and the sentences in each paragraph (5–7). Each theme has its own multi-paragraph story: *Flynn's Day at the Dog Park*, *The Big Concert*, *The Comic Club Contest* and *A Visit to the Animal Rescue*.
+3. **How you present it:**
+   - **We take turns reading (she sees the text):** the passage appears as a graphic-novel page with one comic panel per paragraph. Choose turns by paragraph or by sentence, and who reads first. A bar at the bottom says whose turn it is (pink for her, blue for you), and she taps **Next turn** after each one. Turn on **Blur my turns** to keep your parts blurred, so she reads her parts and listens to yours. That keeps listening practice in the shared reading.
+   - **I read it aloud (text hidden):** the original listening task. Flynn shows "Listening ears on!" while you read.
+4. **The teacher script** (teacher mode, or **Teacher tools** in student mode) is blurred until you press and hold. Key details are highlighted, each turn is labeled *Me* or *Her*, and `/ pause /` marks show where to stop when chunking is on. In turn-taking mode, the computer voice reads only the current turn.
+5. Count repetitions with **+ Repeated**. The goal allows one, so a second repetition marks the trial as not meeting criterion.
+6. She recalls in one of two ways:
+   - **She tells me:** tap each key detail she recalls, and mark the main idea for Goal 2.
    - **She taps answer choices:** one question per detail (plus the main idea for Goal 2), with visual right/try-again feedback.
-5. Pick the support given, add notes and **Save trial**.
+7. Pick the support given, add notes and **Save trial**.
+
+Each saved trial records how the passage was presented (for example, "took turns by paragraph, teacher started"), so data from shared reading can be told apart from listening-only trials.
 
 **Meets criterion:** 4 or more key details, 80% or higher, no more than 1 repetition, plus the correct main idea for Goal 2.
 
-**Accommodations you can switch on (saved with each trial):** ALD on and checked, preferential seating, "Listen for…" preview chips (Who? Where? How many?), chunking with pauses, slower rate, visual comic recap after recall, sing-it-back strategy, comic-panel graphic organizer, check for understanding, reduced background noise.
+**Accommodations you can switch on (saved with each trial):** ALD on and checked, preferential seating, "Listen for…" preview chips (Who? Where? How many?), chunking with pauses, slower rate, visual comic recap after recall, look-back (the passage stays available during questions), sing-it-back strategy, comic-panel graphic organizer, check for understanding, reduced background noise.
 
 New passages are built from hand-written story frames, direction sets and fact lists, with names, days, colors, numbers, songs, books and so on filled in at random. Each tap of **New passage** gives a new version, and every answer choice is generated to match.
 

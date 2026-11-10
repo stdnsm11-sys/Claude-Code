@@ -236,6 +236,38 @@ body.student .stage{padding-block:24px}
 .tdrawer{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:15;display:grid;justify-items:end;gap:10px}
 .td-sheet{width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(43,47,85,.25);font-size:.92em}
 .example{font-size:.8em;font-weight:700;color:var(--pink-d)}
+.slider{display:grid;gap:2px;font-weight:700}
+.slider span{display:flex;justify-content:space-between}
+.slider input{width:100%;accent-color:var(--pink-d);min-height:36px}
+/* shared-reading page: a graphic-novel page, one comic panel per paragraph */
+.gpage{width:100%;max-width:980px;text-align:left;display:grid;gap:22px}
+.gtitle{display:flex;align-items:center;gap:14px;border:3px solid var(--ink);border-radius:14px;padding:10px 18px;box-shadow:5px 5px 0 var(--ink);
+  font-family:var(--display);font-weight:700;font-size:1.7em;line-height:1.1;background-color:var(--pink);background-image:radial-gradient(rgba(255,255,255,.55) 1.6px,transparent 2px);background-size:9px 9px}
+.gtitle svg{width:52px;height:52px;flex:none}
+.gpara{position:relative;border:3px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);padding:22px 22px 18px;font-size:1.3em;line-height:1.8;transition:box-shadow .2s,background .2s}
+.gpara:nth-of-type(even){background:var(--blue-s)}
+.gpara .pnum{position:absolute;top:-15px;left:-10px;width:36px;height:36px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:.8em}
+.gpara .tag{position:absolute;top:-17px;left:36px;border:3px solid var(--ink);border-radius:999px;padding:0 12px;font-family:var(--display);font-weight:600;font-size:.72em;line-height:1.6}
+.tag.s{background:var(--pink)} .tag.t{background:var(--blue)}
+.gpara.now-s{background:var(--pink-s);box-shadow:7px 7px 0 var(--pink-d);border-color:var(--pink-d)}
+.gpara.now-t{background:var(--blue-s);box-shadow:7px 7px 0 var(--blue-d);border-color:var(--blue-d)}
+.sent{border-radius:8px;padding:1px 2px;transition:background .2s}
+.sent.now-s{background:var(--pink);box-shadow:0 0 0 3px var(--pink)}
+.sent.now-t{background:var(--blue);box-shadow:0 0 0 3px var(--blue)}
+.blurT{filter:blur(6px);-webkit-user-select:none;user-select:none}
+.gpara.dim{opacity:.55}
+.turnbar{position:sticky;bottom:12px;z-index:4;width:100%;max-width:980px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;border:3px solid var(--ink);border-radius:18px;padding:10px 14px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);text-align:left}
+body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58px)}
+.turnbar.s{background:var(--pink-s)} .turnbar.t{background:var(--blue-s)}
+.turnbar .who{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:1.3em;line-height:1.15;flex:1 1 260px}
+.turnbar .who svg{width:56px;height:56px;flex:none}
+.turnbar .btns{display:flex;gap:8px;margin-left:auto}
+.lookback{width:100%;max-width:980px;text-align:left}
+.lookback summary{cursor:pointer;font-family:var(--display);font-weight:600;font-size:1.15em;border:3px solid var(--ink);border-radius:14px;background:var(--paper);padding:8px 14px;display:inline-block;box-shadow:3px 3px 0 var(--ink)}
+.lookback[open] summary{margin-bottom:18px}
+.script .who{display:inline-block;font-size:.72em;font-weight:700;border-radius:6px;padding:0 6px;margin-right:4px;vertical-align:1px}
+.script .who.s{background:var(--pink)} .script .who.t{background:var(--blue)}
+.script p{margin:0 0 10px}
 </style>
 
 <header class="top">
@@ -266,10 +298,21 @@ body.student .stage{padding-block:24px}
         <div class="field"><span class="label">What I present orally</span><div class="seg" id="l-type"></div></div>
         <div class="field"><span class="label" id="l-len-label">Length</span><div class="seg" id="l-len"></div></div>
         <div class="field"><span class="label">Theme (from her interests)</span><div class="seg" id="l-theme"></div></div>
+        <div class="field" id="l-pass-field"><span class="label">Passage length</span>
+          <label class="slider" for="l-paras"><span>Paragraphs <b id="l-paras-v">3</b></span><input type="range" id="l-paras" min="1" max="5" step="1" value="3"></label>
+          <label class="slider" for="l-spp"><span>Sentences in each paragraph <b id="l-spp-v">5</b></span><input type="range" id="l-spp" min="5" max="7" step="1" value="5"></label>
+          <span class="mini" id="l-pass-total"></span></div>
+        <div class="field"><span class="label">How I present it</span>
+          <div class="seg" id="l-pres"><button data-v="turns">We take turns reading (she sees the text)</button><button data-v="oral">I read it aloud (text hidden)</button></div>
+          <div class="stack" id="l-turn-opts" style="gap:8px">
+            <div class="row"><span class="mini">Turns by</span><div class="seg" id="l-turnby"><button data-v="para">Paragraph</button><button data-v="sent">Sentence</button></div></div>
+            <div class="row"><span class="mini">Who reads first</span><div class="seg" id="l-first"><button data-v="teacher">I start</button><button data-v="student">She starts</button></div></div>
+            <label class="check"><input type="checkbox" id="l-hidet"> <span>Blur my turns so she listens to my part</span></label>
+          </div></div>
         <div class="field"><span class="label">Key details to check</span>
           <div class="seg" id="l-keys"><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="99">All</button></div></div>
         <div class="field"><span class="label">How she answers</span>
-          <div class="seg" id="l-mode"><button data-v="open">She tells or signs me (I check)</button><button data-v="tap">She taps answer choices</button></div></div>
+          <div class="seg" id="l-mode"><button data-v="open">She tells me (I check)</button><button data-v="tap">She taps answer choices</button></div></div>
         <details open>
           <summary class="label" style="cursor:pointer;padding:6px 0">Accommodations used this trial</summary>
           <div id="l-acc" class="stack" style="gap:2px;padding-top:6px"></div>
@@ -495,8 +538,51 @@ const POOLS={
  gift:['a new leash','a squeaky hot dog','a soft blanket','a bandana with hearts'],
  page:['twelve','fifteen','twenty','twenty-four','thirty'],
  shape:['a star','a heart','a circle','a cloud'],
+ dogname:['Biscuit','Pepper','Luna','Waffles','Daisy','Mochi'],
+ critter:['squirrel','butterfly','duck','rabbit'],
+ hero:['a brave bunny','a puppy detective','a singing cat','a robot dog','a superhero hamster'],
+ prize:['a gold ribbon','a stack of new graphic novels','a pizza party','a trophy shaped like a book'],
+ worker:['Ms. Rivera','Mr. Chen','Ms. Brooks','Mr. Patel'],
+ feed:['carrots','lettuce','apple slices','seeds'],
 };
-const CUE={kid:'Who?',day:'When?',time:'When?',color:'What color?',num:'How many?',toy:'What toy?',treat:'What treat?',place:'Where?',snack:'What food?',instrument:'What instrument?',song:'What song?',room:'Where?',animal:'What animal?',book:'What book?',gift:'What gift?',page:'What page?',shape:'What shape?'};
+const CUE={kid:'Who?',day:'When?',time:'When?',color:'What color?',num:'How many?',toy:'What toy?',treat:'What treat?',place:'Where?',snack:'What food?',instrument:'What instrument?',song:'What song?',room:'Where?',animal:'What animal?',book:'What book?',gift:'What gift?',page:'What page?',shape:'What shape?',dogname:'What name?',critter:'What animal?',hero:'Who was the hero?',prize:'What prize?',worker:'Who?',feed:'What food?'};
+/* Multi-paragraph passages. Each story: opening, three middles, closing. Every paragraph has 5 core sentences;
+   lines starting with + are extra sentences used when the teacher picks 6 or 7 sentences per paragraph. */
+const PASSAGES=[
+ {theme:'flynn',title:"{DOG}'s Day at the Dog Park",main:'{kid} and {DOG} spent a fun day at the dog park.',wrong:['{DOG} stayed home and slept all day.','{kid} went to a music lesson.'],
+  q:{day:'What day did they go to the dog park?',time:'What time of day did they leave?',kid:'Who took {DOG} to the dog park?',color:"What color is {DOG}'s leash?",toy:'What toy did {kid} pack?',snack:'What snack did {kid} bring?',num:'How many other dogs were at the park?',dogname:"What was the new dog friend's name?",critter:'What animal did {DOG} see?',treat:'What treat did {DOG} get?',song:'What did {kid} sing on the way home?'},
+  open:["On {day} {time}, {kid} grabbed {DOG}'s {color} leash.","{DOG} wagged his tail so hard that his whole body wiggled.","+He knew that the leash meant something fun was about to happen.","They were going to the dog park for the whole day!","{kid} packed a backpack with water, a towel, and a {toy}.","+She also packed a bag of {snack} for herself.","Then they walked down the sidewalk, and {DOG} sniffed every tree on the way."],
+  mids:[
+   ["When they got to the park, there were {num} other dogs running around.","A fluffy dog named {dogname} trotted right up to {DOG}.","The two dogs sniffed noses and then started to play chase.","+{dogname} was fast, but {DOG} was faster!","{kid} sat on a bench and laughed as they zoomed in circles.","+Every few minutes, {DOG} ran back to check on her.","By the end, {DOG} and {dogname} were best friends."],
+   ["Next, {kid} pulled the {toy} out of her backpack.","She threw it as far as she could across the grass.","{DOG} raced after it, but then he saw a {critter}.","+He forgot all about the toy and ran the other way!","{kid} called his name and waved her arms so he would look at her.","+{DOG} spun around and finally grabbed the toy.","He carried it back and dropped it right at her feet."],
+   ["At lunchtime, {kid} spread her towel under a big shady tree.","She ate {snack} and drank cold water.","{DOG} got his own snack, a {treat}.","+He crunched it loudly and licked his nose.","Then he flopped down in the shade and panted.","+A little bird hopped nearby, but {DOG} was too tired to chase it.","They rested together and watched the clouds float by."]],
+  close:["When the sun started to go down, it was time to go home.","{DOG} was so tired that he walked slowly next to {kid}.","+His paws were dusty, and his tail wagged a tiny bit.","On the way home, {kid} sang {song} to him.","At home, {DOG} curled up in his bed right away.","+He was snoring in less than a minute.","{kid} smiled because it had been the best day ever."]},
+ {theme:'music',title:'The Big Concert',main:'{kid} practiced hard and sang in her first big concert.',wrong:['{kid} learned how to ride a horse.','{kid} lost her backpack at school.'],
+  q:{kid:'Who sang in the concert?',day:'What day was the concert?',song:'What song did she sing?',room:'Where did the class practice at school?',instrument:'What instrument did the music teacher play?',kid2:"Who was {kid}'s singing partner?",num:'How many times did she sing the song each night?',color:'What color was her dress?'},
+  open:["{kid} loved to sing more than anything.","+She sang in the shower, in the car, and even while brushing her teeth.","One day, her music teacher told the class about a big concert on {day} night.","{kid} would get to sing {song} in front of everyone!","+Her heart jumped with excitement.","She felt excited, but she also felt a little nervous.","She decided to practice every day so she would be ready."],
+  mids:[
+   ["Every morning, {kid} practiced in the {room} with her class.","Her music teacher played the {instrument} to help them keep the beat.","{kid}'s singing partner was her friend {kid2:kid}.","+They stood side by side and listened to each other.","Sometimes they clapped the rhythm before they sang the words.","+Clapping helped {kid} feel the beat in her hands.","After a few days, they knew every word by heart."],
+   ["At home, {kid} practiced in her bedroom.","{DOG} sat on the rug and tilted his head while she sang.","+Sometimes he howled along, and they both laughed.","She sang the song {num} times every night before bed.","Her mom listened and gave her a big thumbs-up.","+{kid} said that {DOG} was her favorite audience.","She could feel herself getting more and more confident."],
+   ["On the night of the concert, {kid} put on a {color} dress with sparkles.","Her mom braided her hair and added a shiny bow.","Before they left, {kid} checked that her listening device was on and charged.","+She wanted to hear every note of the music.","In the car, she hummed her song quietly to warm up.","+Her hands felt a little shaky, so she took slow, deep breaths.","When they arrived, the gym was filling up with families."]],
+  close:["Finally, it was time for {kid} to sing.","She stepped onto the stage and looked out at the crowd.","+She found her mom's smiling face and felt brave.","She sang {song} in a clear, strong voice.","When the song ended, everyone clapped and cheered.","+Her music teacher gave her a big high five.","{kid} felt proud because all her practice had paid off."]},
+ {theme:'comic',title:'The Comic Club Contest',main:'{kid} and her friend worked together to make a comic for the library contest.',wrong:['{kid} and her friend went to the beach.','{kid} learned how to bake bread.'],
+  q:{day:'What day does comic club meet?',kid:'Who went to comic club?',room:'Where does comic club meet?',prize:'What would the winning team get?',kid2:"Who was {kid}'s partner?",hero:'Who was the hero of their comic?',num:'How many pages long was their comic?',color:"What color was the hero's cape?",shape:'What did they draw on the cover?',book:'What did they name their comic?'},
+  open:["Every {day}, {kid} went to comic club in the {room}.","Comic club was her favorite part of the whole week.","+The room had a big table covered with markers, pencils, and paper.","One day, the librarian announced a comic contest.","Each team would make their own comic book, and the winners would get {prize}.","+Everyone in the room started talking at once!","{kid} couldn't wait to get started."],
+  mids:[
+   ["{kid} teamed up with her friend {kid2:kid}.","First, they had to decide who the hero of their comic would be.","After a lot of ideas, they chose {hero}.","+{kid2} thought it was the funniest idea ever.","They wrote a plan for what would happen at the beginning, middle, and end.","+They even drew a tiny map of where the story would take place.","Their comic would be {num} pages long."],
+   ["Next, it was time to draw.","{kid} drew the pictures in pencil first, so she could erase mistakes.","Her partner wrote the words inside speech bubbles.","+When the hero had a big idea, they drew a thought bubble shaped like a cloud.","They gave the hero a {color} cape that flapped in the wind.","+They added sound words like WHOOSH and ZAP to make it exciting.","Then they traced over the pencil with black ink."],
+   ["The last step was to color every panel.","{kid} used her favorite pastel colors, light pink and baby blue.","For the cover, they drew {shape} and wrote the title in big letters.","+Her partner stapled the pages together very carefully.","They named their comic {book}.","+They flipped through it and gave each other a high five.","It was finally finished, just in time for the contest."]],
+  close:["On contest day, every team put their comic on a long table in the library.","Kids and teachers walked by and read each one.","+Some people laughed out loud at the funny parts.","At the end of the day, the librarian announced the winners.","{kid}'s team had won!","+They jumped up and down and cheered.","Their comic got a special spot on the library shelf for everyone to read."]},
+ {theme:'animals',title:'A Visit to the Animal Rescue',main:'{kid} helped take care of the animals at the animal rescue.',wrong:['{kid} went shopping for new shoes.','{kid} played in a soccer game.'],
+  q:{day:'What day did they visit the animal rescue?',kid:'Who visited the animal rescue?',kid2:'Who went with her?',worker:'Who was the helper at the animal rescue?',animal:'What animal did {kid} feed?',feed:'What food did she give it?',num:'How many puppies were in the puppy room?',toy:'What did the puppies chase?',dogname:"What was the puppy's name?",color:'What color was the leash?'},
+  open:["On {day}, {kid} and her friend {kid2:kid} visited an animal rescue.","An animal rescue is a place where animals stay until they find a new home.","A helper named {worker} met them at the front door.","+The helper wore a green shirt with a paw print on it.","The girls could help take care of the animals all day.","+{kid} thought about {DOG} at home and smiled.","{kid} was so excited that she bounced on her toes."],
+  mids:[
+   ["First, {worker} took them to a room with small animals.","{kid} got to feed a {animal}.","She gave it {feed} in a little dish.","+The {animal} sniffed the food and then nibbled it.","{kid2} filled up all the water bottles.","+She had to be careful not to spill.","They made sure every animal had food and water."],
+   ["Next, they went into the puppy room.","There were {num} puppies, and they all ran over at once!","The puppies loved to chase a {toy} across the floor.","+One puppy tripped over his own floppy ears.","{kid} sat on the floor, and the smallest puppy climbed into her lap.","+It licked her chin and wagged its tiny tail.","The puppy's name was {dogname}."],
+   ["After that, {kid} took a puppy for a walk outside.","She clipped a {color} leash onto the puppy's collar.","They walked around the grassy yard two times.","+The puppy stopped to sniff every flower.","{kid} remembered how she walks {DOG} at home.","+She used a gentle voice and gave the puppy lots of praise.","When they came back, the puppy took a long drink of water."]],
+  close:["At the end of the visit, {worker} thanked the girls for helping.","A family was coming the next day to adopt one of the puppies.","+{kid} hoped all the animals would find loving homes.","{kid} and {kid2} waved goodbye to all the animals.","On the way home, they talked about their favorite part.","+{kid2} loved the puppies the most.","{kid} decided she wanted to help animals when she grows up."]},
+];
+
 const THEMES=[{id:'flynn',name:'{DOG} & pets'},{id:'music',name:'Music & singing'},{id:'comic',name:'Comic club'},{id:'animals',name:'Animal world'},{id:'any',name:'Surprise me'}];
 
 /* Fiction frames. First 3 sentences always hold at least 4 details. {key} or {key:pool}. */
@@ -533,7 +619,7 @@ const DIRECTIONS=[
  {theme:'music',goal:'Get ready to play music in music class.',wrong:['Get ready to go home.','Get ready for a spelling test.'],
   steps:['line up quietly at the door','bring your {color} music folder','sit on your carpet square','pick up a {instrument}','play the beat {num} times','hand the {instrument} to your partner','sing the first line of the song','put the instrument back on the shelf']},
  {theme:'flynn',goal:'Start the morning in the classroom.',wrong:['Get ready for recess.','Clean up after art.'],
-  steps:['hang up your backpack','put your folder in the {color} bin','check that your listening device is on','sharpen two pencils','sign your name on the lunch chart','open your journal to a new page','draw a picture of {DOG}','read your book until the bell rings']},
+  steps:['hang up your backpack','put your folder in the {color} bin','check that your listening device is on','sharpen two pencils','write your name on the lunch chart','open your journal to a new page','draw a picture of {DOG}','read your book until the bell rings']},
  {theme:'animals',goal:'Do research about an animal.',wrong:['Write a thank-you letter.','Practice math facts.'],
   steps:['open your science book to page {page}','read about the {animal}','write {num} facts about it','circle the most surprising fact','draw a picture of the {animal}','label one body part','share your facts with a partner','put your paper in the {color} tray']},
 ];
@@ -642,9 +728,9 @@ const CARDS=[
  ['My device isn\'t working.','noise'],['Please pass the mic to my friend.','mic'],['It\'s too noisy. Can you use my mic?','noise'],
  ['Can I sit closer, please?','teacher'],['Please face me when you talk.','ear'],['Can I use my mic for the video?','light'],
 ];
-const SUPPORTS=['Independent','Visual cue (picture or written)','Sign or gesture cue','Verbal prompt','Modeled'];
+const SUPPORTS=['Independent','Visual cue (picture or written)','Gesture or pointing cue','Verbal prompt','Modeled'];
 const ACC={
- listen:[['ald','ALD on and checked before listening'],['seat','Preferential seating / face-to-face'],['preview','"Listen for…" preview (shows what to listen for)'],['chunk','Chunking: pause between sentences'],['slow','Slower rate of speech'],['visual','Visual recap: comic panels after recall'],['song','Sing-it-back strategy (rehearse details to a tune)'],['organizer','Comic-panel graphic organizer for recall'],['check','Check for understanding before recall'],['quiet','Reduced background noise']],
+ listen:[['ald','ALD on and checked before listening'],['seat','Preferential seating / face-to-face'],['preview','"Listen for…" preview (shows what to listen for)'],['chunk','Chunking: pause between sentences'],['slow','Slower rate of speech'],['visual','Visual recap: comic panels after recall'],['song','Sing-it-back strategy (rehearse details to a tune)'],['organizer','Comic-panel graphic organizer for recall'],['lookback','Look-back: passage stays available during questions'],['check','Check for understanding before recall'],['quiet','Reduced background noise']],
  ald:[['icons','Picture icons on step cards'],['songcue','Listening Song as a reminder'],['model','Teacher modeled first'],['fewer','Fewer choices (2)'],['read','Read aloud to her'],['device','Hands-on with her real device']],
  speak:[['read','Scenario read aloud'],['icons','Picture cues'],['fewer','Fewer choices (2)'],['role','Role-play with teacher'],['cards','Speak-Up cards available']],
 };
@@ -753,8 +839,8 @@ $('#td-score').onclick=()=>{setMode('teacher');showView('listen')};
 $('#go-student').onclick=()=>setMode('student');
 
 /* ================= LISTEN & REMEMBER ================= */
-const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Short passage',lens:[8],unit:'sentences'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
-const L={goal:1,type:'sentences',len:4,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
+const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Passage (paragraphs)',lens:[],unit:'paragraphs'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
+const L={goal:1,type:'sentences',len:4,paras:3,spp:5,present:'turns',turnBy:'para',first:'teacher',hideT:false,turn:0,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
 
 function fillSlots(templates,qmap,preset){
   const vals={},used={},details=[];
@@ -770,9 +856,11 @@ const EXAMPLE={day:'Saturday',time:'morning',kid:'Maya',place:'park',toy:'squeak
 function generate(example){
   const pickTheme=th=>th==='any'?rnd(['flynn','music','comic','animals']):th;
   const theme=pickTheme(L.theme); let item;
-  if(L.type==='sentences'||L.type==='passage'){
+  if(L.type==='passage'){
+    item=genPassage(theme,example);
+  } else if(L.type==='sentences'){
     const fr=example?FRAMES[0]:rnd(FRAMES.filter(f=>f.theme===theme));
-    const n=L.type==='passage'?fr.s.length:L.len;
+    const n=L.len;
     const {out,vals,details}=fillSlots(fr.s.slice(0,n),fr.q,example?EXAMPLE:null);
     const render=(s,mark)=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>mark&&mark.has(k)?`<mark>${esc(vals[k])}</mark>`:esc(vals[k])));
     const plain=s=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>vals[k]));
@@ -811,16 +899,45 @@ function generate(example){
   const keyIds=new Set(item.keys.map(d=>d.id));
   item.html=item.sentences.map((s,i)=>item.kind==='story'?item.render(s,keyIds):item.kind==='directions'?item.render(s,keyIds.has('step'+i)):item.render(s,item.keys.some(d=>d.si===i)));
   delete item.render;delete item.sentences;item.example=!!example;item.made=today();
+  if(!item.paras)item.paras=[item.plain.map((_,i)=>i)];
   L.item=item;resetTrial();
-  if(!example){S.lesson={cfg:{goal:L.goal,type:L.type,len:L.len,theme:L.theme,keys:L.keys,mode:L.mode},item};saveSettings()}
+  if(!example){S.lesson={cfg:cfgObj(),item};saveSettings()}
   renderListen();
 }
-function resetTrial(){L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
-function saveLessonCfg(){if(S.lesson){S.lesson.cfg={goal:L.goal,type:L.type,len:L.len,theme:L.theme,keys:L.keys,mode:L.mode};saveSettings()}}
+function resetTrial(){L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
+function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,theme:L.theme,keys:L.keys,mode:L.mode}}
+function saveLessonCfg(){if(S.lesson){S.lesson.cfg=cfgObj();saveSettings()}}
+const EXAMPLE_P={day:'Saturday',time:'morning',kid:'Maya',color:'blue',toy:'squeaky ball',snack:'apple slices',song:'a song about friendship'};
+function genPassage(theme,example){
+  const P=example?PASSAGES[0]:rnd(PASSAGES.filter(x=>x.theme===theme));
+  const n=example?2:L.paras, per=L.spp;
+  const mids=n<=2?[]:shuffle([0,1,2]).slice(0,n-2).sort((a,b)=>a-b).map(i=>P.mids[i]);
+  const blocks=n===1?[P.open]:[P.open,...mids,P.close];
+  const pick=b=>{let extra=per-5;return b.filter(x=>!x.startsWith('+')||(extra-->0)).map(x=>x.replace(/^\+/,''))};
+  const paraSents=blocks.map(pick);
+  const flat=paraSents.flat(); const paras=[];let k=0;paraSents.forEach(ps=>{paras.push(ps.map(()=>k++))});
+  const {out,vals,details}=fillSlots(flat,P.q,example?EXAMPLE_P:null);
+  const render=(s,mark)=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>mark&&mark.has(k)?`<mark>${esc(vals[k])}</mark>`:esc(vals[k])));
+  const plain=s=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>vals[k]));
+  const kidfix=t=>plain(t.replace(/\{kid\}/g,'[[kid]]'));
+  return {kind:'story',theme,title:kidfix(P.title),sentences:out,render,plain:out.map(plain),paras,
+    details:details.map(d=>({id:d.key,cue:CUE[d.pool]||'What?',label:`${CUE[d.pool]||''} ${d.a}`.trim(),q:sub(P.q[d.key].replace(/\{kid\}/g,vals.kid||'she')),a:d.a,choices:d.choices})),
+    main:kidfix(P.main),wrong:P.wrong.map(kidfix)};
+}
+function presentText(){
+  if(L.present!=='turns')return 'Presented orally (text hidden)';
+  return `Took turns reading by ${turnUnitBy()==='para'?'paragraph':'sentence'} (${L.first==='teacher'?'teacher':'student'} started${L.hideT?'; teacher turns blurred':''})`;
+}
+function turnUnitBy(){return L.turnBy==='para'&&L.item&&L.item.paras.length>1?'para':'sent'}
+function units(){const it=L.item;return turnUnitBy()==='para'?it.paras:it.plain.map((_,i)=>[i])}
+function whoOf(u){return (u%2===0)===(L.first==='teacher')?'t':'s'}
 function scriptHTML(){
   const it=L.item;
   const pause=accOn('listen','chunk')?'<span class="pause" title="pause">/ pause /</span>':' ';
-  return (it.kind==='directions'?'':`<b>${esc(it.title)}</b><br>`)+it.html.join(pause);
+  const turns=L.present==='turns';const by=turnUnitBy();
+  const tag=u=>turns?`<span class="who ${whoOf(u)}">${whoOf(u)==='t'?'Me':'Her'}</span>`:'';
+  const paras=it.paras||[it.html.map((_,i)=>i)];
+  return (it.kind==='directions'?'':`<p><b>${esc(it.title)}</b></p>`)+paras.map((ps,pi)=>`<p>${by==='para'?tag(pi):''}${ps.map(i=>(by==='sent'?tag(i):'')+it.html[i]).join(pause)}</p>`).join('');
 }
 function renderListen(){
   seg($('#l-goal'),L.goal,v=>{L.goal=+v;if(L.goal===2&&L.type==='sentences'){L.type='passage';L.len=8}buildTypeSeg();generate()});
@@ -828,13 +945,20 @@ function renderListen(){
   seg($('#l-theme'),L.theme,v=>{L.theme=v;generate()});
   seg($('#l-keys'),L.keys,v=>{L.keys=+v;generate()});
   seg($('#l-mode'),L.mode,v=>{L.mode=v;saveLessonCfg();renderListen()});
+  seg($('#l-pres'),L.present,v=>{L.present=v;L.turn=0;saveLessonCfg();renderListen()});
+  seg($('#l-turnby'),L.turnBy,v=>{L.turnBy=v;L.turn=0;saveLessonCfg();renderListen()});
+  seg($('#l-first'),L.first,v=>{L.first=v;L.turn=0;saveLessonCfg();renderListen()});
+  $('#l-hidet').checked=L.hideT;$('#l-turn-opts').hidden=L.present!=='turns';
+  $('#l-pass-field').hidden=L.type!=='passage';
+  $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
   $('#l-reps').textContent=$('#td-reps').textContent=L.reps;
   $('#l-rep-warn').innerHTML=$('#td-rep-warn').innerHTML=L.reps>1?`<div class="warn">More than one repetition. The goal allows one, so this trial won't meet criterion.</div>`:'';
   $('#l-example').innerHTML=L.item.example?'<span class="example">Example lesson.</span> Choose options above or press New passage to make her first real lesson.':`Current lesson, made ${esc(fmtDate(L.item.made))}. Student mode opens on this lesson until you make a new one.`;
-  $('#td-hint').textContent=L.mode==='open'?'She tells or signs what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.';
+  $('#td-hint').textContent=(L.present==='turns'?'Take turns: she taps Next after each turn. ':'')+(L.mode==='open'?'She tells you what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.');
   $('#l-title').textContent=L.item.title;
-  $('#l-sub').textContent=`Goal ${L.goal} · ${TYPES[L.type].name}${L.type==='passage'?'':' · '+L.len+' '+TYPES[L.type].unit}`;
+  const ip=L.item.paras.length, ispp=Math.round(L.item.plain.length/ip);
+  $('#l-sub').textContent=`Goal ${L.goal} · ${L.type==='passage'?`${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`:TYPES[L.type].name+' · '+L.len+' '+TYPES[L.type].unit} · ${L.present==='turns'?'taking turns':'read aloud'}`;
   $('#l-voice-note').textContent=(!synthOK||!S.voice)?'(off in Settings)':'';
   renderStage();renderScorePanel();
 }
@@ -856,6 +980,7 @@ function organizerHTML(){
 }
 function renderStage(){
   const st=$('#l-stage'), it=L.item;
+  if(L.phase==='listen'&&L.present==='turns'){renderReadPage(st);return}
   if(L.phase==='listen'){
     const cues=[...new Set(it.keys.map(d=>d.cue))];
     st.innerHTML=`${flynnSVG('flynn bob',accOn('listen','ald'))}
@@ -865,7 +990,7 @@ function renderStage(){
       <button class="btn big pink" id="l-go">I'm ready to remember</button>`;
     $('#l-go').onclick=()=>{L.phase='recall';try{speechSynthesis.cancel()}catch(e){}renderStage();renderScorePanel()};
   } else if(L.phase==='recall'&&L.mode==='open'){
-    st.innerHTML=`<div class="bubble">Tell your teacher everything you remember!</div>
+    st.innerHTML=`<div class="bubble">Tell your teacher everything you remember!</div>${lookbackHTML()}
       ${accOn('listen','check')?`<div class="tip">${I.chat}<div><b>Check:</b> What was it about? Who or what did you hear about?</div></div>`:''}
       ${accOn('listen','organizer')?organizerHTML():flynnSVG('flynn')}
       <p class="mini">Teacher: tap each detail she recalls in the panel.</p>`;
@@ -875,7 +1000,7 @@ function renderStage(){
     const q=qs[L.qi]; const fewer=false;
     st.innerHTML=`<div class="progress">${qs.map((_,i)=>`<i class="${i<L.qi?'done':i===L.qi?'on':''}"></i>`).join('')}</div>
       <div class="qcard"><div class="qtext">${esc(q.q)}</div>
-      <div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div></div>`;
+      <div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div></div>${lookbackHTML()}`;
     $$('.choice',st).forEach(b=>b.onclick=()=>{
       const pick=q.choices[+b.dataset.i]; const right=pick===q.a;
       L.answers[L.qi]={q:q.q,a:q.a,pick,right,isMain:!!q.isMain};
@@ -887,6 +1012,37 @@ function renderStage(){
     st.innerHTML=reviewHTML();
   }
 }
+const THEME_ICON={flynn:'paw',animals:'paw',music:'note',comic:'book'};
+function pageHTML(live){
+  const it=L.item,us=units(),by=turnUnitBy(),cur=L.turn;
+  const unitOf={};us.forEach((u,ui)=>u.forEach(i=>unitOf[i]=ui));
+  const icon=(I[THEME_ICON[it.theme]]||I.paw).replace('class="ic" ','');
+  const sentCls=i=>{if(!live)return '';const u=unitOf[i],w=whoOf(u);let c='';
+    if(by==='sent'&&u===cur)c+=' now-'+w;
+    if(L.hideT&&w==='t'&&u>=cur)c+=' blurT';return c};
+  const paras=it.paras.map((ps,pi)=>{
+    const w=whoOf(pi),isCur=live&&by==='para'&&pi===cur;
+    const cls=isCur?' now-'+w:(live&&by==='para'&&pi>cur?' dim':'');
+    const tag=live&&by==='para'?`<span class="tag ${w}">${w==='s'?'Your turn':'Teacher reads'}</span>`:'';
+    return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
+  return `<article class="gpage"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
+}
+function renderReadPage(st){
+  const it=L.item,us=units(),n=us.length,cur=Math.min(L.turn,n-1),w=whoOf(cur),last=cur>=n-1;
+  const by=turnUnitBy();
+  const cues=[...new Set(it.keys.map(d=>d.cue))];
+  const msg=w==='s'?`Your turn, ${esc(S.student||'friend')}! Read the pink ${by==='para'?'part':'sentence'} out loud.`:(L.hideT?'Teacher\'s turn. Listen with your ears!':'Teacher\'s turn. Follow along with your eyes.');
+  st.innerHTML=`<div class="bubble" style="font-size:1.35em">Let's take turns reading!${accOn('listen','ald')?' Is your mic on?':''}</div>
+    ${accOn('listen','preview')?`<div class="stack" style="justify-items:center"><span class="label">Read and listen for</span><div class="cues">${(L.goal===2?['Main idea',...cues]:cues).map(c=>`<span class="cue">${esc(c)}</span>`).join('')}</div></div>`:''}
+    ${accOn('listen','song')?`<div class="tip">${I.note}<div><b>Sing it back!</b> When you read or hear a detail, sing it in your head to a tune you know.</div></div>`:''}
+    ${pageHTML(true)}
+    <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">Turn ${cur+1} of ${n}</span></span></div>
+      <div class="btns"><button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':'Next turn'}</button></div></div>`;
+  $('#r-back').onclick=()=>{L.turn=Math.max(0,cur-1);renderReadPage(st);focusTurn()};
+  $('#r-next').onclick=()=>{if(last){L.phase='recall';renderStage();renderScorePanel();window.scrollTo({top:0});return}L.turn=cur+1;renderReadPage(st);focusTurn()};
+}
+function focusTurn(){const el=$('#l-stage .now-s, #l-stage .now-t');if(el)el.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
+function lookbackHTML(){return accOn('listen','lookback')?`<details class="lookback"><summary>Look back at the ${L.item.kind==='directions'?'directions':'story'}</summary>${pageHTML(false)}</details>`:''}
 function questions(){
   const it=L.item;const qs=it.keys.map(d=>({q:d.q,a:d.a,choices:d.choices,id:d.id}));
   if(L.goal===2)qs.push({q:'What was it mostly about?',a:it.main,choices:it.mainChoices,isMain:true});
@@ -899,7 +1055,7 @@ function finishTap(){
 }
 function reviewHTML(){
   const it=L.item;
-  const strip=it.plain.map((s,i)=>`<div class="cpanel"><span class="num">${i+1}</span><p>${esc(s)}</p></div>`).join('');
+  const strip=(it.paras.length>1?it.paras.map(ps=>ps.map(i=>it.plain[i]).join(' ')):it.plain).map((s,i)=>`<div class="cpanel"><span class="num">${i+1}</span><p>${esc(s)}</p></div>`).join('');
   const sc=score();
   return `${flynnSVG('flynn')}<div class="bubble">${sc.pct>=80?'Wow, great remembering!':'Good listening! Let\'s look at it together.'}</div>
     ${accOn('listen','visual')?`<div class="stack" style="width:100%;text-align:left"><span class="label">Here's what you heard</span><div class="strip">${strip}</div></div>`:''}`;
@@ -943,9 +1099,9 @@ function renderScorePanel(){
 }
 function saveListen(auto){
   const it=L.item,sc=score();
-  const t={id:L.savedId||uid(),date:today(),goal:L.goal,kind:'listen',activity:TYPES[L.type].name+(L.type==='passage'?'':` (${L.len} ${TYPES[L.type].unit})`),
+  const t={id:L.savedId||uid(),date:today(),goal:L.goal,kind:'listen',activity:L.type==='passage'?`Passage (${it.paras.length} paragraph${it.paras.length>1?'s':''} × ${Math.round(it.plain.length/it.paras.length)} sentences)`:TYPES[L.type].name+` (${L.len} ${TYPES[L.type].unit})`,
     title:it.title,theme:it.theme,correct:sc.correct+(sc.mainOk?1:0),total:sc.total+(L.goal===2?1:0),details:sc.correct,keyTotal:sc.total,
-    main:L.goal===2?!!sc.mainOk:null,pct:sc.pct,reps:L.reps,mode:L.mode==='open'?'Told/signed (teacher checked)':'Tapped choices',
+    main:L.goal===2?!!sc.mainOk:null,pct:sc.pct,reps:L.reps,mode:L.mode==='open'?'Told teacher (teacher checked)':'Tapped choices',present:presentText(),
     support:L.support,acc:accNames('listen'),notes:L.notes,counts:L.counts,meets:sc.meets,
     items:it.keys.map(d=>d.a+(L.mode==='open'?(L.marked.has(d.id)?' ✓':' ✗'):''))};
   const i=store.trials.findIndex(x=>x.id===t.id);
@@ -954,10 +1110,17 @@ function saveListen(auto){
   L.savedId=t.id;renderScorePanel();
 }
 $('#l-new').onclick=()=>generate();
+function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-spp-v').textContent=$('#l-spp').value;
+  const n=+$('#l-paras').value*+$('#l-spp').value;$('#l-pass-total').textContent=`About ${n} sentences in all.`}
+['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;generate()})});
+$('#l-hidet').onchange=e=>{L.hideT=e.target.checked;saveLessonCfg();renderListen()};
 $('#l-present').onclick=()=>{resetTrial();renderListen();setMode('student')};
 $('#l-rep-plus').onclick=$('#td-rep-plus').onclick=()=>{L.reps++;renderListen()};
 $('#l-rep-minus').onclick=$('#td-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
-$('#l-say').onclick=$('#td-say').onclick=()=>speak(L.item.kind==='story'?[L.item.title,...L.item.plain]:L.item.plain,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')});
+$('#l-say').onclick=$('#td-say').onclick=()=>{const it=L.item;let lines;
+  if(L.present==='turns'&&L.phase==='listen'){const u=units()[Math.min(L.turn,units().length-1)];lines=u.map(i=>it.plain[i])}
+  else lines=it.kind==='story'?[it.title,...it.plain]:it.plain;
+  speak(lines,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')})};
 [[$('#l-script'),true],[$('#td-script'),false]].forEach(([scr,peek])=>{
   const showS=()=>scr.classList.add('show'), hideS=()=>{if(!(peek&&$('#l-peek').checked))scr.classList.remove('show')};
   scr.addEventListener('pointerdown',showS);scr.addEventListener('pointerup',hideS);scr.addEventListener('pointerleave',hideS);scr.addEventListener('pointercancel',hideS);
@@ -1241,7 +1404,7 @@ function renderData(){
   const pmap=Object.fromEntries(store.periods.map(p=>[p.id,p.n]));
   const lvl={ind:'on her own',pr:'prompted',no:'not yet'};
   $('#d-table').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Goal</th><th>Activity</th><th>Score</th><th>Reps</th><th>Support &amp; accommodations</th><th>Data?</th><th>Met?</th><th>Details &amp; notes</th><th></th></tr></thead><tbody>${rows.map(r=>r._t==='trial'?
-    `<tr><td class="num">${fmtDate(r.date)}</td><td>${r.goal}</td><td>${esc(r.activity)}${r.title&&r.title!==r.activity?`<br><span class="mini">${esc(r.title)}</span>`:''}</td><td class="num">${r.correct}/${r.total} · ${r.pct}%${r.main!==null&&r.main!==undefined?`<br><span class="mini">main idea ${r.main?'✓':'✗'}</span>`:''}</td><td class="num">${r.reps??'–'}</td><td>${esc(r.support)}${r.acc&&r.acc.length?`<br><span class="mini">${esc(r.acc.join('; '))}</span>`:''}</td><td>${r.counts?'<span class="yes">Yes</span>':'<span class="no">Practice</span>'}</td><td>${r.meets?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc((r.items||[]).join(' · '))}${r.notes?'<br><b>Note:</b> '+esc(r.notes):''}</span></td><td><button class="sbtn danger" data-del="t_${r.id}">Delete</button></td></tr>`:
+    `<tr><td class="num">${fmtDate(r.date)}</td><td>${r.goal}</td><td>${esc(r.activity)}${r.title&&r.title!==r.activity?`<br><span class="mini">${esc(r.title)}</span>`:''}${r.present?`<br><span class="mini">${esc(r.present)}</span>`:''}</td><td class="num">${r.correct}/${r.total} · ${r.pct}%${r.main!==null&&r.main!==undefined?`<br><span class="mini">main idea ${r.main?'✓':'✗'}</span>`:''}</td><td class="num">${r.reps??'–'}</td><td>${esc(r.support)}${r.acc&&r.acc.length?`<br><span class="mini">${esc(r.acc.join('; '))}</span>`:''}</td><td>${r.counts?'<span class="yes">Yes</span>':'<span class="no">Practice</span>'}</td><td>${r.meets?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc((r.items||[]).join(' · '))}${r.notes?'<br><b>Note:</b> '+esc(r.notes):''}</span></td><td><button class="sbtn danger" data-del="t_${r.id}">Delete</button></td></tr>`:
     `<tr><td class="num">${fmtDate(r.date)}</td><td>4</td><td>Classroom opportunity<br><span class="mini">${esc(r.ctx)} · period ${pmap[r.period]||'?'}</span></td><td>${oppSuccess(r)?'<span class="yes">Success</span>':'Not yet'}</td><td class="num">–</td><td><span class="mini">Recognized: ${lvl[r.rec]}<br>Communicated: ${lvl[r.com]}</span></td><td><span class="yes">Yes</span></td><td>${oppSuccess(r)?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc(r.said||'')}</span></td><td><button class="sbtn danger" data-del="o_${r.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
   $$('[data-del]').forEach(b=>{let armed=0;b.onclick=()=>{
     if(Date.now()-armed>3000){armed=Date.now();b.textContent='Tap again';setTimeout(()=>b.textContent='Delete',3000);return}
@@ -1252,9 +1415,9 @@ function renderData(){
 function csv(){
   const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
   const lvl={ind:'independent',pr:'prompted',no:'not yet'};const pmap=Object.fromEntries(store.periods.map(p=>[p.id,p.n]));
-  const head=['Date','Goal','Activity','Title','Correct','Total','Percent','Main idea','Repetitions','Response mode','Support','Accommodations','Counted as data','Met criterion','Data period','Details','Notes'];
-  const rows=store.trials.slice().sort(byDate).map(t=>[new Date(t.date).toLocaleString(),t.goal,t.activity,t.title,t.correct,t.total,t.pct,t.main===null||t.main===undefined?'':t.main?'yes':'no',t.reps??'',t.mode,t.support,(t.acc||[]).join('; '),t.counts?'yes':'no',t.meets?'yes':'no','',(t.items||[]).join(' | '),t.notes||'']);
-  store.opps.slice().sort(byDate).forEach(o=>rows.push([new Date(o.date).toLocaleString(),4,'Classroom opportunity',o.ctx,oppSuccess(o)?1:0,1,oppSuccess(o)?100:0,'','','Teacher observed','Recognized '+lvl[o.rec]+'; communicated '+lvl[o.com],'','yes',oppSuccess(o)?'yes':'no',pmap[o.period]||'',o.said||'','']));
+  const head=['Date','Goal','Activity','Title','Presentation','Correct','Total','Percent','Main idea','Repetitions','Response mode','Support','Accommodations','Counted as data','Met criterion','Data period','Details','Notes'];
+  const rows=store.trials.slice().sort(byDate).map(t=>[new Date(t.date).toLocaleString(),t.goal,t.activity,t.title,t.present||'',t.correct,t.total,t.pct,t.main===null||t.main===undefined?'':t.main?'yes':'no',t.reps??'',t.mode,t.support,(t.acc||[]).join('; '),t.counts?'yes':'no',t.meets?'yes':'no','',(t.items||[]).join(' | '),t.notes||'']);
+  store.opps.slice().sort(byDate).forEach(o=>rows.push([new Date(o.date).toLocaleString(),4,'Classroom opportunity',o.ctx,'',oppSuccess(o)?1:0,1,oppSuccess(o)?100:0,'','','Teacher observed','Recognized '+lvl[o.rec]+'; communicated '+lvl[o.com],'','yes',oppSuccess(o)?'yes':'no',pmap[o.period]||'',o.said||'','']));
   return [head,...rows].map(r=>r.map(q).join(',')).join('\n');
 }
 async function copyText(text,area,msg){
@@ -1289,8 +1452,8 @@ supportSelect($('#a-support'));supportSelect($('#sp-support'));
 $$('.seg button').forEach(b=>b.type='button');
 document.body.classList.add('student');
 function loadLesson(){
-  if(S.lesson&&S.lesson.item&&S.lesson.item.html){Object.assign(L,S.lesson.cfg||{});L.item=S.lesson.item;resetTrial();renderListen()}
-  else{L.goal=1;L.type='sentences';L.len=4;L.theme='flynn';L.keys=5;L.mode='tap';generate(true)}
+  if(S.lesson&&S.lesson.item&&S.lesson.item.html){Object.assign(L,S.lesson.cfg||{});L.item=S.lesson.item;if(!L.item.paras)L.item.paras=[L.item.plain.map((_,i)=>i)];resetTrial();renderListen()}
+  else{L.goal=1;L.type='passage';L.paras=2;L.spp=5;L.present='turns';L.turnBy='para';L.first='teacher';L.theme='flynn';L.keys=5;L.mode='tap';generate(true)}
 }
 renderAll();loadLesson();
 const start=(location.hash||'').slice(1);showView(['listen','ald','speak'].includes(start)?start:(['listen','ald','speak'].includes(S.view)?S.view:'listen'));
