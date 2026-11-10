@@ -36,7 +36,9 @@ In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
 - Every new day starts fresh, with all tiles back to red. You can turn this off.
 
 ## Breaking a tile into smaller steps
-**Press and hold any tile** (or right-click it) for its menu. Two choices:
+**In Parent mode, tap the green button under a tile.** It breaks the tile into small steps right in the routine, in place of the big tile (Undo is in the message that appears). If the tile already holds small steps, the green button says **＋ Add its 6 steps here** and puts them in the routine.
+
+For more choices, **press and hold a tile in Parent mode** (or right-click it). Outside Parent mode, a long press does nothing special, so the child can't open this menu. The menu has two ways to break a tile down:
 - **📋 Break it down into *Wake up*** (first button): the small steps go straight into the routine as their own tiles, in place of the big tile. One long-press, one tap. **Undo** puts it back.
 - **🧩 Break it down, keep it as one tile:** the small steps stay inside the big tile and open when it is tapped.
 
@@ -108,7 +110,7 @@ Drawing with Claude only works when the app is opened on claude.ai. It asks the 
 **Routines and settings** (below the board):
 - **This routine:** rename it, move it to another part of the day, choose **Shows on** (school days, weekends, both), change the order, start it over, or delete it.
 - **Ready-made routines** for this part of the day and kind of day, **+ Blank routine**, and **Start the whole day over**.
-- **Quick add** from about 120 library pictures.
+- **Quick add** from about 190 library pictures for 3- and 4-year-olds: Morning (30), School (45, including speech, OT and fire drill), Noon (28), Afternoon (40, including outings like the public bathroom and loud hand dryers), Night (27, including pull-ups and night light), and Calm & wait (24, including feelings: happy, sad, mad, scared, tired, and "change of plans").
 - **Settings:** follow the clock, start fresh each morning, switch to Weekend automatically, taps change color, speech, celebration, tile size, voice speed.
 
 Schedules and photos are saved only in this browser on this device.

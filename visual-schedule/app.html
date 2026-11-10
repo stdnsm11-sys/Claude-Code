@@ -146,6 +146,10 @@ button{cursor:pointer;color:var(--ink)}
 /* rocket launch */
 .rocket{position:fixed;inset:0;width:100%;height:100%;z-index:22;pointer-events:none}
 .crumbs .inline{margin-left:auto}
+.btn.go,.ctl .go{background:var(--done);border-color:var(--done);color:#fff}
+.btn.go:hover,.ctl .go:hover{border-color:#1f7a45;background:#258a4e}
+.ctl .go{flex-basis:100%;min-height:40px;font-size:.84rem;border-radius:12px;line-height:1.15;padding:4px 8px}
+.ctl .go:disabled{opacity:.6}
 .tm-acts .btn small{display:block;font-weight:400;font-size:.8rem;color:var(--muted);line-height:1.2}
 .tm-acts .btn.primary small{color:inherit;opacity:.85}
 .tm-acts .btn span.txt{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
@@ -324,7 +328,7 @@ button{cursor:pointer;color:var(--ink)}
   </header>
 
   <div class="parentbar" id="parentbar" hidden>
-    <p>Parent mode is on <small>Under each tile: ✏️ change it, 🔄 new picture, 📷 take a photo, 🧩 smaller steps, 🗑 remove, ◀ ▶ move. The + tile adds one. Changes save by themselves.</small></p>
+    <p>Parent mode is on <small>Green button: break a tile into small steps right in the routine. Under each tile: ✏️ change it, 🔄 new picture, 📷 photo, 🧩 more choices (or press and hold the tile), 🗑 remove, ◀ ▶ move. Changes save by themselves.</small></p>
     <button class="btn" id="parentDone" type="button">Done</button>
   </div>
 
@@ -570,38 +574,61 @@ button{cursor:pointer;color:var(--ink)}
 /* ---------- pictures: [emoji, word on tile, what it says] ---------- */
 const LIB = {
   "Morning": [
-    ["🌞","Wake up","Wake up. Good morning!"],["🚽","Potty","Go potty"],["🚽","Flush","Flush the toilet"],["🧼","Wash hands","Wash your hands"],
-    ["💦","Wash face","Wash your face"],["👕","Get dressed","Get dressed"],["🧦","Socks on","Put on your socks"],["👟","Shoes on","Put on your shoes"],
+    ["🌞","Wake up","Wake up. Good morning!"],["🪟","Open curtains","Open the curtains"],["💡","Night light off","Turn off the night light"],
+    ["🚽","Potty","Go potty"],["🚽","Flush","Flush the toilet"],["🧼","Wash hands","Wash your hands"],["💦","Wash face","Wash your face"],
+    ["🩲","Underwear on","Put on your underwear"],["👕","Get dressed","Get dressed"],["👕","Shirt on","Put on your shirt"],["👖","Pants on","Put on your pants"],
+    ["🧦","Socks on","Put on your socks"],["👟","Shoes on","Put on your shoes"],["🧢","Hat on","Put on your hat"],["🧴","Sunscreen","Put on sunscreen"],
     ["🛏️","Make bed","Make your bed"],["🪑","Sit at table","Sit at the table"],["🥣","Breakfast","Eat your breakfast"],["🥛","Drink","Take a drink"],
-    ["🍽️","Plate to sink","Put your plate in the sink"],["🪥","Brush teeth","Brush your teeth"],["💇","Brush hair","Brush your hair"],
-    ["🎒","Get backpack","Get your backpack"],["🚗","Car seat","Get in your car seat"],["🚌","Ride the bus","Ride the bus"]],
+    ["💊","Medicine","Take your medicine"],["🍽️","Plate to sink","Put your plate in the sink"],["🪥","Brush teeth","Brush your teeth"],["💇","Brush hair","Brush your hair"],
+    ["🍱","Get lunchbox","Get your lunchbox"],["🥤","Water bottle","Get your water bottle"],["🎒","Get backpack","Get your backpack"],
+    ["🤗","Hug goodbye","Hug goodbye"],["👋","Say bye-bye","Say bye-bye"],["🚗","Car seat","Get in your car seat"],["🚌","Ride the bus","Ride the bus"]],
   "School": [
     ["🚶","Walk inside","Walk inside"],["👋","Say hello","Say hello"],["🎒","Hang up backpack","Hang up your backpack"],["🧥","Hang up coat","Hang up your coat"],
     ["🍱","Put away lunch","Put away your lunchbox"],["🏷️","Find my name","Find your name"],["📁","Folder in basket","Put your folder in the basket"],
-    ["🧑‍🤝‍🧑","Circle time","Circle time. Sit on the rug"],["📅","Calendar","Calendar time"],["🎵","Sing songs","Sing songs"],["📖","Story time","Listen to the story"],
-    ["🧩","Centers","Centers"],["🎨","Art","Art time"],["🧱","Blocks","Play with blocks"],["✏️","Write my name","Write your name"],["✂️","Cut","Cut with scissors"],
-    ["👂","Listen","Listen to the teacher"],["✋","Raise hand","Raise your hand"],["🤫","Quiet voice","Use a quiet voice"],["🚸","Line up","Line up"],
-    ["🏫","Classroom","Go back to the classroom"],["🎶","Music","Go to music"],["⚽","PE / gym","Go to PE"],["📚","Library","Go to the library"],["🏥","Nurse","Go to the nurse"]],
+    ["🧑‍🤝‍🧑","Circle time","Circle time. Sit on the rug"],["📍","Sit on my spot","Sit on your spot"],["📅","Calendar","Calendar time"],["🌦️","Weather","Check the weather"],
+    ["🎵","Sing songs","Sing songs"],["📖","Story time","Listen to the story"],["🧸","Show and tell","Show and tell"],["📝","Work time","Work time"],
+    ["🧩","Centers","Centers"],["🎨","Art","Art time"],["🖌️","Paint","Paint a picture"],["🧴","Glue","Use the glue"],["✂️","Cut","Cut with scissors"],
+    ["✏️","Write my name","Write your name"],["🧱","Blocks","Play with blocks"],["🏖️","Sand table","Play at the sand table"],["💦","Water table","Play at the water table"],
+    ["👗","Dress-up","Play dress-up"],["🍳","Play kitchen","Play in the kitchen"],["💻","Computer","Computer time"],
+    ["👂","Listen","Listen to the teacher"],["✋","Raise hand","Raise your hand"],["🤫","Quiet voice","Use a quiet voice"],["🚶","Walking feet","Use walking feet"],
+    ["🔄","Take turns","Take turns"],["🧹","Clean up","Clean up"],["🪑","Push in chair","Push in your chair"],["🚸","Line up","Line up"],
+    ["🏫","Classroom","Go back to the classroom"],["🎶","Music","Go to music"],["⚽","PE / gym","Go to PE"],["📚","Library","Go to the library"],
+    ["🗣️","Speech","Speech time"],["🤸","OT","OT time"],["🏥","Nurse","Go to the nurse"],["🚨","Fire drill","Fire drill. Stay calm and walk with your class"],
+    ["🚌","Field trip","Field trip day"],["👋","Goodbye song","Sing the goodbye song"]],
   "Noon": [
     ["🚽","Bathroom","Go to the bathroom"],["🧻","Wipe","Wipe"],["👖","Pull up pants","Pull up your pants"],["💨","Dry hands","Dry your hands"],
-    ["🥪","Lunch","Lunch time"],["🍽️","Cafeteria","Go to the cafeteria"],["🍗","Eat my food","First, eat your food"],["🥫","Open it","Open your food"],
-    ["🥛","Milk","Drink your milk"],["🗑️","Throw away trash","Throw away your trash"],["🛝","Recess","Recess. Play on the playground"],
-    ["🚰","Drink water","Get a drink of water"],["🛌","Get my mat","Get your mat"],["😴","Rest time","Rest time. Lie down and rest"]],
+    ["🥪","Lunch","Lunch time"],["🍽️","Cafeteria","Go to the cafeteria"],["🍱","Open lunchbox","Open your lunchbox"],["🥫","Open it","Open your food"],
+    ["🍗","Eat my food","First, eat your food"],["😋","Try one bite","Try one bite"],["🥄","Use a spoon","Use your spoon"],["🍴","Use a fork","Use your fork"],
+    ["🧻","Napkin","Wipe with your napkin"],["🥛","Milk","Drink your milk"],["🙋","Ask for help","Ask for help"],["🗑️","Throw away trash","Throw away your trash"],
+    ["🧽","Wipe my spot","Wipe your spot"],["🛝","Recess","Recess. Play on the playground"],["🛝","Slide","Go down the slide"],["🧗","Climb","Climb"],
+    ["⚽","Play ball","Play ball"],["🏖️","Sandbox","Play in the sandbox"],["🚰","Drink water","Get a drink of water"],["🤫","Quiet time","Quiet time"],
+    ["📖","Look at books","Look at books quietly"],["🛌","Get my mat","Get your mat"],["🛏️","Blanket","Get your blanket"],["😴","Rest time","Rest time. Lie down and rest"]],
   "Afternoon": [
     ["🧹","Clean up","Clean up"],["🎒","Pack backpack","Pack your backpack"],["🧥","Coat on","Put on your coat"],["⏳","Wait for ride","Wait for your ride"],
-    ["🚗","Car rider","Get in the car"],["👨‍👩‍👧","See family","See your family"],["🏠","Go home","Go home"],["🍎","Snack","Snack time"],
+    ["🚗","Car rider","Get in the car"],["👨‍👩‍👧","See family","See your family"],["🏠","Go home","Go home"],["🍎","Snack","Snack time"],["🥕","Healthy snack","Eat a healthy snack"],
     ["⏰","Timer","Set the timer"],["📺","TV","TV time"],["📱","Tablet","Tablet time"],["🛑","Tablet off","Tablet off. All done"],["🌳","Play outside","Play outside"],
-    ["🧩","Puzzles","Do a puzzle"],["🖍️","Color","Color a picture"],["🫧","Bubbles","Play with bubbles"],["🧸","Toys away","Put your toys away"],
-    ["🤝","Hold hands","Hold my hand"],["🛒","Store","Go to the store"],["🏞️","Park","Go to the park"],["🍔","Restaurant","Eat at a restaurant"],
-    ["👩‍⚕️","Doctor","Go to the doctor"],["🦷","Dentist","Go to the dentist"],["💇","Haircut","Get a haircut"],["👵","Grandma's house","Go to Grandma's house"]],
+    ["🚲","Bike","Ride your bike"],["🛴","Scooter","Ride your scooter"],["🏖️","Sandbox","Play in the sandbox"],["🖍️","Color","Color a picture"],["🧩","Puzzles","Do a puzzle"],
+    ["🫧","Bubbles","Play with bubbles"],["🏎️","Play cars","Play with cars"],["🚂","Play trains","Play with trains"],["💃","Dance","Dance party"],
+    ["🧒","Play with a friend","Play with a friend"],["🧸","Toys away","Put your toys away"],["🍳","Help cook","Help cook"],["🪴","Water plants","Water the plants"],
+    ["🧺","Help with laundry","Help with the laundry"],["🤝","Hold hands","Hold my hand"],["🛒","Store","Go to the store"],["🏞️","Park","Go to the park"],
+    ["🏊","Swimming","Go swimming"],["🍔","Restaurant","Eat at a restaurant"],["🚻","Public bathroom","Use the public bathroom"],
+    ["🌬️","Loud hand dryer","The hand dryer is loud. You can cover your ears"],["👩‍⚕️","Doctor","Go to the doctor"],["🦷","Dentist","Go to the dentist"],
+    ["💇","Haircut","Get a haircut"],["🗣️","Therapy","Therapy time"],["👵","Grandma's house","Go to Grandma's house"]],
   "Night": [
-    ["🍝","Dinner","Dinner time"],["🥦","Eat veggies","Eat your vegetables"],["🍪","Treat","Then, a treat!"],["🍦","Ice cream","Then, ice cream!"],
-    ["🧁","Dessert","Then, dessert!"],["🐶","Feed the pet","Feed the dog"],["🛁","Bath","Bath time"],["🧴","Lotion","Put on lotion"],
-    ["👚","Pajamas on","Put on your pajamas"],["🧺","Clothes in hamper","Put your clothes in the hamper"],["📖","Bedtime story","Read a bedtime story"],
-    ["🤗","Hugs","Hugs and kisses"],["💡","Lights off","Lights off"],["😴","Sleep","Time to sleep"]],
+    ["🍽️","Set the table","Help set the table"],["🍝","Dinner","Dinner time"],["🥦","Eat veggies","Eat your vegetables"],["🍓","Eat fruit","Eat your fruit"],
+    ["🍪","Treat","Then, a treat!"],["🍦","Ice cream","Then, ice cream!"],["🧁","Dessert","Then, dessert!"],["🐶","Feed the pet","Feed the dog"],["📴","TV off","TV off. All done"],
+    ["🛁","Bath","Bath time"],["🦆","Bath toys","Play with your bath toys"],["🧴","Wash hair","Wash your hair"],["🧖","Towel","Dry off with your towel"],["🧴","Lotion","Put on lotion"],
+    ["🩲","Pull-up on","Put on your pull-up"],["👚","Pajamas on","Put on your pajamas"],["🧺","Clothes in hamper","Put your clothes in the hamper"],
+    ["🪥","Brush teeth","Brush your teeth"],["🥛","Sip of water","Have a sip of water"],["📚","Pick a book","Pick a book"],["📖","Bedtime story","Read a bedtime story"],
+    ["🧸","Stuffed animal","Get your stuffed animal"],["🌙","Night light on","Turn on the night light"],["🤗","Hugs","Hugs and kisses"],["🌙","Say good night","Say good night"],
+    ["💡","Lights off","Lights off"],["😴","Sleep","Time to sleep"]],
   "Calm & wait": [
-    ["🌬️","Deep breaths","Take deep breaths"],["🧸","Calm corner","Go to the calm corner"],["🛋️","Break","Take a break"],["⏳","Wait","Wait"],
-    ["🤲","Hands to self","Hands to yourself"],["🙋","Help please","Help please"],["🤝","Share","Share with your friend"],["✅","All done","All done"],["⭐","Choice time","Choice time"]]
+    ["🌬️","Deep breaths","Take deep breaths"],["🖐️","Count to 5","Count to five"],["✊","Squeeze hands","Squeeze your hands"],["🎧","Headphones","Put on your headphones"],
+    ["🌀","Fidget","Use your fidget"],["🧸","Calm corner","Go to the calm corner"],["🪑","Rocking chair","Rock in the chair"],["🛋️","Break","Take a break"],
+    ["🤗","Hug","Hug"],["⏳","Wait","Wait"],["⏳","Wait your turn","Wait your turn"],["🤲","Hands to self","Hands to yourself"],["🛑","Stop","Stop"],
+    ["🙋","Help please","Help please"],["🤝","Share","Share with your friend"],["🔄","Change of plans","Change of plans. That's okay"],["🎁","Surprise","Surprise! Something new"],
+    ["😊","Happy","I feel happy"],["😢","Sad","I feel sad"],["😠","Mad","I feel mad"],["😨","Scared","I feel scared"],["🥱","Tired","I feel tired"],
+    ["✅","All done","All done"],["⭐","Choice time","Choice time"]]
 };
 const PIC = {}; Object.values(LIB).flat().forEach(([e,l,s]) => { if (!PIC[l]) PIC[l] = [e,s]; });
 
@@ -882,7 +909,8 @@ function ctlHTML(t, i, n){
     <button type="button" data-act="cam" aria-label="Take a photo for this tile">📷</button>
     <button type="button" data-act="parts" aria-label="Break into smaller steps">🧩</button>
     <button type="button" data-act="del" aria-label="Remove tile">🗑</button>
-    <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button></div>`;
+    <button type="button" data-act="right" ${i === n-1 ? "disabled" : ""} aria-label="Move later">▶</button>
+    <button type="button" data-act="green" class="go" ${breaking[t.id] ? "disabled" : ""}>${t.sub && t.sub.length ? `＋ Add its ${t.sub.length} steps here` : "＋ Break into steps here"}</button></div>`;
 }
 const dateFmt = new Intl.DateTimeFormat(undefined, {weekday:"long", month:"long", day:"numeric"});
 
@@ -929,7 +957,7 @@ function render(animate){
     setHTML($("crumbs"), `<button type="button" class="btn up" data-depth="${trail.length - 1}">⬆ Back to ${esc(names[names.length - 2])}</button>
 
       <span class="path">${names.map((n, k) => k === names.length - 1 ? `<span class="here">${esc(n)}</span>` : `<button type="button" data-depth="${k}">${esc(n)}</button> ›`).join(" ")}</span>
-      ${arr.length ? `<button type="button" class="btn inline" data-inline="1"><span class="e">📋</span> Put these ${arr.length} steps in ${esc(names[names.length - 2])}</button>` : ""}`);
+      ${arr.length && adult ? `<button type="button" class="btn go inline" data-inline="1"><span class="e">📋</span> Put these ${arr.length} steps in ${esc(names[names.length - 2])}</button>` : ""}`);
   }
   $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
   const board = $("board");
@@ -1177,6 +1205,7 @@ $("board").addEventListener("click", e => {
     if (act === "regen") return regenTile(tiles[i]);
     if (act === "parts") return openTileMenu(tiles[i]);
     if (act === "cam") return snapFor(tiles[i]);
+    if (act === "green") return tiles[i].sub && tiles[i].sub.length ? putInline(tiles[i]) : breakDown(tiles[i], false, true);
     if (act === "left" && i > 0) [tiles[i-1], tiles[i]] = [tiles[i], tiles[i-1]];
     if (act === "right" && i < tiles.length - 1) [tiles[i+1], tiles[i]] = [tiles[i], tiles[i+1]];
     if (act === "del"){ const [gone] = tiles.splice(i, 1); lastRemoved = {arr:tiles, i, t:gone}; toastUndo(`Removed “${gone.label}”.`); }
@@ -1191,7 +1220,7 @@ $("board").addEventListener("click", e => {
 // Long-press (or right-click) a tile for the "break it down" menu.
 let lpT = null, lpFired = false, lpXY = null;
 $("board").addEventListener("pointerdown", e => {
-  const tile = e.target.closest(".tile[data-id]"); if (!tile) return;
+  const tile = e.target.closest(".tile[data-id]"); if (!tile || !adult) return;
   lpFired = false; lpXY = [e.clientX, e.clientY]; clearTimeout(lpT);
   lpT = setTimeout(() => { lpFired = true; const L = list(), t = L && L.arr.find(x => x.id === tile.dataset.id); if (t) openTileMenu(t); }, 550);
 });
@@ -1200,6 +1229,7 @@ $("board").addEventListener("pointermove", e => { if (lpXY && Math.hypot(e.clien
 $("board").addEventListener("contextmenu", e => {
   const tile = e.target.closest(".tile[data-id]"); if (!tile) return;
   e.preventDefault(); clearTimeout(lpT);
+  if (!adult) return;
   if (!$("tmenu").hidden) return;
   const L = list(), t = L && L.arr.find(x => x.id === tile.dataset.id); if (t) openTileMenu(t);
 });
@@ -1535,23 +1565,24 @@ function liftStep(t){
   const el = document.querySelector(`.tile[data-id="${copy.id}"]`); if (el) el.classList.add("pop");
   toastUndo(`Added “${t.label}” after “${parent.label}”.`, () => { const j = up.indexOf(copy); if (j >= 0) up.splice(j, 1); });
 }
+const note = m => { if (!m) return; if (!$("tmenu").hidden) $("tmMsg").textContent = m; else toast(m); };
 async function breakDown(t, differently, inline){
   const L = list(), chain = L ? [L.r.name, ...L.trail.map(x => x.label)] : [];
   let steps = differently ? null : builtIn(t.label, S.level), how = "ready";
   if (!steps){
     if (!sampleFn){
-      $("tmMsg").textContent = differently
+      note(differently
         ? "A different breakdown needs Claude, which works when this page is opened on claude.ai."
-        : (adult ? "There are no ready-made small steps for this tile here. Tap “Add my own smaller steps”." : "There are no ready-made small steps for this tile here. A parent can add them in Parent mode.");
+        : "There are no ready-made small steps for this tile here. Long-press it and tap “Add my own smaller steps”.");
       return;
     }
     breaking[t.id] = true; t.bdAttempts = (t.bdAttempts || 0) + 1; tmRender(); render();
-    $("tmMsg").textContent = "Claude is breaking it down…";
+    note("Claude is breaking it down…");
     try { steps = await aiSteps(t, chain, t.bdAttempts); how = "claude"; }
     catch(e){
       const c = e && e.code;
-      $("tmMsg").textContent = ["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(c)
-        ? (sampleFn = null, "Claude isn't allowed here, so only ready-made small steps can be used.") : drawError(e);
+      note(["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(c)
+        ? (sampleFn = null, "Claude isn't allowed here, so only ready-made small steps can be used.") : drawError(e));
     }
     delete breaking[t.id];
     if (!steps){ tmRender(); render(); return; }
