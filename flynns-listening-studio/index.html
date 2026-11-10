@@ -276,6 +276,10 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
 .script .who{display:inline-block;font-size:.72em;font-weight:700;border-radius:6px;padding:0 6px;margin-right:4px;vertical-align:1px}
 .script .who.s{background:var(--pink)} .script .who.t{background:var(--blue)}
 .script p{margin:0 0 10px}
+.w{border-radius:5px;padding:0 1px;transition:background .15s,box-shadow .15s;cursor:pointer}
+.w.read{box-shadow:inset 0 -4px 0 var(--pink-d)}
+.w.next{background:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.fa-status{font-size:.75em;font-family:var(--body);font-weight:700;color:var(--pink-d)}
 </style>
 
 <header class="top">
@@ -316,6 +320,8 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
             <div class="row"><span class="mini" id="l-turnby-label">Turns by</span><div class="seg" id="l-turnby"><button data-v="para">Paragraph</button><button data-v="sent">Sentence</button></div></div>
             <div class="row" id="l-first-row"><span class="mini">Who reads first</span><div class="seg" id="l-first"><button data-v="teacher">I start</button><button data-v="student">She starts</button></div></div>
             <label class="check" id="l-hidet-row"><input type="checkbox" id="l-hidet"> <span>Blur my turns so she listens to my part</span></label>
+            <label class="check" id="l-follow-row"><input type="checkbox" id="l-follow"> <span>Follow along: the app listens to her reading and highlights each word as she says it (uses the microphone)</span></label>
+            <p class="mini" id="l-follow-note"></p>
           </div></div>
         <div class="field"><span class="label">Key details to check</span>
           <div class="seg" id="l-keys"><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="99">All</button></div></div>
@@ -820,6 +826,7 @@ function renderHeader(){
   $('#stickers').innerHTML=`${I.paw}<span>${S.stickers||0}</span>`;
 }
 function showView(v){if(v==='data'&&document.body.classList.contains('student'))v='listen';
+  faStop();
   S.view=v;saveLocal();$('#tdrawer').hidden=v!=='listen';
   $$('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===v)));
   ['listen','ald','speak','data'].forEach(x=>$('#view-'+x).hidden=x!==v);
@@ -848,7 +855,7 @@ $('#go-student').onclick=()=>setMode('student');
 
 /* ================= LISTEN & REMEMBER ================= */
 const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Passage (paragraphs)',lens:[],unit:'paragraphs'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
-const L={goal:1,type:'sentences',len:4,paras:3,spp:5,present:'turns',turnBy:'para',first:'teacher',hideT:false,turn:0,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
+const L={goal:1,type:'sentences',len:4,paras:3,spp:5,present:'turns',follow:false,turnBy:'para',first:'teacher',hideT:false,turn:0,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
 
 function fillSlots(templates,qmap,preset){
   const vals={},used={},details=[];
@@ -912,8 +919,8 @@ function generate(example){
   if(!example){S.lesson={cfg:cfgObj(),item};saveSettings()}
   renderListen();
 }
-function resetTrial(){L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
-function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,theme:L.theme,keys:L.keys,mode:L.mode}}
+function resetTrial(){faStop();FA.item=null;L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
+function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,follow:L.follow,theme:L.theme,keys:L.keys,mode:L.mode}}
 function saveLessonCfg(){if(S.lesson){S.lesson.cfg=cfgObj();saveSettings()}}
 const EXAMPLE_P={day:'Saturday',time:'morning',kid:'Maya',color:'blue',toy:'squeaky ball',snack:'apple slices',song:'a song about friendship'};
 function genPassage(theme,example){
@@ -933,9 +940,10 @@ function genPassage(theme,example){
     main:kidfix(P.main),wrong:P.wrong.map(kidfix)};
 }
 function presentText(){
-  if(L.present==='solo')return `Student read the whole passage herself (step by ${turnUnitBy()==='para'?'paragraph':'sentence'})`;
+  const fa=followOn()?'; word-by-word follow-along on':'';
+  if(L.present==='solo')return `Student read the whole passage herself (step by ${turnUnitBy()==='para'?'paragraph':'sentence'}${fa})`;
   if(L.present!=='turns')return 'Presented orally (text hidden)';
-  return `Took turns reading by ${turnUnitBy()==='para'?'paragraph':'sentence'} (${L.first==='teacher'?'teacher':'student'} started${L.hideT?'; teacher turns blurred':''})`;
+  return `Took turns reading by ${turnUnitBy()==='para'?'paragraph':'sentence'} (${L.first==='teacher'?'teacher':'student'} started${L.hideT?'; teacher turns blurred':''}${fa})`;
 }
 function turnUnitBy(){return L.turnBy==='para'&&L.item&&L.item.paras.length>1?'para':'sent'}
 function units(){const it=L.item;return turnUnitBy()==='para'?it.paras:it.plain.map((_,i)=>[i])}
@@ -958,7 +966,8 @@ function renderListen(){
   seg($('#l-pres'),L.present,v=>{L.present=v;resetTrial();saveLessonCfg();renderListen()});
   seg($('#l-turnby'),L.turnBy,v=>{L.turnBy=v;L.turn=0;saveLessonCfg();renderListen()});
   seg($('#l-first'),L.first,v=>{L.first=v;L.turn=0;saveLessonCfg();renderListen()});
-  $('#l-hidet').checked=L.hideT;$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
+  $('#l-hidet').checked=L.hideT;$('#l-follow').checked=!!L.follow;$('#l-follow').disabled=!DICT;
+  $('#l-follow-note').textContent=DICT?(L.follow?'She taps Start reading on her turn. Tap any word to move the highlight if it loses her place. The page gets only text, never a recording.':''):'Word highlighting works on the hosted page in Chrome, Edge or the Claude desktop app. It isn\'t available in this browser.';$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
   $('#l-pass-field').hidden=L.type!=='passage';
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
@@ -1025,6 +1034,7 @@ function renderStage(){
 const THEME_ICON={flynn:'paw',animals:'paw',music:'note',comic:'book'};
 function pageHTML(live){
   const it=L.item,us=units(),by=turnUnitBy(),cur=L.turn;
+  if(live&&followOn()&&FA.item!==it){FA.words=faWords();FA.item=it;faStartUnit(Math.min(L.turn,us.length-1))}
   const unitOf={};us.forEach((u,ui)=>u.forEach(i=>unitOf[i]=ui));
   const icon=(I[THEME_ICON[it.theme]]||I.paw).replace('class="ic" ','');
   const sentCls=i=>{if(!live)return '';const u=unitOf[i],w=whoOf(u);let c='';
@@ -1034,7 +1044,8 @@ function pageHTML(live){
     const w=whoOf(pi),isCur=live&&by==='para'&&pi===cur;
     const cls=isCur?' now-'+w:(live&&by==='para'&&pi>cur?' dim':'');
     const tag=live&&by==='para'?`<span class="tag ${w}">${L.present==='solo'?'Read this part':w==='s'?'Your turn':'Teacher reads'}</span>`:'';
-    return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
+    const fa=live&&followOn();
+    return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${fa?FA.words.map((w,k)=>w.s===i?`<span class="w" data-w="${k}">${esc(w.t)}</span>`:'').filter(Boolean).join(' '):esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
   return `<article class="gpage"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
 }
 function renderReadPage(st){
@@ -1047,10 +1058,18 @@ function renderReadPage(st){
     ${accOn('listen','preview')?`<div class="stack" style="justify-items:center"><span class="label">Read and listen for</span><div class="cues">${(L.goal===2?['Main idea',...cues]:cues).map(c=>`<span class="cue">${esc(c)}</span>`).join('')}</div></div>`:''}
     ${accOn('listen','song')?`<div class="tip">${I.note}<div><b>Sing it back!</b> When you read or hear a detail, sing it in your head to a tune you know.</div></div>`:''}
     ${pageHTML(true)}
-    <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">${solo?'Part':'Turn'} ${cur+1} of ${n}</span></span></div>
-      <div class="btns"><button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':solo?'Next part':'Next turn'}</button></div></div>`;
-  $('#r-back').onclick=()=>{L.turn=Math.max(0,cur-1);renderReadPage(st);focusTurn()};
-  $('#r-next').onclick=()=>{if(last){L.phase='recall';renderStage();renderScorePanel();window.scrollTo({top:0});return}L.turn=cur+1;renderReadPage(st);focusTurn()};
+    <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">${solo?'Part':'Turn'} ${cur+1} of ${n}</span> <span class="fa-status" id="r-fa-status"></span></span></div>
+      <div class="btns">${followOn()&&w==='s'?`<button class="btn pink" id="r-mic" aria-pressed="false">Start reading</button>`:''}<button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':solo?'Next part':'Next turn'}</button></div></div>`;
+  const goTo=u=>{L.turn=u;
+    if(followOn()){const listening=FA.state!=='idle';faStartUnit(u);
+      if(L.present!=='solo'){if(whoOf(u)==='s'){if(!listening)faStart()}else faStop()}}
+    renderReadPage(st);focusTurn()};
+  $('#r-back').onclick=()=>goTo(Math.max(0,cur-1));
+  $('#r-next').onclick=()=>{if(last){faStop();L.phase='recall';renderStage();renderScorePanel();window.scrollTo({top:0});return}goTo(cur+1)};
+  if($('#r-mic'))$('#r-mic').onclick=()=>{if(FA.state!=='idle'){faStop()}else{faStart()}};
+  if(followOn())$$('.w',st).forEach(el=>el.onclick=()=>{const k=+el.dataset.w;FA.pos=k;FA.base=k;FA.finals='';FA.partial='';
+    const u=units().findIndex(x=>x.includes(FA.words[k].s));if(u>=0&&u!==L.turn&&(L.present==='solo'||whoOf(u)==='s')){L.turn=u;renderReadPage(st);return}faApply()});
+  faApply();
 }
 function focusTurn(){const el=$('#l-stage .now-s, #l-stage .now-t');if(el)el.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
 function lookbackHTML(){return accOn('listen','lookback')?`<details class="lookback"><summary>Look back at the ${L.item.kind==='directions'?'directions':'story'}</summary>${pageHTML(false)}</details>`:''}
@@ -1121,10 +1140,67 @@ function saveListen(auto){
   L.savedId=t.id;renderScorePanel();
 }
 $('#l-new').onclick=()=>generate();
+/* ---------- follow-along: highlight each word as she reads (dictation capability) ---------- */
+let DICT=null;
+const FA={pos:0,base:0,limit:0,finals:'',partial:'',state:'idle',words:[]};
+const NUMW={'0':'zero','1':'one','2':'two','3':'three','4':'four','5':'five','6':'six','7':'seven','8':'eight','9':'nine','10':'ten','12':'twelve','15':'fifteen','18':'eighteen','20':'twenty','24':'twentyfour','30':'thirty','100':'onehundred'};
+const normW=w=>{w=String(w).toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]/g,'');return NUMW[w]||w};
+function lev(a,b){if(Math.abs(a.length-b.length)>1)return 2;const d=[];for(let i=0;i<=a.length;i++){d[i]=[i];for(let j=1;j<=b.length;j++)d[i][j]=i===0?j:Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1))}return d[a.length][b.length]}
+function wMatch(a,b){if(!a||!b)return false;if(a===b)return true;
+  if(Math.min(a.length,b.length)>=4&&lev(a,b)<=1)return true;
+  if(b.length>=4&&a.startsWith(b))return true;return false}
+function faWords(){const out=[];L.item.plain.forEach((s,si)=>s.split(/\s+/).filter(Boolean).forEach(t=>out.push({s:si,t,n:normW(t)})));return out}
+const followOn=()=>!!(L.follow&&DICT&&shown());
+function faAlign(text){let p=FA.base;
+  text.split(/\s+/).map(normW).filter(Boolean).forEach(tok=>{
+    for(let j=p;j<Math.min(p+4,FA.limit);j++){if(wMatch(FA.words[j].n,tok)){p=j+1;break}}});
+  return p}
+function unitWordRange(u){const sents=units()[u];let a=-1,b=-1;FA.words.forEach((w,k)=>{if(sents.includes(w.s)){if(a<0)a=k;b=k+1}});return [a,b]}
+function faApply(){
+  $$('#l-stage .w').forEach(el=>{const k=+el.dataset.w;el.classList.toggle('read',k<FA.pos);el.classList.toggle('next',k===FA.pos&&FA.state!=='idle')});
+  const btn=$('#r-mic');if(btn){const on=FA.state!=='idle';btn.textContent=on?'Stop listening':'Start reading';btn.classList.toggle('pink',!on);btn.setAttribute('aria-pressed',String(on))}
+  const stEl=$('#r-fa-status');if(stEl)stEl.textContent=FA.state==='listening'?'Listening… keep reading!':FA.state==='starting'?'Getting the microphone ready…':'';
+}
+function faStartUnit(u){
+  const [a,b]=unitWordRange(u);
+  FA.base=Math.max(a,0);FA.pos=FA.base;FA.finals='';FA.partial='';
+  FA.limit=L.present==='solo'?FA.words.length:b;
+}
+function faStart(){ // must run inside the click handler, before any await
+  if(!DICT)return;FA.finals='';FA.partial='';FA.base=FA.pos;
+  DICT.start().catch(e=>{FA.state='idle';faApply();
+    if(e&&e.code==='not_granted'){toast('The microphone is off for this page. You can turn it on in the page\'s Permissions menu.')}
+    else if(e&&e.code==='unavailable'){toast('Word highlighting isn\'t available here. Use Chrome or the Claude desktop app.')}
+    else if(e&&e.code!=='stopped'&&e.code!=='dismissed')toast('The microphone had a problem. Tap Start reading to try again.')});
+}
+function faStop(){try{if(DICT&&DICT.active())DICT.stop()}catch(e){}}
+function faUpdate(){
+  if(L.phase!=='listen'||!followOn())return;
+  const pF=faAlign(FA.finals), pA=faAlign(FA.finals+' '+FA.partial);
+  FA.pos=Math.max(FA.pos,pF,pA);
+  // move the pink highlight along with her reading
+  const cur=Math.min(L.turn,units().length-1);const [,end]=unitWordRange(cur);
+  if(FA.pos>=end){
+    if(L.present==='solo'){
+      if(cur<units().length-1){L.turn=cur+1;renderReadPage($('#l-stage'));focusTurn();return}
+      faStop();toast('Great reading! Tap "I\'m ready to remember" when you\'re ready.');
+    } else {faStop();if(cur<units().length-1){L.turn=cur+1;renderReadPage($('#l-stage'));focusTurn();return}}
+  }
+  faApply();
+}
+if(window.claude&&window.claude.use){window.claude.use('dictation').then(d=>{if(!d)return;DICT=d;
+  d.onFinal(({text})=>{FA.finals+=' '+text;FA.partial='';faUpdate()});
+  d.onPartial(({text})=>{FA.partial=text;faUpdate()});
+  d.onState(({state,reason})=>{FA.state=state;faApply();
+    if(state==='idle'&&reason==='unavailable'){DICT=null;toast('Word highlighting isn\'t available for this account or browser.');renderListen()}});
+  renderListen();
+}).catch(()=>{})}
+
 function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-spp-v').textContent=$('#l-spp').value;
   const n=+$('#l-paras').value*+$('#l-spp').value;$('#l-pass-total').textContent=`About ${n} sentences in all.`}
 ['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;generate()})});
 $('#l-hidet').onchange=e=>{L.hideT=e.target.checked;saveLessonCfg();renderListen()};
+$('#l-follow').onchange=e=>{L.follow=e.target.checked;faStop();saveLessonCfg();renderListen()};
 $('#l-present').onclick=()=>{resetTrial();renderListen();setMode('student')};
 $('#l-rep-plus').onclick=$('#td-rep-plus').onclick=()=>{L.reps++;renderListen()};
 $('#l-rep-minus').onclick=$('#td-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
