@@ -17,6 +17,15 @@ Hosted link: https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ
 
 Other options: set Chrome as the device's default browser, or bookmark the link in Chrome. If the app is opened somewhere follow-along can't run, teacher mode shows a **Copy link** button to paste into Chrome. Chrome on iPad and iPhone is not supported, because Apple requires a different browser engine there.
 
+## Using it on a classroom smartboard
+- Open the hosted link in the board's browser (Chrome on the board's PC is best) and sign in to claude.ai.
+- In teacher mode, set **This screen → Smartboard**. Text, buttons, answer choices, step cards and Speak-Up cards get bigger, so she can read them from across the room and tap them easily. The reading page widens to fill the board. Long-press text selection is turned off, and the screen is kept awake during lessons where the browser allows it.
+- The setting is saved per device, so the board can use Smartboard display while the iPad stays regular. Very large touch screens start in Smartboard display automatically.
+- Press **Full screen** (top left) to hide the browser bars. Press it again, or press Esc, to exit. If the board's browser blocks it, use the browser's own full-screen key (F11 on Windows).
+- For word highlighting on the board, **Her finger** and **Pacer** work on any board. **Her voice** needs Chrome or Edge on the board's PC and a microphone close to her. A board's built-in microphone is usually too far away to hear her clearly.
+- She can reach the **Next** and answer buttons, which sit low on the screen. The tabs at the top may be out of her reach, so switch activities for her.
+- On a shared classroom computer, sign out of claude.ai at the end of the day so student data stays private.
+
 ## Two modes
 - **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (a two-paragraph *Flynn's Day at the Dog Park* that you take turns reading) before you've made one.
 - **Teacher mode:** press and hold **Teacher: hold** (top right) for about a second. A quick tap does nothing, so she won't wander in by accident. Here you choose the goal, passage category, theme, length, key details, how she answers and the accommodations, score trials and see **Teacher data**. The pink panels show a live **student preview**. Press **Present in student mode** or **Start student mode** to hand the screen back.

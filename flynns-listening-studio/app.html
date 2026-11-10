@@ -224,6 +224,32 @@ body.student .split{grid-template-columns:minmax(0,1fr)}
 body.student main{max-width:1300px}
 body.student .stage{padding-block:24px}
 .modebar{display:flex;align-items:center;gap:8px}
+.fsbtn{border-style:solid}
+/* Smartboard display: read from across the room, touched by a 3rd grader standing at the board */
+body.board{font-size:clamp(22px,1.55vw,32px);-webkit-user-select:none;user-select:none}
+body.board input,body.board textarea{-webkit-user-select:text;user-select:text}
+body.board .btn{min-height:76px;padding:12px 26px;border-width:4px}
+body.board .btn.big{min-height:96px}
+body.board .choice{min-height:120px;border-width:4px}
+body.board .tab{min-height:70px;border-width:4px}
+body.board .hold{min-height:58px;padding:8px 18px}
+body.board .seq-card,body.board .seq-slot{min-height:84px}
+body.board .sucard{min-height:180px}
+body.board .gpara{font-size:1.35em;line-height:1.85;border-width:4px}
+body.board .w{padding:2px 3px}
+body.board .turnbar{border-width:4px}
+body.board .turnbar .who svg{width:72px;height:72px}
+body.board .yesno .choice{min-height:130px}
+body.board .panel{border-width:4px;box-shadow:8px 8px 0 var(--ink)}
+body.board .flynn{width:min(280px,40vw)}
+body.board main,body.student.board main{max-width:1860px}
+body.board .gpage,body.board .turnbar,body.board .lookback{max-width:1640px}
+body.board .gpara{font-size:1.25em}
+body.board .gpara .pnum{width:48px;height:48px;top:-22px;left:-14px;font-size:.62em}
+body.board .gpara .tag{left:44px;top:-22px}
+body.board .gtitle svg{width:64px;height:64px}
+body.board .bubble{font-size:1.35em}
+body.board .turnbar .who{flex:1 1 520px}
 .hold{position:relative;overflow:hidden;border:2px dashed var(--muted);background:var(--paper);color:var(--muted);border-radius:999px;padding:6px 14px;min-height:44px;font-weight:700;font-size:.85em}
 .hold .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--lav);z-index:0}
 .hold.holding .fill{width:100%;transition:width 1.2s linear}
@@ -285,9 +311,10 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
     <button class="tab t-data t-only" role="tab" id="tab-data" aria-selected="false" data-view="data">Teacher data</button>
   </nav>
   <div class="stickers" title="Stickers earned" id="stickers"></div>
-  <div class="modebar s-only"><button class="hold" id="go-teacher" aria-label="Teacher mode: press and hold"><i class="fill"></i><span>Teacher: hold</span></button></div>
+  <div class="modebar"><button class="hold fsbtn" id="fs-btn" type="button"><span>Full screen</span></button><button class="hold s-only" id="go-teacher" aria-label="Teacher mode: press and hold"><i class="fill"></i><span>Teacher: hold</span></button></div>
 </header>
 <div class="tbanner t-only" role="status">Teacher mode <span class="mini">Set up the lesson and accommodations here. The pink panels are a preview of exactly what she will see.</span>
+  <span class="row" style="gap:6px"><span class="mini">This screen:</span><span class="seg" id="disp"><button data-v="regular" type="button">Computer / iPad</button><button data-v="board" type="button">Smartboard</button></span></span>
   <button class="btn pink" id="go-student">Start student mode</button></div>
 
 <main>
@@ -845,6 +872,21 @@ function holdButton(btn,ms,fn){let t=null;
   btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();start()}});btn.addEventListener('keyup',stop);
   btn.addEventListener('contextmenu',e=>e.preventDefault());}
 holdButton($('#go-teacher'),1200,()=>setMode('teacher'));
+/* ---- display: per-device setting, so the smartboard and the iPad can differ ---- */
+const DKEY='fls-display';let DISP='regular',wakeLock=null;
+try{DISP=localStorage.getItem(DKEY)||(matchMedia('(min-width:1700px) and (pointer:coarse)').matches?'board':'regular')}catch(e){}
+async function keepAwake(on){try{if(on&&!wakeLock&&navigator.wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>wakeLock=null)}
+  else if(!on&&wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}}
+function applyDisplay(){document.body.classList.toggle('board',DISP==='board');seg($('#disp'),DISP,v=>{DISP=v;try{localStorage.setItem(DKEY,v)}catch(e){}applyDisplay();toast(v==='board'?'Smartboard display on for this screen.':'Regular display on for this screen.')});keepAwake(DISP==='board')}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&DISP==='board')keepAwake(true)});
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function fsLabel(){$('#fs-btn span').textContent=fsEl()?'Exit full screen':'Full screen'}
+$('#fs-btn').onclick=()=>{try{const d=document.documentElement;
+  const req=fsEl()?(document.exitFullscreen||document.webkitExitFullscreen).call(document):(d.requestFullscreen||d.webkitRequestFullscreen).call(d);
+  if(req&&req.catch)req.catch(()=>toast('Full screen isn\'t available here. Use the browser\'s own full-screen key (F11 on Windows).'))}catch(e){toast('Full screen isn\'t available here. Use the browser\'s own full-screen key (F11 on Windows).')}};
+document.addEventListener('fullscreenchange',fsLabel);document.addEventListener('webkitfullscreenchange',fsLabel);
+if(!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))$('#fs-btn').hidden=true;
+applyDisplay();
 holdButton($('#td-open'),1200,()=>{$('#td-sheet').hidden=false});
 $('#td-close').onclick=()=>$('#td-sheet').hidden=true;
 $('#td-score').onclick=()=>{setMode('teacher');showView('listen')};
