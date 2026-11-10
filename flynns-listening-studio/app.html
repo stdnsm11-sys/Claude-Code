@@ -303,11 +303,11 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
           <label class="slider" for="l-spp"><span>Sentences in each paragraph <b id="l-spp-v">5</b></span><input type="range" id="l-spp" min="5" max="9" step="1" value="5"></label>
           <span class="mini" id="l-pass-total"></span></div>
         <div class="field"><span class="label">How I present it</span>
-          <div class="seg" id="l-pres"><button data-v="turns">We take turns reading (she sees the text)</button><button data-v="oral">I read it aloud (text hidden)</button></div>
+          <div class="seg" id="l-pres"><button data-v="turns">We take turns reading (she sees the text)</button><button data-v="solo">She reads it herself</button><button data-v="oral">I read it aloud (text hidden)</button></div>
           <div class="stack" id="l-turn-opts" style="gap:8px">
-            <div class="row"><span class="mini">Turns by</span><div class="seg" id="l-turnby"><button data-v="para">Paragraph</button><button data-v="sent">Sentence</button></div></div>
-            <div class="row"><span class="mini">Who reads first</span><div class="seg" id="l-first"><button data-v="teacher">I start</button><button data-v="student">She starts</button></div></div>
-            <label class="check"><input type="checkbox" id="l-hidet"> <span>Blur my turns so she listens to my part</span></label>
+            <div class="row"><span class="mini" id="l-turnby-label">Turns by</span><div class="seg" id="l-turnby"><button data-v="para">Paragraph</button><button data-v="sent">Sentence</button></div></div>
+            <div class="row" id="l-first-row"><span class="mini">Who reads first</span><div class="seg" id="l-first"><button data-v="teacher">I start</button><button data-v="student">She starts</button></div></div>
+            <label class="check" id="l-hidet-row"><input type="checkbox" id="l-hidet"> <span>Blur my turns so she listens to my part</span></label>
           </div></div>
         <div class="field"><span class="label">Key details to check</span>
           <div class="seg" id="l-keys"><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="99">All</button></div></div>
@@ -925,12 +925,14 @@ function genPassage(theme,example){
     main:kidfix(P.main),wrong:P.wrong.map(kidfix)};
 }
 function presentText(){
+  if(L.present==='solo')return `Student read the whole passage herself (step by ${turnUnitBy()==='para'?'paragraph':'sentence'})`;
   if(L.present!=='turns')return 'Presented orally (text hidden)';
   return `Took turns reading by ${turnUnitBy()==='para'?'paragraph':'sentence'} (${L.first==='teacher'?'teacher':'student'} started${L.hideT?'; teacher turns blurred':''})`;
 }
 function turnUnitBy(){return L.turnBy==='para'&&L.item&&L.item.paras.length>1?'para':'sent'}
 function units(){const it=L.item;return turnUnitBy()==='para'?it.paras:it.plain.map((_,i)=>[i])}
-function whoOf(u){return (u%2===0)===(L.first==='teacher')?'t':'s'}
+const shown=()=>L.present==='turns'||L.present==='solo';
+function whoOf(u){if(L.present==='solo')return 's';return (u%2===0)===(L.first==='teacher')?'t':'s'}
 function scriptHTML(){
   const it=L.item;
   const pause=accOn('listen','chunk')?'<span class="pause" title="pause">/ pause /</span>':' ';
@@ -945,20 +947,20 @@ function renderListen(){
   seg($('#l-theme'),L.theme,v=>{L.theme=v;generate()});
   seg($('#l-keys'),L.keys,v=>{L.keys=+v;generate()});
   seg($('#l-mode'),L.mode,v=>{L.mode=v;saveLessonCfg();renderListen()});
-  seg($('#l-pres'),L.present,v=>{L.present=v;L.turn=0;saveLessonCfg();renderListen()});
+  seg($('#l-pres'),L.present,v=>{L.present=v;resetTrial();saveLessonCfg();renderListen()});
   seg($('#l-turnby'),L.turnBy,v=>{L.turnBy=v;L.turn=0;saveLessonCfg();renderListen()});
   seg($('#l-first'),L.first,v=>{L.first=v;L.turn=0;saveLessonCfg();renderListen()});
-  $('#l-hidet').checked=L.hideT;$('#l-turn-opts').hidden=L.present!=='turns';
+  $('#l-hidet').checked=L.hideT;$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
   $('#l-pass-field').hidden=L.type!=='passage';
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
   $('#l-reps').textContent=$('#td-reps').textContent=L.reps;
   $('#l-rep-warn').innerHTML=$('#td-rep-warn').innerHTML=L.reps>1?`<div class="warn">More than one repetition. The goal allows one, so this trial won't meet criterion.</div>`:'';
   $('#l-example').innerHTML=L.item.example?'<span class="example">Example lesson.</span> Choose options above or press New passage to make her first real lesson.':`Current lesson, made ${esc(fmtDate(L.item.made))}. Student mode opens on this lesson until you make a new one.`;
-  $('#td-hint').textContent=(L.present==='turns'?'Take turns: she taps Next after each turn. ':'')+(L.mode==='open'?'She tells you what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.');
+  $('#td-hint').textContent=(L.present==='turns'?'Take turns: she taps Next after each turn. ':L.present==='solo'?'She reads the whole passage and taps Next as she goes. ':'')+(L.mode==='open'?'She tells you what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.');
   $('#l-title').textContent=L.item.title;
   const ip=L.item.paras.length, ispp=Math.round(L.item.plain.length/ip);
-  $('#l-sub').textContent=`Goal ${L.goal} · ${L.type==='passage'?`${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`:TYPES[L.type].name+' · '+L.len+' '+TYPES[L.type].unit} · ${L.present==='turns'?'taking turns':'read aloud'}`;
+  $('#l-sub').textContent=`Goal ${L.goal} · ${L.type==='passage'?`${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`:TYPES[L.type].name+' · '+L.len+' '+TYPES[L.type].unit} · ${L.present==='solo'?'she reads it':L.present==='turns'?'taking turns':'read aloud'}`;
   $('#l-voice-note').textContent=(!synthOK||!S.voice)?'(off in Settings)':'';
   renderStage();renderScorePanel();
 }
@@ -980,7 +982,7 @@ function organizerHTML(){
 }
 function renderStage(){
   const st=$('#l-stage'), it=L.item;
-  if(L.phase==='listen'&&L.present==='turns'){renderReadPage(st);return}
+  if(L.phase==='listen'&&shown()){renderReadPage(st);return}
   if(L.phase==='listen'){
     const cues=[...new Set(it.keys.map(d=>d.cue))];
     st.innerHTML=`${flynnSVG('flynn bob',accOn('listen','ald'))}
@@ -1023,7 +1025,7 @@ function pageHTML(live){
   const paras=it.paras.map((ps,pi)=>{
     const w=whoOf(pi),isCur=live&&by==='para'&&pi===cur;
     const cls=isCur?' now-'+w:(live&&by==='para'&&pi>cur?' dim':'');
-    const tag=live&&by==='para'?`<span class="tag ${w}">${w==='s'?'Your turn':'Teacher reads'}</span>`:'';
+    const tag=live&&by==='para'?`<span class="tag ${w}">${L.present==='solo'?'Read this part':w==='s'?'Your turn':'Teacher reads'}</span>`:'';
     return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
   return `<article class="gpage"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
 }
@@ -1031,13 +1033,14 @@ function renderReadPage(st){
   const it=L.item,us=units(),n=us.length,cur=Math.min(L.turn,n-1),w=whoOf(cur),last=cur>=n-1;
   const by=turnUnitBy();
   const cues=[...new Set(it.keys.map(d=>d.cue))];
-  const msg=w==='s'?`Your turn, ${esc(S.student||'friend')}! Read the pink ${by==='para'?'part':'sentence'} out loud.`:(L.hideT?'Teacher\'s turn. Listen with your ears!':'Teacher\'s turn. Follow along with your eyes.');
-  st.innerHTML=`<div class="bubble" style="font-size:1.35em">Let's take turns reading!${accOn('listen','ald')?' Is your mic on?':''}</div>
+  const solo=L.present==='solo';
+  const msg=solo?`Read the pink ${by==='para'?'part':'sentence'} out loud, ${esc(S.student||'friend')}!`:w==='s'?`Your turn, ${esc(S.student||'friend')}! Read the pink ${by==='para'?'part':'sentence'} out loud.`:(L.hideT?'Teacher\'s turn. Listen with your ears!':'Teacher\'s turn. Follow along with your eyes.');
+  st.innerHTML=`<div class="bubble" style="font-size:1.35em">${solo?'You are the reader today!':'Let\'s take turns reading!'}${accOn('listen','ald')?' Is your mic on?':''}</div>
     ${accOn('listen','preview')?`<div class="stack" style="justify-items:center"><span class="label">Read and listen for</span><div class="cues">${(L.goal===2?['Main idea',...cues]:cues).map(c=>`<span class="cue">${esc(c)}</span>`).join('')}</div></div>`:''}
     ${accOn('listen','song')?`<div class="tip">${I.note}<div><b>Sing it back!</b> When you read or hear a detail, sing it in your head to a tune you know.</div></div>`:''}
     ${pageHTML(true)}
-    <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">Turn ${cur+1} of ${n}</span></span></div>
-      <div class="btns"><button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':'Next turn'}</button></div></div>`;
+    <div class="turnbar ${w}" role="status"><div class="who">${w==='s'?flynnSVG(''):I.teacher.replace('class="ic" ','')}<span>${msg}<br><span class="mini">${solo?'Part':'Turn'} ${cur+1} of ${n}</span></span></div>
+      <div class="btns"><button class="btn" id="r-back" ${cur===0?'disabled':''}>Back</button><button class="btn ${last?'pink':'blue'}" id="r-next">${last?'I\'m ready to remember':solo?'Next part':'Next turn'}</button></div></div>`;
   $('#r-back').onclick=()=>{L.turn=Math.max(0,cur-1);renderReadPage(st);focusTurn()};
   $('#r-next').onclick=()=>{if(last){L.phase='recall';renderStage();renderScorePanel();window.scrollTo({top:0});return}L.turn=cur+1;renderReadPage(st);focusTurn()};
 }
@@ -1118,7 +1121,7 @@ $('#l-present').onclick=()=>{resetTrial();renderListen();setMode('student')};
 $('#l-rep-plus').onclick=$('#td-rep-plus').onclick=()=>{L.reps++;renderListen()};
 $('#l-rep-minus').onclick=$('#td-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
 $('#l-say').onclick=$('#td-say').onclick=()=>{const it=L.item;let lines;
-  if(L.present==='turns'&&L.phase==='listen'){const u=units()[Math.min(L.turn,units().length-1)];lines=u.map(i=>it.plain[i])}
+  if(shown()&&L.phase==='listen'){const u=units()[Math.min(L.turn,units().length-1)];lines=u.map(i=>it.plain[i])}
   else lines=it.kind==='story'?[it.title,...it.plain]:it.plain;
   speak(lines,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')})};
 [[$('#l-script'),true],[$('#td-script'),false]].forEach(([scr,peek])=>{
