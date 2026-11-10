@@ -30,7 +30,7 @@
   --accent:#9b4f96; --accent-d:#7b3a77; --accent-s:#f5e3f2; --accent-ink:#ffffff;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
-  --emoji:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
   --tile-base:168px; --tile:var(--tile-base); --r:18px;
   color-scheme:light;
 }
@@ -227,8 +227,9 @@ button{cursor:pointer;color:var(--ink)}
 .nextbar{display:flex;justify-content:flex-end}
 .nextbar .btn{font-size:1.1rem;min-height:56px;padding:10px 20px}
 @media (prefers-reduced-motion:no-preference){
-  .tile[data-s="wait"]{animation:breathe 2.4s ease-in-out infinite}
-  @keyframes breathe{50%{box-shadow:0 0 0 7px var(--wait-s),0 3px 0 rgba(20,24,40,.14)}}
+  .tile[data-s="wait"]::after{content:"";position:absolute;inset:-11px;border-radius:calc(var(--r) + 8px);border:6px solid var(--wait);opacity:0;pointer-events:none;
+    animation:ring 2.4s ease-in-out infinite;will-change:opacity}
+  @keyframes ring{50%{opacity:.4}}
   .tile.pop{animation:pop .4s ease-out}
   @keyframes pop{40%{transform:scale(1.07)}}
   .board.enter .cell{animation:slidein .45s ease-out both}
@@ -236,7 +237,7 @@ button{cursor:pointer;color:var(--ink)}
   .board.enter .cell:nth-child(4){animation-delay:.15s}.board.enter .cell:nth-child(5){animation-delay:.2s}
   .board.enter .cell:nth-child(n+6){animation-delay:.25s}
   @keyframes slidein{from{opacity:.2;transform:translateX(26px)}}
-  .stop[aria-current="step"] .dot{animation:bob 2.6s ease-in-out infinite}
+  .stop[aria-current="step"] .dot{animation:bob 2.6s ease-in-out infinite;will-change:transform}
   @keyframes bob{50%{transform:scale(1.12) translateY(-3px)}}
 }
 
@@ -713,7 +714,67 @@ if (S.mode !== "weekend") S.mode = "school";
 if (S.autoWeek === undefined) S.autoWeek = true;
 if (![1,2,3,4].includes(S.level)) S.level = 3;
 Object.keys(TPL).forEach(n => { if (!S.seeded.includes(n)){ insertTemplate(n); S.seeded.push(n); } });
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Photos may be too large."); } }
+// Saving is batched: many quick taps become one write, and anything pending is written when the page is hidden or closed.
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(saveNow, 400); }
+function saveNow(){
+  clearTimeout(saveT); saveT = null;
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast("Couldn't save on this device. Storage may be full."); }
+}
+addEventListener("pagehide", saveNow);
+document.addEventListener("visibilitychange", () => { if (document.hidden && saveT) saveNow(); });
+
+/* ---------- picture store ----------
+   Photos and drawings live in IndexedDB as files, not inside the saved schedule. The schedule keeps a short
+   "img:<id>" reference and the page shows a small blob: URL, so saving and redrawing stay fast. */
+const IMG = new Map();   // id -> blob: URL
+let idb = null;
+const imgSrc = ref => !ref ? "" : ref.startsWith("img:") ? (IMG.get(ref.slice(4)) || "") : ref;
+function dataToBlob(d){
+  const i = d.indexOf(","), head = d.slice(0, i), body = d.slice(i + 1), mime = (head.match(/^data:([^;,]+)/) || [])[1] || "application/octet-stream";
+  if (/;base64/i.test(head)){ const bin = atob(body), a = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k); return new Blob([a], {type:mime}); }
+  return new Blob([decodeURIComponent(body)], {type:mime});
+}
+function keepImg(ref){
+  if (!ref || !ref.startsWith("data:") || !idb) return ref || null;
+  try {
+    const id = uid() + uid(), blob = dataToBlob(ref);
+    IMG.set(id, URL.createObjectURL(blob));
+    idb.transaction("img", "readwrite").objectStore("img").put(blob, id);
+    return "img:" + id;
+  } catch(e){ return ref; }
+}
+const eachTile = (fn, arr) => (arr || []).forEach(t => { fn(t); if (t.sub) eachTile(fn, t.sub); });
+const allTiles = fn => S.schedules.forEach(r => eachTile(fn, r.tiles));
+function openStore(){
+  return new Promise(ok => {
+    try {
+      const rq = indexedDB.open("step-by-step-pictures", 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore("img");
+      rq.onsuccess = () => ok(rq.result); rq.onerror = () => ok(null); rq.onblocked = () => ok(null);
+    } catch(e){ ok(null); }
+  });
+}
+async function loadPictures(){
+  const db = await openStore(); if (!db) return;
+  const all = await new Promise(ok => {
+    try {
+      const st = db.transaction("img").objectStore("img"), keys = st.getAllKeys(), vals = st.getAll();
+      vals.onsuccess = () => ok(keys.result.map((k, i) => [k, vals.result[i]])); vals.onerror = () => ok([]);
+    } catch(e){ ok([]); }
+  });
+  idb = db;
+  all.forEach(([k, b]) => IMG.set(k, URL.createObjectURL(b)));
+  // move pictures saved by older versions out of the schedule, and drop pictures nothing uses any more
+  let moved = false; const used = new Set();
+  allTiles(t => ["photo","img"].forEach(f => {
+    if (t[f] && t[f].startsWith("data:")){ t[f] = keepImg(t[f]); moved = true; }
+    if (t[f] && t[f].startsWith("img:")) used.add(t[f].slice(4));
+  }));
+  try { const st = db.transaction("img", "readwrite").objectStore("img"); all.forEach(([k]) => { if (!used.has(k)){ st.delete(k); URL.revokeObjectURL(IMG.get(k)); IMG.delete(k); } }); } catch(e){}
+  if (moved) saveNow();
+  render();
+}
 
 function insertTemplate(name){
   const {part, def} = TPL[name], r = routineFrom(part, def);
@@ -776,28 +837,41 @@ function speak(text, el){
 const lc = s => s.charAt(0).toLowerCase() + s.slice(1);
 
 /* ---------- rendering ---------- */
+// Only touch the page where the new markup differs, so unchanged tiles, pictures and emoji aren't rebuilt.
+function setHTML(el, html){ if (el._h !== html){ el.innerHTML = html; el._h = html; } }
+function setKids(el, parts){
+  const kids = el.children;
+  if (el._h === undefined && kids.length === parts.length && parts.every((h, i) => kids[i]._h !== undefined)){
+    parts.forEach((h, i) => { if (kids[i]._h !== h){ const tmp = document.createElement("div"); tmp.innerHTML = h; const n = tmp.firstElementChild; n._h = h; el.replaceChild(n, kids[i]); } });
+    return;
+  }
+  el.innerHTML = parts.join(""); el._h = undefined;
+  [...el.children].forEach((c, i) => { c._h = parts[i]; });
+}
 const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const HOUR = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></svg>';
 const STATE_WORD = {todo:"not yet", wait:"waiting", done:"done"};
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const SEG = window.Intl && Intl.Segmenter ? new Intl.Segmenter() : null;
 function emoCount(em){
-  if (window.Intl && Intl.Segmenter) return [...new Intl.Segmenter().segment(em)].length;
+  if (SEG) return [...SEG.segment(em)].length;
   return Math.max(1, (em.match(/\p{Extended_Pictographic}/gu) || []).length - (em.match(/‍/g) || []).length);
 }
-function symHTML(t){ return t.img ? `<img src="${t.img}" alt="">` : esc(t.emoji || "⭐"); }
+function symHTML(t){ const im = imgSrc(t.img); return im ? `<img src="${im}" alt="">` : esc(t.emoji || "⭐"); }
 function picHTML(t){
-  if (t.photo) return `<img src="${t.photo}" alt=""><span class="sym" aria-hidden="true">${symHTML(t)}</span>`;
-  if (t.img) return `<img src="${t.img}" alt="">`;
+  const ph = imgSrc(t.photo), im = imgSrc(t.img);
+  if (ph) return `<img src="${ph}" alt=""><span class="sym" aria-hidden="true">${symHTML(t)}</span>`;
+  if (im) return `<img src="${im}" alt="">`;
   const em = t.emoji || "⭐";
   return `<span class="emo${emoCount(em) > 1 ? " two" : ""}" aria-hidden="true">${esc(em)}</span>`;
 }
 function tileHTML(t, i, tag){
   const s = st(t), n = t.sub ? t.sub.length : 0, d = n ? t.sub.filter(x => st(x) === "done").length : 0;
   const badge = s === "done" ? CHECK : s === "wait" ? HOUR : (i + 1);
-  return `<button type="button" class="tile${t.sub ? " has-sub" : ""}${breaking[t.id] ? " breaking" : ""}" data-id="${t.id}" data-s="${s}" aria-label="Step ${i+1}: ${esc(t.label)}, ${STATE_WORD[s]}${t.sub ? `, ${n} small steps` : ""}">
+  return `<button type="button" class="tile${t.sub ? " has-sub" : ""}${breaking[t.id] || drawing[t.id] ? " breaking" : ""}" data-id="${t.id}" data-s="${s}" aria-label="Step ${i+1}: ${esc(t.label)}, ${STATE_WORD[s]}${t.sub ? `, ${n} small steps` : ""}">
     <span class="badge">${badge}</span>${tag ? `<span class="tag">${tag}</span>` : ""}
     <span class="pic">${picHTML(t)}</span><span class="word">${esc(t.label)}</span>
-    ${t.sub ? `<span class="subchip"><span class="e" aria-hidden="true">🧩</span>${d ? `${d} of ${n}` : `${n} steps`}</span>` : ""}${breaking[t.id] ? '<span class="drawing">Breaking it down…</span>' : ""}</button>`;
+    ${t.sub ? `<span class="subchip"><span class="e" aria-hidden="true">🧩</span>${d ? `${d} of ${n}` : `${n} steps`}</span>` : ""}${breaking[t.id] ? '<span class="drawing">Breaking it down…</span>' : drawing[t.id] ? '<span class="drawing">Drawing…</span>' : ""}</button>`;
 }
 function ctlHTML(t, i, n){
   return `<div class="ctl" data-id="${t.id}">
@@ -822,21 +896,21 @@ function render(animate){
   $("greet").textContent = allDay ? "All done for today!" : P.greet;
 
   // parts-of-day tabs
-  $("day").innerHTML = PARTS.map(p => {
+  setHTML($("day"), PARTS.map(p => {
     const rs = inPart(p.key), d = rs.filter(isDone).length, pct = rs.length ? Math.round(d / rs.length * 100) : 0;
     return `<button type="button" class="tab" role="tab" data-p="${p.key}" aria-selected="${p.key === S.part}" aria-label="${p.name}, ${d} of ${rs.length} routines done">
       ${p.key === now ? '<span class="now">Now</span>' : ""}${rs.length && d === rs.length ? `<span class="all">${CHECK}</span>` : ""}
       <span class="e" aria-hidden="true">${p.icon}</span>${p.name}<span class="prog" aria-hidden="true"><i style="width:${pct}%"></i></span></button>`;
-  }).join("");
+  }).join(""));
 
   // routine trail
   const rs = inPart(S.part);
-  $("trail").innerHTML = rs.map((x, i) => {
+  setHTML($("trail"), rs.map((x, i) => {
     const d = isDone(x), linked = i > 0 && isDone(rs[i-1]);
     return `<button type="button" class="stop${d ? " done" : ""}${linked ? " linked" : ""}" data-r="${x.id}" ${x === r ? 'aria-current="step"' : ""}>
       <span class="dot"><span class="e" aria-hidden="true">${esc(x.icon || "⭐")}</span>${d ? `<span class="tick">${CHECK}</span>` : ""}</span>
       ${esc(x.name)}<span class="count">${doneCount(x)} of ${x.tiles.length}</span></button>`;
-  }).join("") + (adult ? `<button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button>` : "");
+  }).join("") + (adult ? `<button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button>` : ""));
 
   // start banner
   const L = list(), arr = L ? L.arr : [], trail = L ? L.trail : [], here = trail[trail.length - 1];
@@ -851,26 +925,26 @@ function render(animate){
   $("crumbs").hidden = !trail.length;
   if (trail.length){
     const names = [r.name, ...trail.map(t => t.label)];
-    $("crumbs").innerHTML = `<button type="button" class="btn up" data-depth="${trail.length - 1}">⬆ Back to ${esc(names[names.length - 2])}</button>
-      <span class="path">${names.map((n, k) => k === names.length - 1 ? `<span class="here">${esc(n)}</span>` : `<button type="button" data-depth="${k}">${esc(n)}</button> ›`).join(" ")}</span>`;
+    setHTML($("crumbs"), `<button type="button" class="btn up" data-depth="${trail.length - 1}">⬆ Back to ${esc(names[names.length - 2])}</button>
+      <span class="path">${names.map((n, k) => k === names.length - 1 ? `<span class="here">${esc(n)}</span>` : `<button type="button" data-depth="${k}">${esc(n)}</button> ›`).join(" ")}</span>`);
   }
   $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
   const board = $("board");
   board.classList.toggle("firstthen", S.view === "ft" && arr.length > 0);
   if (!r){
-    board.innerHTML = `<p class="empty"><b>No routines here yet.</b> Open <b>Parent</b> mode (press and hold), then add a ready-made or blank routine for the ${P.name.toLowerCase()}.</p>`;
+    setKids(board, [`<p class="empty"><b>No routines here yet.</b> Open <b>Parent</b> mode (press and hold), then add a ready-made or blank routine for the ${P.name.toLowerCase()}.</p>`]);
   } else if (!arr.length && !adult){
-    board.innerHTML = `<p class="empty"><b>No steps here yet.</b> Open <b>Parent</b> mode (press and hold) to add tiles.</p>`;
+    setKids(board, [`<p class="empty"><b>No steps here yet.</b> Open <b>Parent</b> mode (press and hold) to add tiles.</p>`]);
   } else {
     const tiles = arr, nowI = tiles.findIndex(t => st(t) !== "done");
     if (S.view === "ft" && tiles.length){
       const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
-      let h = `<div class="ft-col"><h3>First</h3><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`;
-      if (b < tiles.length) h += `<div class="ft-arrow" aria-hidden="true">➜</div><div class="ft-col"><h3>Then</h3><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`;
-      board.innerHTML = h;
+      const h = [`<div class="ft-col"><h3>First</h3><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`];
+      if (b < tiles.length) h.push(`<div class="ft-arrow" aria-hidden="true">➜</div>`, `<div class="ft-col"><h3>Then</h3><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`);
+      setKids(board, h);
     } else {
-      board.innerHTML = tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, nowI < 0 ? "" : i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`).join("")
-        + (adult ? `<div class="cell addcell"><button type="button" class="tile" id="addTile"><span class="plus" aria-hidden="true">+</span><span class="word">Add a tile</span></button></div>` : "");
+      setKids(board, tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, nowI < 0 ? "" : i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`)
+        .concat(adult ? [`<div class="cell addcell"><button type="button" class="tile" id="addTile"><span class="plus" aria-hidden="true">+</span><span class="word">Add a tile</span></button></div>`] : []));
     }
   }
   const key = S.part + ":" + (r ? r.id : "") + ":" + path.join("/");
@@ -887,23 +961,22 @@ function render(animate){
   $("adultBtn").setAttribute("aria-pressed", adult);
   $("adultBtn").innerHTML = adult ? '<span class="e">🔓</span> Done' : '<span class="e">🔒</span> Parent';
   $("parentbar").hidden = !adult;
-  Object.keys(drawing).forEach(id => { const el = document.querySelector(`.tile[data-id="${id}"]`); if (el){ el.classList.add("busy"); el.insertAdjacentHTML("beforeend", '<span class="drawing">Drawing…</span>'); } });
   if (adult) renderPanel(r);
 }
 
 function renderPanel(r){
   const P = PART[S.part], rs = inPart(S.part), i = r ? rs.indexOf(r) : -1;
   if (document.activeElement !== $("rNameIn")) $("rNameIn").value = r ? r.name : "";
-  $("rPartSel").innerHTML = PARTS.map(p => `<option value="${p.key}" ${p.key === S.part ? "selected" : ""}>${p.icon} ${p.name}</option>`).join("");
+  setHTML($("rPartSel"), PARTS.map(p => `<option value="${p.key}" ${p.key === S.part ? "selected" : ""}>${p.icon} ${p.name}</option>`).join("")); $("rPartSel").value = S.part;
   ["rNameIn","rPartSel","rDaysSel","rReset","rDel"].forEach(id => $(id).disabled = !r);
   if (r) $("rDaysSel").value = r.days || "all";
   $("readyHint").textContent = `Ready-made ${P.name.toLowerCase()} routines for ${S.mode === "weekend" ? "weekends" : "school days"}. A ✓ means it is already in the day. Tap ◀ ▶ above to change the order.`;
   $("rEarlier").disabled = i <= 0; $("rLater").disabled = i < 0 || i >= rs.length - 1;
   $("partToolsH").textContent = `${P.name} routines`;
-  $("readyChips").innerHTML = P.routines.filter(x => x[3] === "all" || x[3] === S.mode).map(([n, ic]) => {
+  setHTML($("readyChips"), P.routines.filter(x => x[3] === "all" || x[3] === S.mode).map(([n, ic]) => {
     const have = rs.some(x => x.tpl === n);
     return `<button type="button" class="chip" data-ready="${esc(n)}" aria-pressed="${have}"><span class="e">${ic}</span> ${esc(n)}${have ? " ✓" : ""}</button>`;
-  }).join("");
+  }).join(""));
   $("followClock").checked = S.followClock; $("newDay").checked = S.newDay; $("autoWeek").checked = S.autoWeek; $("tapCycles").checked = S.tapCycles;
   $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rate").value = S.rate;
   document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
@@ -1113,8 +1186,8 @@ document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size
 let cat = null;
 function renderLib(){
   if (!cat || !LIB[cat]) cat = PART[S.part].cat;
-  $("cats").innerHTML = Object.keys(LIB).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
-  $("lib").innerHTML = LIB[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join("");
+  setHTML($("cats"), Object.keys(LIB).map(c => `<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join(""));
+  setHTML($("lib"), LIB[cat].map(([e,l], i) => `<button type="button" data-i="${i}"><span class="e" aria-hidden="true">${e}</span>${esc(l)}</button>`).join(""));
 }
 $("cats").onclick = e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; renderLib(); } };
 $("lib").onclick = e => {
@@ -1179,7 +1252,7 @@ async function regenTile(t){
   drawing[t.id] = true; t.attempts = (t.attempts || 0) + 1; render();
   try {
     const src = await draw(t.label, t.say, t.attempts);
-    t.prev = {emoji:t.emoji, img:t.img}; t.img = src; t.drawn = true;
+    t.prev = {emoji:t.emoji, img:t.img}; t.img = keepImg(src); t.drawn = true;
     toastUndo(`New picture for “${t.label}”.`, () => { t.img = t.prev.img; t.emoji = t.prev.emoji; });
   } catch(e){ const m = drawError(e); if (m) toast(m); }
   delete drawing[t.id]; save(); render();
@@ -1197,13 +1270,13 @@ function openEditor(t){
 function edRender(){
   if (!ed) return;
   $("edWord").textContent = ed.label || "Word";
-  $("edPic").innerHTML = ed.photo ? `<img src="${ed.photo}" alt=""><span class="sym">${symHTML(ed)}</span>`
-    : ed.img ? `<img src="${ed.img}" alt="">` : `<span class="emo">${esc(ed.emoji || "⭐")}</span>`;
+  $("edPic").innerHTML = ed.photo ? `<img src="${imgSrc(ed.photo)}" alt=""><span class="sym">${symHTML(ed)}</span>`
+    : ed.img ? `<img src="${imgSrc(ed.img)}" alt="">` : `<span class="emo">${esc(ed.emoji || "⭐")}</span>`;
   $("edNoPhoto").hidden = !ed.photo;
   $("edDrawSec").hidden = !sampleFn;
   $("edDraw").innerHTML = ed.cands.length ? '<span class="e">🔄</span> Try again' : '<span class="e">✨</span> Draw it';
   $("edDraw").disabled = !!ed.ctl; $("edStop").hidden = !ed.ctl;
-  $("edCands").innerHTML = ed.cands.length ? `<span class="lbl">Pick one:</span>` + ed.cands.map((c, i) => `<button type="button" data-c="${i}" aria-pressed="${ed.img === c}" aria-label="Drawing ${i+1}"><img src="${c}" alt=""></button>`).join("") : "";
+  $("edCands").innerHTML = ed.cands.length ? `<span class="lbl">Pick one:</span>` + ed.cands.map((c, i) => `<button type="button" data-c="${i}" aria-pressed="${ed.img === c}" aria-label="Drawing ${i+1}"><img src="${imgSrc(c)}" alt=""></button>`).join("") : "";
   $("edEmoji").innerHTML = emojiIdeas(ed.label).map(e => `<button type="button" data-e="${e}" aria-pressed="${!ed.img && ed.emoji === e}" style="width:52px;height:52px;font-family:var(--emoji);font-size:1.8rem">${e}</button>`).join("");
 }
 $("edLabel").oninput = e => { ed.label = e.target.value; edRender(); };
@@ -1251,7 +1324,7 @@ function snapFor(t){ snapTile = t; $("quickCam").click(); }
 $("quickCam").onchange = async e => {
   const f = e.target.files[0], t = snapTile; e.target.value = ""; snapTile = null; if (!f || !t) return;
   try {
-    const old = t.photo; t.photo = await squarePhoto(f); save(); render();
+    const old = t.photo; t.photo = keepImg(await squarePhoto(f)); save(); render();
     toastUndo(`Photo added to “${t.label}”.`, () => { t.photo = old; });
   } catch(err){ toast(BADPIC); }
 };
@@ -1268,7 +1341,7 @@ $("edSave").onclick = () => {
   if (!r){ toast("Add a routine first."); return; }
   const say = $("edSay").value.trim() || (ed.tile && ed.tile.label === label ? ed.tile.say : (PIC[label] && PIC[label][1]) || label);
   const t = ed.tile || mk(ed.emoji, label, say);
-  t.label = label; t.say = say; t.emoji = ed.emoji; t.img = ed.img; t.photo = ed.photo || null; t.drawn = !!(ed.img && ed.cands.includes(ed.img)); t.attempts = ed.attempt;
+  t.label = label; t.say = say; t.emoji = ed.emoji; t.img = keepImg(ed.img); t.photo = keepImg(ed.photo); t.drawn = !!(ed.img && ed.cands.includes(ed.img)); t.attempts = ed.attempt;
   if (!ed.tile){ L.arr.push(t); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1 && !t.img) r.icon = t.emoji; }
   closeEditor(); save(); render(); toast(`Saved “${label}”.`);
 };
@@ -1406,9 +1479,9 @@ async function prReady(sections){
   const em = new Set(), imgs = new Map();
   sections.forEach(sc => { em.add(sc.icon); sc.tiles.forEach(t => { em.add(t.emoji || "⭐"); [t.photo, t.img].forEach(s => { if (s && !imgs.has(s)) imgs.set(s, null); }); }); });
   try {
-    await Promise.all([document.fonts.load('48px "Noto Color Emoji"', [...em].join("")), document.fonts.load('600 40px "Fredoka"', "Aa"), document.fonts.load('700 40px "Fredoka"', "Aa"), document.fonts.load('400 20px "Andika"', "Aa")]);
+    await Promise.all([document.fonts.load('600 40px "Fredoka"', "Aa"), document.fonts.load('700 40px "Fredoka"', "Aa"), document.fonts.load('400 20px "Andika"', "Aa")]);
   } catch(e){}
-  for (const k of imgs.keys()) imgs.set(k, await loadImg(k));
+  for (const k of imgs.keys()) imgs.set(k, await loadImg(imgSrc(k)));
   return imgs;
 }
 function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
@@ -1431,13 +1504,13 @@ function drawTile(g, t, n, x, y, w, h, imgs){
   g.save(); rr(g, px, py, pw, picH, w * 0.05); g.clip();
   if (photo) drawCover(g, photo, px, py, pw, picH);
   else if (sym) drawCover(g, sym, px + (pw - picH) / 2, py, picH, picH);
-  else { g.font = `${picH * 0.78}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + pw / 2, py + picH * 0.54); }
+  else { g.font = `${picH * 0.78}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + pw / 2, py + picH * 0.54); }
   g.restore();
   if (photo){   // the symbol stays small in the corner of a photo
     const d = picH * 0.36, cx = px + d / 2 + 6, cy = py + picH - d / 2 - 6;
     g.beginPath(); g.arc(cx, cy, d / 2 + 4, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 2; g.strokeStyle = "#1d1f2b"; g.stroke();
     if (sym){ g.save(); g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.clip(); drawCover(g, sym, cx - d / 2, cy - d / 2, d, d); g.restore(); }
-    else { g.font = `${d * 0.72}px "Noto Color Emoji", "Apple Color Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
+    else { g.font = `${d * 0.72}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
   }
   const {lines, s} = fitLines(g, t.label, w - pad * 2, w * 0.12, 600);
   g.fillStyle = "#1d1f2b"; g.textAlign = "center"; g.textBaseline = "middle";
@@ -1461,7 +1534,7 @@ async function prPages(limit){
     if (y + headH + th > PH - PM) newPage();
     if (y > PM) y += 18;
     g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillStyle = "#1d1f2b";
-    g.font = '52px "Noto Color Emoji", "Apple Color Emoji", sans-serif'; g.fillText(sc.icon, PM, y + 54);
+    g.font = '52px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'; g.fillText(sc.icon, PM, y + 54);
     g.font = '700 50px Fredoka, "Trebuchet MS", sans-serif'; g.fillText(sc.title, PM + 72, y + 52);
     g.font = '400 24px Andika, sans-serif'; g.fillStyle = "#666"; g.fillText(sc.sub, PM + 74, y + 84);
     y += headH;
@@ -1524,7 +1597,7 @@ function ivyCard(g, it, x, y, w, h, imgs){
   g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#1d1f2b";
   if (it.title){
     const sc = it.title, side = Math.min(W - 2 * pad, H * 0.42);
-    g.font = `${side * 0.8}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+    g.font = `${side * 0.8}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
     g.fillText(sc.icon, bx + W / 2, by + pad + side / 2);
     const f = fitLines(g, sc.title, W - 2 * pad, (land ? 130 : 170) * k, 700);
     const ty = by + pad + side + (H - pad - side) * 0.38;
@@ -1539,13 +1612,13 @@ function ivyCard(g, it, x, y, w, h, imgs){
   g.save(); rr(g, px, py, side, side, side * 0.06); g.clip();
   if (photo) drawCover(g, photo, px, py, side, side);
   else if (sym) drawCover(g, sym, px, py, side, side);
-  else { g.font = `${side * 0.82}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + side / 2, py + side * 0.54); }
+  else { g.font = `${side * 0.82}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", px + side / 2, py + side * 0.54); }
   g.restore();
   if (photo){
     const d = side * 0.34, cx = px + d / 2 + side * 0.03, cy = py + side - d / 2 - side * 0.03;
     g.beginPath(); g.arc(cx, cy, d / 2 + 6 * k, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 4 * k; g.strokeStyle = "#1d1f2b"; g.stroke();
     if (sym){ g.save(); g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.clip(); drawCover(g, sym, cx - d / 2, cy - d / 2, d, d); g.restore(); }
-    else { g.font = `${d * 0.72}px "Noto Color Emoji", "Apple Color Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
+    else { g.font = `${d * 0.72}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`; g.fillStyle = "#000"; g.fillText(t.emoji || "⭐", cx, cy + d * 0.04); }
   }
   const f = fitLines(g, t.label, W - 2 * pad, (land ? 118 : 150) * k, 600);
   g.fillStyle = "#1d1f2b";
@@ -1697,7 +1770,8 @@ var tt; function toast(m){ const el = $("toast"); el.textContent = m; el.hidden 
 if (S.day !== todayKey()){ if (S.newDay) S.schedules.forEach(r => resetTiles(r.tiles)); S.day = todayKey(); if (S.autoWeek) S.mode = weekendDay(); }
 if (S.followClock || !PART[S.part]) S.part = clockPart();
 if (!cur()){ const r = firstOpen(S.part); S.current = r ? r.id : null; }
-save(); render(true); scrollStop();
+saveNow(); render(true); scrollStop();
+loadPictures();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
 setInterval(checkDay, 5 * 60 * 1000);
 })();
