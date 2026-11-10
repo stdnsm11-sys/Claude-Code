@@ -63,6 +63,17 @@ The details for the "keep it as one tile" choice: For example, *Get dressed* bec
 
 Ready-made breakdowns work offline for: get dressed, shirt on, pants on, socks on, shoes on, coat on, wash hands, brush teeth, potty / bathroom, bath, pajamas on, toys away / clean up, throw away trash, hang up backpack, car seat, line up, and eat my food. For any other tile, Claude writes the small steps at the chosen level (on claude.ai only).
 
+## Adding a routine (Parent mode)
+Tap the **+ New routine** stop at the end of the trail (or the green **+ New routine** button below the board). A search window opens:
+- **Type in the search bar** (potty, dentist, bedtime, haircut, playground, shot, bus…). With the box empty, it shows ideas for the part of the day you're in.
+- **Tap a routine tile** to add its steps to your new routine. Tap more than one to join them (for example *Car ride* + *Doctor visit*). Remove any step with ✕.
+- On claude.ai, the last tile, **✨ Make "…" with Claude**, writes steps for anything not in the list, sized for the child's level.
+- Name it, pick the part of the day, and tap the green **Create routine**.
+
+There are 45 ready-made routines: the day's own routines plus doctor visit, getting a shot, dentist, haircut, grocery shopping, restaurant, playground, leaving the park, car ride, bus ride, library, swimming lesson, birthday party, fire drill, calm down, turning off the tablet, getting dressed, hand washing, toothbrushing, clean up toys, helping cook, visiting Grandma and morning circle.
+
+**Changing the order of routines:** in Parent mode, each stop on the trail has **◀ ▶** buttons under it.
+
 ## 🚀 Rocket launch
 When the child finishes a routine, a big rocket blasts across the screen with a flame-and-smoke trail, a burst of colored stars, a whoosh-and-chime sound, and "Three, two, one, blast off!" Finishing a whole part of the day sends 2 rockets; finishing the whole day sends 3. Then the celebration shows what's next. Turn it off in Parent mode settings. With the device's "reduce motion" setting on, it skips the animation and just says "Blast off!"
 

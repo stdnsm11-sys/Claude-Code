@@ -86,7 +86,12 @@ button{cursor:pointer;color:var(--ink)}
 .stop{flex:0 0 auto;position:relative;width:112px;display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:0;padding:0;
   color:var(--on-ground);font-weight:700;font-size:.9rem;line-height:1.15;text-align:center}
 .stop::before{content:"";position:absolute;top:33px;right:50%;width:100%;height:7px;background:var(--trail);border-radius:4px;transition:background-color .4s}
-.stop:first-child::before{display:none}
+.trail > .stopw:first-child .stop::before{display:none}
+.stopw{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px}
+.stopctl{display:flex;gap:4px}
+.stopctl button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;min-width:40px;min-height:36px;font-weight:700}
+.stopctl button:hover{border-color:var(--accent)}
+.stopctl button:disabled{opacity:.35}
 .stop.linked::before{background:var(--done)}
 .stop .dot{position:relative;z-index:1;width:72px;height:72px;border-radius:50%;background:var(--card);border:5px solid var(--trail);display:grid;place-items:center;font-size:2.1rem;transition:transform .25s,border-color .3s,box-shadow .3s}
 .stop.done .dot{border-color:var(--done)}
@@ -161,6 +166,29 @@ button{cursor:pointer;color:var(--ink)}
 .tm-acts .btn small{display:block;font-weight:400;font-size:.8rem;color:var(--muted);line-height:1.2}
 .tm-acts .btn.primary small{color:inherit;opacity:.85}
 .tm-acts .btn span.txt{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+
+/* new routine: search ready-made routines */
+.nr{max-width:760px}
+.nr-search{display:flex;align-items:center;gap:8px;border:3px solid var(--accent);border-radius:16px;padding:4px 12px;background:var(--card)}
+.nr-search .e{font-size:1.3rem}
+.nr-search input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:1.1rem;padding:10px 0;background:transparent;color:var(--ink)}
+.nr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:min(42vh,420px);overflow-y:auto;padding:4px 2px}
+.nr-card{display:flex;flex-direction:column;align-items:center;gap:4px;border:3px solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:10px 8px;text-align:center;min-height:132px}
+.nr-card:hover{border-color:var(--accent)}
+.nr-card .big{font-family:var(--emoji);font-size:2.2rem;line-height:1.1}
+.nr-card b{font-family:var(--display);font-weight:600;font-size:1rem;line-height:1.15}
+.nr-card small{color:var(--muted);font-size:.78rem}
+.nr-card .strip{font-family:var(--emoji);font-size:1rem;letter-spacing:1px;line-height:1.2}
+.nr-card.ai{border-style:dashed;border-color:var(--accent)}
+.nr-card.added{border-color:var(--done);background:var(--done-s)}
+.nr-build{background:var(--quiet);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.nr-build h3{margin:0}
+.nr-steps{display:flex;flex-wrap:wrap;gap:6px}
+.nr-steps span{display:inline-flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:3px 4px 3px 8px;font-weight:700;font-size:.85rem}
+.nr-steps .e{font-size:1.1rem}
+.nr-steps button{border:0;background:none;color:var(--muted);font-weight:700;min-width:28px;min-height:28px;border-radius:8px}
+.nr-steps button:hover{background:var(--todo-s);color:var(--todo)}
+.nr-empty{color:var(--muted);font-size:.9rem;margin:0}
 
 /* tile editor */
 .sheet{position:fixed;inset:0;background:rgba(20,24,40,.5);display:grid;place-items:center;z-index:25;padding:16px;overflow-y:auto}
@@ -277,7 +305,7 @@ button{cursor:pointer;color:var(--ink)}
 .lib button:hover{border-color:var(--accent)}
 .lib .e{font-size:2rem;line-height:1.2}
 .field{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700;color:var(--muted);min-width:0}
-.field input,.field select{border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);color:var(--ink);font-weight:400;min-height:44px;width:100%}
+.field input,.field select{box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);color:var(--ink);font-weight:400;min-height:44px;width:100%}
 .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;align-items:end}
 .emopick{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .emopick button{font-family:var(--emoji);font-size:1.5rem;width:44px;height:44px;border:2px solid var(--line);background:var(--card);border-radius:10px;line-height:1}
@@ -398,7 +426,7 @@ button{cursor:pointer;color:var(--ink)}
         <p class="hint" id="readyHint">Add a ready-made routine or a blank one to this part of the day. Tap ◀ ▶ above to change the order.</p>
         <div class="chips" id="readyChips"></div>
         <div class="row">
-          <button class="btn" id="newBlank" type="button">+ Blank routine</button>
+          <button class="btn go" id="newBlank" type="button">+ New routine</button>
           <button class="btn" id="dayReset" type="button"><span class="e">🌅</span> Start the whole day over</button>
         </div>
       </div>
@@ -572,6 +600,33 @@ button{cursor:pointer;color:var(--ink)}
     <div class="ed-acts">
       <button class="btn" id="prCancel" type="button">Close</button>
       <button class="btn primary" id="prGo" type="button"><span class="e">📄</span> Save PDF to print</button>
+    </div>
+  </div>
+</div>
+<div class="sheet" id="nrSheet" hidden role="dialog" aria-modal="true" aria-labelledby="nrH">
+  <div class="box nr">
+    <h2 id="nrH">New routine</h2>
+    <label class="nr-search"><span class="e" aria-hidden="true">🔍</span>
+      <input id="nrQ" type="search" autocomplete="off" placeholder="Search routines: potty, dentist, bedtime, haircut, playground…" aria-label="Search routines">
+    </label>
+    <div class="nr-grid" id="nrGrid" aria-live="polite"></div>
+    <div class="nr-build">
+      <h3>Your new routine</h3>
+      <div class="form">
+        <label class="field">Name
+          <input id="nrName" maxlength="32" placeholder="Tap a routine above, or type a name">
+        </label>
+        <label class="field">Part of the day
+          <select id="nrPart"></select>
+        </label>
+      </div>
+      <div class="nr-steps" id="nrSteps"></div>
+    </div>
+    <p class="drawmsg" id="nrMsg" aria-live="polite" style="margin:0"></p>
+    <div class="ed-acts">
+      <button class="btn left" id="nrClear" type="button">Clear steps</button>
+      <button class="btn" id="nrCancel" type="button">Cancel</button>
+      <button class="btn go" id="nrGo" type="button">Create routine</button>
     </div>
   </div>
 </div>
@@ -944,10 +999,12 @@ function render(animate){
   const rs = inPart(S.part);
   setHTML($("trail"), rs.map((x, i) => {
     const d = isDone(x), linked = i > 0 && isDone(rs[i-1]);
-    return `<button type="button" class="stop${d ? " done" : ""}${linked ? " linked" : ""}" data-r="${x.id}" ${x === r ? 'aria-current="step"' : ""}>
+    return `<div class="stopw"><button type="button" class="stop${d ? " done" : ""}${linked ? " linked" : ""}" data-r="${x.id}" ${x === r ? 'aria-current="step"' : ""}>
       <span class="dot"><span class="e" aria-hidden="true">${esc(x.icon || "⭐")}</span>${d ? `<span class="tick">${CHECK}</span>` : ""}</span>
-      ${esc(x.name)}<span class="count">${doneCount(x)} of ${x.tiles.length}</span></button>`;
-  }).join("") + (adult ? `<button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button>` : ""));
+      ${esc(x.name)}<span class="count">${doneCount(x)} of ${x.tiles.length}</span></button>${adult ? `<div class="stopctl">
+      <button type="button" data-mv="-1" data-rid="${x.id}" ${i === 0 ? "disabled" : ""} aria-label="Move ${esc(x.name)} earlier">◀</button>
+      <button type="button" data-mv="1" data-rid="${x.id}" ${i === rs.length - 1 ? "disabled" : ""} aria-label="Move ${esc(x.name)} later">▶</button></div>` : ""}</div>`;
+  }).join("") + (adult ? `<div class="stopw"><button type="button" class="stop add" id="trailAdd"><span class="dot">+</span>New routine</button></div>` : ""));
 
   // start banner
   const L = list(), arr = L ? L.arr : [], trail = L ? L.trail : [], here = trail[trail.length - 1];
@@ -1044,7 +1101,8 @@ $("day").onkeydown = e => {
   goPart(ORDER[k], true); document.querySelector(`.tab[data-p="${ORDER[k]}"]`).focus();
 };
 $("trail").onclick = e => {
-  if (e.target.closest("#trailAdd")) return addBlank();
+  const mv = e.target.closest("[data-mv]"); if (mv) return moveRoutineBy(mv.dataset.rid, +mv.dataset.mv);
+  if (e.target.closest("#trailAdd")) return openNewRoutine();
   const s = e.target.closest("[data-r]"); if (s) goRoutine(s.dataset.r, true);
 };
 $("startBtn").onclick = () => {
@@ -1266,11 +1324,13 @@ ab.onclick = e => {
 $("parentDone").onclick = () => setParent(false);
 
 /* ---------- adult tools ---------- */
-function addBlank(){
-  const r = {id:uid(), name:"My routine", icon:"⭐", part:S.part, days:"all", tiles:[]};
-  S.schedules.push(r); S.current = r.id; save(); render(true); $("rNameIn").focus(); $("rNameIn").select();
+$("newBlank").onclick = () => openNewRoutine();
+function moveRoutineBy(id, dir){
+  const rs = inPart(S.part), r = rs.find(x => x.id === id), i = rs.indexOf(r), other = rs[i + dir]; if (!r || !other) return;
+  const a = S.schedules.indexOf(r), b = S.schedules.indexOf(other);
+  [S.schedules[a], S.schedules[b]] = [S.schedules[b], S.schedules[a]]; save(); render();
+  const btn = document.querySelector(`[data-mv="${dir}"][data-rid="${id}"]`); if (btn && !btn.disabled) btn.focus();
 }
-$("newBlank").onclick = addBlank;
 $("rNameIn").oninput = e => { const r = cur(); if (!r) return; r.name = e.target.value.trim() || "My routine"; delete r.tpl; save(); render(); };
 $("rPartSel").onchange = e => {
   const r = cur(); if (!r) return; r.part = e.target.value; S.part = r.part;
@@ -1332,6 +1392,112 @@ $("lib").onclick = e => {
   if (!L){ toast("Add a routine first."); return; }
   const r = L.r, [em,l,s] = LIB[cat][+b.dataset.i]; L.arr.push(mk(em,l,s)); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1) r.icon = em;
   save(); render(); toast(`Added “${l}”.`);
+};
+
+/* ---------- new routine: search ready-made routines ---------- */
+// Extra ready-made routines for outings, appointments and hard moments. A step is a library word or [emoji, word, says].
+const MORE = [
+  ["Doctor visit","🩺","afternoon","checkup pediatrician appointment shot",["Car seat",["🏥","Go inside","Walk inside the doctor's office"],"Wait",["📏","Get measured","Stand tall to get measured"],["⚖️","Get weighed","Stand on the scale"],["🩺","Doctor listens","The doctor listens to your heart"],["👂","Check ears","The doctor looks in your ears"],["⭐","Sticker","Get a sticker"]]],
+  ["Getting a shot","💉","afternoon","vaccine doctor needle flu",[["🤗","Sit on my lap","Sit on my lap"],"Deep breaths",["🔢","Count to 3","Count to three"],["💉","Quick poke","A quick poke. All done"],["🩹","Bandage","Put on a bandage"],["⭐","Sticker","Get a sticker"]]],
+  ["Dentist visit","🦷","afternoon","teeth cleaning appointment",["Car seat","Walk inside","Wait",["🪑","Big chair","Sit in the big chair"],["😮","Open wide","Open your mouth wide"],["🪥","Teeth cleaned","The dentist cleans your teeth"],["💦","Rinse","Rinse and spit"],["⭐","Pick a prize","Pick a prize"]]],
+  ["Haircut","💇","afternoon","barber salon hair cut",["Walk inside","Wait",["🪑","Sit in the chair","Sit in the chair"],["🧣","Cape on","Put on the cape"],["💦","Spray water","A little water spray"],["✂️","Cut hair","Snip snip. Hold still"],["🌬️","Blow dryer","The blow dryer is loud"],["🪞","Look in mirror","Look in the mirror"]]],
+  ["Grocery shopping","🛒","afternoon","store shopping market target walmart",["Car seat","Hold hands",["🛒","Sit in cart","Sit in the cart"],["🤲","Hands inside","Keep your hands inside the cart"],["🍎","Help pick food","Help pick the food"],["💳","Pay","Pay at the checkout"],["🛍️","Carry a bag","Help carry a bag"],"Go home"]],
+  ["Restaurant","🍔","night","eating out dinner lunch cafe",["Car seat","Walk inside","Wait","Sit at table",["📋","Order food","Order your food"],"Color","Eat my food","Napkin",["💳","Pay","Pay the bill"],"Go home"]],
+  ["Playground","🛝","afternoon","park outside play slide swing",["Shoes on","Sunscreen","Slide",["🎢","Swing","Swing on the swing"],"Climb","Drink water",["⏰","5 more minutes","Five more minutes, then time to go"],"Car seat"]],
+  ["Leaving the park","🏞️","afternoon","time to go leave transition",["Timer",["🛝","One last turn","One last turn"],"Say bye-bye","Hold hands","Car seat","Go home"]],
+  ["Car ride","🚗","morning","drive trip travel",["Shoes on","Car seat",["🔒","Buckle up","Click the buckle"],["🎧","Music or book","Listen to music or look at a book"],["⏳","Almost there","We are almost there"],["🚗","Get out of car","Get out of the car"]]],
+  ["Bus ride","🚌","morning","school bus",[["⏳","Wait for bus","Wait for the bus"],["🚌","Get on bus","Get on the bus"],["🪑","Sit down","Sit in your seat"],"Quiet voice",["🚌","Get off bus","Get off the bus"]]],
+  ["Library visit","📚","afternoon","books story time",["Car seat","Walk inside","Quiet voice","Pick a book",["📖","Read together","Read together"],["💳","Check out books","Check out your books"],"Go home"]],
+  ["Swimming lesson","🏊","afternoon","pool swim water",[["🩱","Swimsuit on","Put on your swimsuit"],"Walking feet",["👩‍🏫","Wait for teacher","Wait for your teacher"],["🏊","Get in pool","Get in the pool with your teacher"],["🦵","Kick kick","Kick your legs"],"Blow bubbles","Towel","Get dressed"]],
+  ["Birthday party","🎂","afternoon","party friends celebration",["Say hello",["🎈","Play games","Play party games"],["🎵","Birthday song","Sing happy birthday"],["🎂","Cake","Eat cake"],["🎁","Watch presents","Watch the presents"],["👋","Say thank you","Say thank you and goodbye"]]],
+  ["Fire drill","🚨","morning","alarm emergency school safety",[["🔔","Loud alarm","The alarm is loud. Cover your ears"],"Line up","Walking feet",["🚪","Go outside","Go outside with your class"],"Wait","Classroom"]],
+  ["Calm down","🧸","afternoon","upset meltdown big feelings regulate",["Stop","Deep breaths","Count to 5","Squeeze hands","Calm corner",["✅","Ready","All done. Ready to try again"]]],
+  ["Turning off the tablet","📱","afternoon","screen time ipad tv end",["Timer",["⏳","2 more minutes","Two more minutes"],"Tablet off",["⭐","Choose next","Choose what's next"]]],
+  ["Getting dressed","👕","morning","clothes dress",["Underwear on","Pants on","Shirt on","Socks on","Shoes on"]],
+  ["Hand washing","🧼","noon","wash hands soap germs",[["🚰","Water on","Turn the water on"],["🧼","Get soap","Get some soap"],["👐","Rub hands","Rub your hands together"],["💦","Rinse","Rinse off the soap"],["🚰","Water off","Turn the water off"],"Dry hands"]],
+  ["Toothbrushing","🪥","night","brush teeth dental",[["🪥","Toothpaste on","Put toothpaste on your brush"],["😁","Brush top teeth","Brush your top teeth"],["😁","Brush bottom teeth","Brush your bottom teeth"],["💦","Spit","Spit in the sink"],["🚰","Rinse brush","Rinse your toothbrush"]]],
+  ["Clean up toys","🧸","afternoon","tidy room mess",["Timer","Toys away",["🧺","Toys in bin","Put the toys in the bin"],["👀","Check the floor","Check the floor for more toys"],"Wash hands"]],
+  ["Helping cook","🍳","night","kitchen chef baking",["Wash hands",["👩‍🍳","Apron on","Put on your apron"],["🥣","Stir","Stir the bowl"],["🥄","Pour","Help pour"],["🔥","Hot! Hands back","The stove is hot. Keep your hands back"],"Clean up"]],
+  ["Visiting Grandma","👵","afternoon","grandparents family visit grandpa",["Car seat","Say hello","Hug",["🧸","Play together","Play together"],"Snack","Say bye-bye","Car seat"]],
+  ["Morning circle","🧑‍🤝‍🧑","morning","school meeting rug calendar",["Sit on my spot","Sing songs","Calendar","Weather","Story time"]]
+];
+function catalog(){
+  const out = [];
+  PARTS.forEach(p => p.routines.forEach(([name, icon, steps, days]) => out.push({name, icon, part:p.key, days, steps, kw:"", ready:true})));
+  MORE.forEach(([name, icon, part, kw, steps]) => out.push({name, icon, part, days:"all", steps, kw}));
+  return out;
+}
+const stepLabel = st => Array.isArray(st) ? st[1] : st;
+const stepEmoji = st => Array.isArray(st) ? st[0] : ((PIC[st] && PIC[st][0]) || "⭐");
+function searchRoutines(q){
+  const all = catalog(), words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length){   // ideas for this part of the day first
+    return all.filter(x => x.part === S.part && (x.days === "all" || x.days === S.mode)).concat(all.filter(x => x.part !== S.part || !(x.days === "all" || x.days === S.mode)));
+  }
+  const scored = [];
+  all.forEach(x => {
+    const name = x.name.toLowerCase(), hay = `${name} ${x.kw} ${x.steps.map(stepLabel).join(" ")}`.toLowerCase();
+    if (!words.every(w => hay.includes(w))) return;
+    let sc = 0; words.forEach(w => { if (name.startsWith(w)) sc += 6; else if (name.includes(w)) sc += 4; else if (x.kw.includes(w)) sc += 2; else sc += 1; });
+    if (x.part === S.part) sc += 0.5;
+    scored.push([sc, x]);
+  });
+  return scored.sort((a, b) => b[0] - a[0]).map(x => x[1]);
+}
+let nr = null;   // {name, icon, part, steps:[tile], picked:[names], ai}
+function openNewRoutine(){
+  nr = {name:"", icon:"", part:S.part, steps:[], picked:[]};
+  $("nrQ").value = ""; $("nrName").value = ""; $("nrMsg").textContent = "";
+  $("nrPart").innerHTML = PARTS.map(p => `<option value="${p.key}">${p.icon} ${p.name}</option>`).join(""); $("nrPart").value = S.part;
+  $("nrSheet").hidden = false; nrRender(); $("nrQ").focus();
+}
+function nrRender(){
+  if (!nr) return;
+  const q = $("nrQ").value.trim(), res = searchRoutines(q).slice(0, 30);
+  let cards = res.map((x, i) => `<button type="button" class="nr-card${nr.picked.includes(x.name) ? " added" : ""}" data-pick="${esc(x.name)}">
+    <span class="big" aria-hidden="true">${esc(x.icon)}</span><b>${esc(x.name)}</b>
+    <small>${PART[x.part].name} · ${x.steps.length} steps${nr.picked.includes(x.name) ? " · added ✓" : ""}</small>
+    <span class="strip" aria-hidden="true">${x.steps.slice(0, 6).map(st => esc(stepEmoji(st))).join("")}</span></button>`).join("");
+  if (q && sampleFn) cards += `<button type="button" class="nr-card ai" data-ai="1"><span class="big" aria-hidden="true">✨</span><b>Make “${esc(q)}” with Claude</b><small>Steps sized for ${LEVELS[S.level - 1].name}</small></button>`;
+  if (!res.length && !(q && sampleFn)) cards = `<p class="nr-empty">No ready-made routine matches “${esc(q)}”. Name it below and tap Create routine, then add tiles with the + tile.</p>`;
+  $("nrGrid").innerHTML = cards;
+  $("nrSteps").innerHTML = nr.steps.length
+    ? nr.steps.map((t, i) => `<span><span class="e" aria-hidden="true">${esc(t.emoji)}</span>${esc(t.label)}<button type="button" data-rm="${i}" aria-label="Remove ${esc(t.label)}">✕</button></span>`).join("")
+    : `<p class="nr-empty">Tap a routine above to add its steps. Tap more than one to join them, like Car ride + Doctor visit.</p>`;
+  $("nrGo").textContent = nr.steps.length ? `Create routine (${nr.steps.length} steps)` : "Create empty routine";
+  $("nrClear").hidden = !nr.steps.length;
+}
+function nrAdd(name, icon, part, tiles){
+  nr.steps.push(...tiles); nr.picked.push(name);
+  if (!$("nrName").value.trim()){ $("nrName").value = name; nr.icon = icon; }
+  else if (!nr.icon) nr.icon = icon;
+  nrRender();
+  $("nrMsg").textContent = `Added ${tiles.length} steps from “${name}”.`;
+}
+$("nrQ").oninput = () => nrRender();
+$("nrQ").onkeydown = e => { if (e.key === "Enter"){ const first = $("nrGrid").querySelector("[data-pick]"); if (first) first.click(); } };
+$("nrGrid").onclick = async e => {
+  const b = e.target.closest("[data-pick]");
+  if (b){ const x = catalog().find(c => c.name === b.dataset.pick); if (x) nrAdd(x.name, x.icon, x.part, x.steps.map(st => Array.isArray(st) ? mk(st[0], st[1], st[2]) : mk(null, st))); return; }
+  if (e.target.closest("[data-ai]")){
+    const q = $("nrQ").value.trim(); if (!q) return;
+    $("nrMsg").textContent = "Claude is making the steps…"; e.target.closest("[data-ai]").disabled = true;
+    try {
+      const tiles = await aiSteps({label:q, say:q}, [`a new routine called "${q}"`], 1);
+      nrAdd(q.charAt(0).toUpperCase() + q.slice(1), tiles[0] ? tiles[0].emoji : "⭐", $("nrPart").value, tiles);
+    } catch(err){ $("nrMsg").textContent = ["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(err && err.code) ? (sampleFn = null, "Claude isn't allowed here. Pick a ready-made routine instead.") : drawError(err); nrRender(); }
+  }
+};
+$("nrSteps").onclick = e => { const b = e.target.closest("[data-rm]"); if (b){ nr.steps.splice(+b.dataset.rm, 1); nrRender(); } };
+$("nrClear").onclick = () => { nr.steps = []; nr.picked = []; nr.icon = ""; nrRender(); $("nrMsg").textContent = ""; };
+const closeNR = () => { $("nrSheet").hidden = true; nr = null; };
+$("nrCancel").onclick = closeNR;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("nrSheet").hidden) closeNR(); });
+$("nrGo").onclick = () => {
+  const name = $("nrName").value.trim() || $("nrQ").value.trim() || "My routine", part = $("nrPart").value;
+  const r = {id:uid(), name:name.slice(0, 32), icon:nr.icon || (nr.steps[0] && nr.steps[0].emoji) || "⭐", part, days:"all", tiles:nr.steps};
+  S.schedules.push(r); closeNR(); goRoutine(r.id, false);
+  toast(`Made “${r.name}” with ${r.tiles.length} steps in the ${PART[part].name.toLowerCase()}. Use ◀ ▶ under it to change its place.`);
 };
 
 /* ---------- tile editor + pictures drawn by Claude ---------- */
