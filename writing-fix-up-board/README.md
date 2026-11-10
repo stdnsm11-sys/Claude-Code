@@ -5,7 +5,7 @@ A smartboard editing activity built from a student's own writing. The teacher up
 Open `index.html` in any browser (Chrome or Edge works best on a smartboard) and press **Full screen**. `app.html` is the same page without the document wrapper. It is used for the hosted version.
 
 ## Teacher setup (the **Teacher** button)
-1. **Add the writing.** Choose or drag in one or more photos of the paper. Use **Turn ↻** if a photo is sideways.
+1. **Add the writing.** Choose, drag in, or paste one or more photos of the paper. To paste, copy a picture (right-click it and choose **Copy image**, or take a screenshot), then press **Paste a picture** or **Ctrl+V**. Pasting while students are editing adds the picture as a new page and opens **On my paper**. Use **Turn ↻** if a photo is sideways.
 2. **Read the handwriting.**
    - In the hosted version on claude.ai, **Read handwriting with Claude** reads the photo and keeps the student's mistakes so they have something to fix. The first time, the viewer is asked to allow it, and it uses that person's Claude account.
    - In the downloaded `index.html`, **Read handwriting** uses free on-device text recognition (Tesseract.js, which needs internet the first time). It is much weaker on handwriting, so check every word.

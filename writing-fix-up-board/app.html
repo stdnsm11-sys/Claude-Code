@@ -208,6 +208,10 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
 .drop{border:4px dashed var(--blue);border-radius:18px;background:var(--blue-s);padding:22px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
 .drop.over{background:var(--yellow-s);border-color:var(--yellow-d)}
 .drop b{font-family:var(--display);font-size:1.25em}
+.pasterow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.pastebox{flex:1;min-width:200px;min-height:56px;border:4px dashed var(--purple);border-radius:16px;background:var(--purple-s);color:var(--purple-d);
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:8px 12px;font-weight:700;-webkit-user-select:text;user-select:text;cursor:text;caret-color:transparent}
+.pastebox:focus{outline:5px solid var(--yellow);outline-offset:2px;background:var(--yellow-s)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .thumb{border:2px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px;background:var(--quiet)}
 .thumb img{width:100%;height:120px;object-fit:contain;background:#fff;border-radius:8px}
@@ -362,6 +366,10 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
           <span class="btn primary small" aria-hidden="true">Choose photos</span>
         </label>
         <input type="file" id="fileIn" accept="image/*" multiple hidden>
+        <div class="pasterow">
+          <button class="btn primary" id="pasteBtn">Paste a picture</button>
+          <div class="pastebox" id="pasteBox" contenteditable="true" role="textbox" aria-label="Paste a picture here" spellcheck="false">or click here and press Ctrl+V</div>
+        </div>
         <div class="thumbs" id="thumbs"></div>
         <div class="bar">
           <button class="btn primary" id="readClaude" hidden>Read handwriting with Claude</button>
@@ -1303,10 +1311,49 @@ const drop = $("#drop");
 ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+/* pasting a picture: Ctrl+V anywhere, the paste box, or the Paste button */
+function clipImages(dt){
+  if (!dt) return {files:[], link:false};
+  let files = Array.from(dt.files || []).filter(f => f.type.startsWith("image/"));
+  if (!files.length) files = Array.from(dt.items || []).filter(i => i.kind === "file" && i.type.startsWith("image/")).map(i => i.getAsFile()).filter(Boolean);
+  const html = dt.getData("text/html") || "";
+  if (!files.length) {
+    const m = html.match(/<img[^>]+src=["'](data:image\/[^"']+)["']/i);
+    if (m) { try { files = [b64Blob(m[1].replace(/&amp;/g, "&"))]; } catch {} }
+  }
+  return {files, link: !files.length && /<img|https?:\/\//i.test(html + (dt.getData("text/plain") || ""))};
+}
+const PASTE_HELP = "Copy a picture first: right-click it and choose Copy image, or take a screenshot. Then paste.";
+async function pasteImages(files){
+  const had = S.images.length;
+  await addFiles(files);
+  if (S.images.length > had && !$("#editScreen").hidden) {
+    setView("photo");
+    $("#tipSay").textContent = "Picture added as page " + S.images.length + ".";
+    const pgs = $$("#photoView .pg"); if (pgs.length) pgs[pgs.length - 1].scrollIntoView({block:"start", behavior:"smooth"});
+  }
+}
 document.addEventListener("paste", e => {
-  if ($("#setupScreen").hidden) return;
-  const f = Array.from(e.clipboardData?.files || []); if (f.length) addFiles(f);
+  if (!$("#kbModal").hidden || !$("#libModal").hidden) return;
+  const {files, link} = clipImages(e.clipboardData);
+  const inBox = e.target.closest && e.target.closest("#pasteBox");
+  if (files.length) { e.preventDefault(); pasteImages(files); return; }
+  if (inBox) { e.preventDefault(); setStatus((link ? "That pasted a link, not a picture. " : "There's no picture to paste. ") + PASTE_HELP, "err"); }
 });
+$("#pasteBox").addEventListener("beforeinput", e => { if (e.inputType !== "insertFromPaste") e.preventDefault(); });
+$("#pasteBox").addEventListener("input", () => { $("#pasteBox").textContent = "or click here and press Ctrl+V"; });
+$("#pasteBtn").onclick = async () => {
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.read) throw new Error("no read");
+    const items = await navigator.clipboard.read(), blobs = [];
+    for (const it of items) { const t = it.types.find(x => x.startsWith("image/")); if (t) blobs.push(await it.getType(t)); }
+    if (!blobs.length) { setStatus("There's no picture to paste. " + PASTE_HELP, "err"); return; }
+    await pasteImages(blobs);
+  } catch {
+    $("#pasteBox").focus();
+    setStatus("Now press Ctrl+V, or right-click (or press and hold) the purple box and choose Paste.", "");
+  }
+};
 
 /* reading handwriting: Claude (inside Claude) or on-device OCR (standalone) */
 const canRead = () => !!(sampleImages || !inViewer);
