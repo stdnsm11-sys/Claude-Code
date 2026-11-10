@@ -20,7 +20,7 @@ Open `index.html` in any browser (no install). `app.html` is the same page witho
 
 ## Listen & Remember: Goals 1 and 2
 1. Choose the goal, what you present (3–5 sentences, a **passage**, classroom directions, teacher information), the theme and how many key details to check (4, 5, 6 or all). Goal 2 hides the 3–5 sentence option because it targets extended information.
-2. **Passage length:** two sliders set the number of paragraphs (1–5) and the sentences in each paragraph (5–7). Each theme has its own multi-paragraph story: *Flynn's Day at the Dog Park*, *The Big Concert*, *The Comic Club Contest* and *A Visit to the Animal Rescue*.
+2. **Passage length:** two sliders set the number of paragraphs (1–5) and the sentences in each paragraph (5–9). Each theme has its own multi-paragraph story: *Flynn's Day at the Dog Park*, *The Big Concert*, *The Comic Club Contest* and *A Visit to the Animal Rescue*.
 3. **How you present it:**
    - **We take turns reading (she sees the text):** the passage appears as a graphic-novel page with one comic panel per paragraph. Choose turns by paragraph or by sentence, and who reads first. A bar at the bottom says whose turn it is (pink for her, blue for you), and she taps **Next turn** after each one. Turn on **Blur my turns** to keep your parts blurred, so she reads her parts and listens to yours. That keeps listening practice in the shared reading.
    - **I read it aloud (text hidden):** the original listening task. Flynn shows "Listening ears on!" while you read.
