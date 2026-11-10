@@ -893,7 +893,8 @@ function bindRecorder(label){
         recStream.getTracks().forEach(t=>t.stop());
         const blob=new Blob(recChunks,{type:rec.mimeType||'audio/webm'}); const url=URL.createObjectURL(blob);
         const name=`${S.student.replace(/\W/g,'')}-sample-${today()}-${label.replace(/\W+/g,'-').slice(0,30)}.webm`;
-        const out=$('#recOut'); if(out) out.innerHTML=`<audio controls src="${url}"></audio> <a class="chip" href="${url}" download="${name}">💾 Save sample</a>`;
+        const out=$('#recOut'); if(out) out.innerHTML=`<audio controls src="${url}"></audio> <button class="chip" id="saveRec">💾 Save sample</button>`;
+        bind('saveRec',()=>download(name,blob,'audio/webm'));
         if(P) P.sampled=true;
         btn.textContent='🎙️ Record again'; btn.setAttribute('aria-pressed','false');
       };
@@ -1286,8 +1287,19 @@ function viewData(){
   bind('restore',()=>$('#restoreFile').click());
   bind('clear',()=>{ if(confirm('Delete ALL data entries? (Export a backup first!)')&&confirm('Are you sure? This cannot be undone.')){ store.log=[]; save(); viewData(); } });
 }
-function download(name,text,type){
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+/* Saves a file. Inside the claude.ai viewer, plain download links are blocked, so use the
+   platform's downloads capability there; when opened as a local file, use a normal link. */
+let dlReady=null;
+async function download(name,data,type){
+  if(window.claude&&window.claude.use){
+    dlReady=dlReady||window.claude.use('downloads').catch(()=>null);
+    const dl=await dlReady;
+    if(!dl){ toast('Saving files is not available here.'); return; }
+    try{ await dl.save({filename:name,data:data instanceof Blob?data:new Blob([data],{type})}); toast('💾 Saved '+name); }
+    catch(e){ if(e&&e.code==='declined') return; toast(e&&e.code==='rate_limited'?'Please wait a moment, then try again.':'Could not save the file.'); }
+    return;
+  }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
 }
 function exportCSV(){
   const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
