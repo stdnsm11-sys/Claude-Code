@@ -182,6 +182,72 @@ button{cursor:pointer;color:var(--ink)}
 .nr-steps button:hover{background:var(--todo-s);color:var(--todo)}
 .nr-empty{color:var(--muted);font-size:.9rem;margin:0}
 
+/* screens: Schedule · Talk · Timer · Show one */
+.modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:5px}
+.modes button{position:relative;border:0;background:none;border-radius:15px;min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--display);font-weight:600;font-size:clamp(.85rem,2.2vw,1.1rem);color:var(--ink)}
+.modes button .e{font-size:1.5em}
+.modes button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.modes .mini{position:absolute;top:-8px;right:6px;background:var(--todo);color:#fff;border-radius:999px;font-family:var(--body);font-size:.72rem;font-weight:700;padding:1px 7px;font-variant-numeric:tabular-nums}
+.scr{display:flex;flex-direction:column;gap:16px}
+@media (max-width:560px){ .modes button{flex-direction:column;gap:0;min-height:58px;font-size:.8rem} .modes button .e{font-size:1.4em} }
+
+/* talk board: cells coloured by kind of word, sentence strip at the bottom */
+:root{--k-people:#ffe066;--k-action:#8ce99a;--k-describe:#a5d8ff;--k-things:#ffc078;--k-social:#fcc2d7;--k-question:#d0bfff;--k-no:#ffa8a8;--k-little:#e9ecef;--strip:#e8590c}
+.booktabs{display:flex;gap:4px;overflow-x:auto;padding:0 2px;scrollbar-width:thin}
+.booktabs button{flex:0 0 auto;border:2px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--quiet);color:var(--ink);padding:8px 14px 6px;font-weight:700;display:flex;align-items:center;gap:6px;min-height:46px}
+.booktabs button .e{font-size:1.3em}
+.booktabs button[aria-selected="true"]{background:var(--card);border-color:var(--accent);box-shadow:inset 0 4px 0 var(--accent)}
+.talkpage{background:var(--card);border:2px solid var(--line);border-radius:0 18px 18px 18px;padding:12px;margin-top:-16px}
+.talkgrid{display:grid;grid-template-columns:repeat(var(--cols,5),minmax(0,1fr));gap:8px}
+.tcell{border:3px solid rgba(20,24,40,.55);border-radius:14px;background:var(--kc,#fff);color:#1d1f2b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  aspect-ratio:1/1;padding:6px 4px;font-family:var(--display);font-weight:600;font-size:clamp(.8rem,2vw,1.15rem);line-height:1.05;text-align:center;touch-action:manipulation;min-width:0}
+.tcell .e{font-size:clamp(1.8rem,5.2vw,3rem)}
+.tcell:active{transform:scale(.96)}
+.tcell span.w{overflow-wrap:anywhere}
+.label-top .tcell span.w,.label-top .tile .word{order:-1}
+.keyrow{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--on-muted)}
+.keyrow span{display:inline-flex;align-items:center;gap:6px}
+.keyrow i{width:16px;height:16px;border-radius:5px;border:2px solid rgba(20,24,40,.45)}
+.talk-top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px}
+.strip{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;align-items:center;gap:8px;background:var(--strip);border-radius:20px;padding:8px;box-shadow:0 6px 18px rgba(20,24,40,.25)}
+.strip-words{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto;min-height:64px;align-items:center;background:#fff;border-radius:14px;padding:4px 6px;scrollbar-width:thin}
+.strip-words .hint{color:#8a5a3a;font-size:.9rem;padding-left:6px}
+.schip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;border:2px solid rgba(20,24,40,.4);border-radius:10px;background:var(--kc,#fff);padding:2px 8px;min-width:54px;font-weight:700;font-size:.78rem;color:#1d1f2b}
+.schip .e{font-size:1.6rem}
+.strip > button{border:0;border-radius:14px;min-width:54px;min-height:56px;background:rgba(255,255,255,.22);color:#fff;font-weight:700;font-size:1.3rem}
+.strip > button.speak{background:#fff;color:var(--strip);font-family:var(--display);font-size:1.1rem;padding:0 16px;display:flex;align-items:center;gap:6px}
+
+/* picture timer */
+.timer-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:center;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:24px;padding:20px}
+.tface{position:relative;width:100%;max-width:440px;aspect-ratio:1;margin:0 auto}
+.tface svg{width:100%;height:100%}
+.tsym{position:absolute;inset:30%;border-radius:50%;background:#fff;border:5px solid #1d1f2b;display:grid;place-items:center;overflow:hidden;font-family:var(--emoji);font-size:clamp(2.5rem,9vw,5.5rem)}
+.tsym img{width:100%;height:100%;object-fit:cover}
+.tface.ding{animation:ding .5s ease-in-out 3}
+@keyframes ding{50%{transform:scale(1.04) rotate(2deg)}}
+.tside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tdigits{font-family:var(--display);font-weight:700;font-size:clamp(3rem,10vw,6rem);line-height:1;font-variant-numeric:tabular-nums}
+.tlabel{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0}
+.tlabel small{display:block;font-family:var(--body);font-size:.9rem;color:var(--muted);font-weight:700}
+.tside .btn.big{min-height:60px;font-size:1.2rem;padding:10px 26px}
+@media (max-width:640px){ .timer-wrap{grid-template-columns:1fr} }
+
+/* show one symbol big */
+.symgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.symgrid .tcell{--kc:#fff}
+.bigsym{position:fixed;inset:0;z-index:35;background:#fff;color:#1d1f2b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:24px;border:0;width:100%;text-align:center}
+.bigsym .bs-pic{font-family:var(--emoji);font-size:min(52vh,62vw);line-height:1}
+.bigsym .bs-pic img{width:min(56vh,80vw);height:min(56vh,80vw);object-fit:cover;border-radius:24px}
+.bigsym .bs-word{font-family:var(--display);font-weight:700;font-size:clamp(2.2rem,9vw,6rem);line-height:1}
+.bs-close{z-index:36;position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));border:2px solid #ccc;background:#fff;border-radius:999px;min-width:56px;min-height:56px;font-size:1.4rem;font-weight:700;color:#1d1f2b}
+.bigsym .bs-hint{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom,0px));color:#888;font-size:.9rem}
+
+/* now · next · then · reward */
+.tile.reward{border-color:#f2b705;background:#fff8db}
+.tile.reward .badge{background:#f2b705}
+.ft-col .btn{font-size:.9rem;min-height:40px}
+
 /* tile editor */
 .sheet{position:fixed;inset:0;background:rgba(20,24,40,.5);display:grid;place-items:center;z-index:25;padding:16px;overflow-y:auto}
 .sheet .box{background:var(--card);color:var(--ink);border-radius:26px;padding:20px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow-y:auto}
@@ -339,22 +405,31 @@ button{cursor:pointer;color:var(--ink)}
     <div class="hello">
       <small id="today">Today</small>
       <h1><span class="e" id="partIcon" aria-hidden="true">🌅</span><span id="greet">Good morning!</span></h1>
-      <div class="seg week" role="group" aria-label="Kind of day">
+      <div class="seg week sch-only" role="group" aria-label="Kind of day">
         <button type="button" data-mode="school" aria-pressed="true"><span class="e" aria-hidden="true">🏫</span> School day</button>
         <button type="button" data-mode="weekend" aria-pressed="false"><span class="e" aria-hidden="true">🏡</span> Weekend</button>
       </div>
     </div>
     <div class="tools">
-      <button class="btn" id="readAll" type="button"><span class="e">🔊</span> Read it</button>
-      <button class="btn" id="printBtn" type="button"><span class="e">🖨️</span> Print</button>
-      <div class="seg" role="group" aria-label="Board view">
+      <button class="btn sch-only" id="readAll" type="button"><span class="e">🔊</span> Read it</button>
+      <button class="btn sch-only" id="printBtn" type="button"><span class="e">🖨️</span> Print</button>
+      <div class="seg sch-only" role="group" aria-label="Board view">
         <button type="button" id="vAll" aria-pressed="true">All steps</button>
-        <button type="button" id="vFT" aria-pressed="false">First / Then</button>
+        <button type="button" id="vFT" aria-pressed="false">Now &amp; Next</button>
+        <button type="button" id="vNNT" aria-pressed="false">Now · Next · Then</button>
       </div>
       <button class="btn hold" id="adultBtn" type="button" aria-pressed="false" title="Press and hold to open Parent mode"><span class="e">🔒</span> Parent</button>
     </div>
   </header>
 
+  <nav class="modes" id="modes" role="tablist" aria-label="Screens">
+    <button type="button" role="tab" data-scr="schedule" aria-selected="true"><span class="e" aria-hidden="true">📅</span> Schedule</button>
+    <button type="button" role="tab" data-scr="talk" aria-selected="false"><span class="e" aria-hidden="true">💬</span> Talk</button>
+    <button type="button" role="tab" data-scr="timer" aria-selected="false"><span class="e" aria-hidden="true">⏱️</span> Timer<span class="mini" id="timerMini" hidden></span></button>
+    <button type="button" role="tab" data-scr="symbol" aria-selected="false"><span class="e" aria-hidden="true">🖼️</span> Show one</button>
+  </nav>
+
+  <div class="scr" id="scrSchedule">
   <div class="parentbar" id="parentbar" hidden>
     <p>Parent mode is on <small>Green button: break a tile into small steps right in the routine. Under each tile: ✏️ change it, 🔄 new picture, 📷 photo, 🧩 more choices (or press and hold the tile), 🗑 remove, ◀ ▶ move. Changes save by themselves.</small></p>
     <button class="btn" id="parentDone" type="button">Done</button>
@@ -435,6 +510,10 @@ button{cursor:pointer;color:var(--ink)}
           <label class="toggle"><input type="checkbox" id="speakOn" checked> Say things out loud</label>
           <label class="toggle"><input type="checkbox" id="cheerOn" checked> Celebrate and show what's next when a routine is done</label>
           <label class="toggle"><input type="checkbox" id="rocketOn" checked> 🚀 Rocket launch (with sound) when a routine is done</label>
+          <label class="toggle"><input type="checkbox" id="labelTop"> Words above the pictures</label>
+          <label class="field" style="width:100%;max-width:340px">Reward at the end (Now &amp; Next views)
+            <select id="rewardSel"></select>
+          </label>
         </div>
       </div>
       <div>
@@ -464,7 +543,81 @@ button{cursor:pointer;color:var(--ink)}
     </div>
 
   </section>
+  </div>
+
+  <section class="scr" id="scrTalk" hidden aria-label="Talk board">
+    <div class="talk-top">
+      <div class="booktabs" id="talkTabs" role="tablist" aria-label="Talk pages"></div>
+      <div class="seg" role="group" aria-label="Cells across" id="talkCols">
+        <button type="button" data-cols="3">Big</button>
+        <button type="button" data-cols="4">4</button>
+        <button type="button" data-cols="5">5</button>
+        <button type="button" data-cols="6">6 across</button>
+      </div>
+    </div>
+    <div class="talkpage"><div class="talkgrid" id="talkGrid"></div></div>
+    <div class="keyrow" id="talkKey" aria-label="What the colors mean"></div>
+    <div class="strip" aria-label="Sentence">
+      <div class="strip-words" id="stripWords"></div>
+      <button type="button" id="stripBack" aria-label="Remove the last word">⌫</button>
+      <button type="button" id="stripClear" aria-label="Clear the sentence">✕</button>
+      <button type="button" class="speak" id="stripSpeak"><span class="e" aria-hidden="true">🔊</span> Speak</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrTimer" hidden aria-label="Timer">
+    <div class="timer-wrap">
+      <div class="tface" id="tFace">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="96" fill="#fff" stroke="#1d1f2b" stroke-width="5"/>
+          <g id="tTicks"></g>
+          <path id="tWedge" d="" fill="#e03131"/>
+        </svg>
+        <div class="tsym" id="tSym">⏳</div>
+      </div>
+      <div class="tside">
+        <div class="tdigits" id="tDigits" aria-live="off">5:00</div>
+        <p class="tlabel" id="tLabel"><small>Now</small>Wait</p>
+        <div class="row">
+          <button class="btn go big" id="tGo" type="button">▶ Start</button>
+          <button class="btn" id="tReset" type="button">↺ Reset</button>
+        </div>
+        <div class="row" id="tPresets">
+          <button class="chip" type="button" data-min="1">1 min</button>
+          <button class="chip" type="button" data-min="2">2 min</button>
+          <button class="chip" type="button" data-min="3">3 min</button>
+          <button class="chip" type="button" data-min="5">5 min</button>
+          <button class="chip" type="button" data-min="10">10 min</button>
+          <button class="chip" type="button" data-min="15">15 min</button>
+          <button class="chip" type="button" data-add="-1">− 1</button>
+          <button class="chip" type="button" data-add="1">+ 1</button>
+        </div>
+        <label class="field">Picture in the timer
+          <select id="tPicSel"></select>
+        </label>
+        <div class="row">
+          <span class="field">Timer color</span>
+          <div class="seg" role="group" aria-label="Timer color" id="tColors">
+            <button type="button" data-tc="#e03131">Red</button>
+            <button type="button" data-tc="#1c7ed6">Blue</button>
+            <button type="button" data-tc="#2f9e44">Green</button>
+            <button type="button" data-tc="#7048e8">Purple</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scr" id="scrSymbol" hidden aria-label="Show one picture">
+    <label class="nr-search"><span class="e" aria-hidden="true">🔍</span>
+      <input id="symQ" type="search" autocomplete="off" placeholder="Find a picture to show big: quiet, wait, toilet, stop…" aria-label="Find a picture">
+    </label>
+    <p class="hint" style="margin:0;color:var(--on-muted)">Tap a picture to show it on the whole screen. Tap the big picture to hear it.</p>
+    <div class="symgrid" id="symGrid"></div>
+  </section>
 </div>
+<button type="button" class="bigsym" id="bigSym" hidden aria-label="Big picture. Tap to hear it."><span class="bs-pic" id="bsPic"></span><span class="bs-word" id="bsWord"></span><span class="bs-hint">Tap to hear it · ✕ to close</span></button>
+<button type="button" class="bs-close" id="bsClose" hidden aria-label="Close">✕</button>
 
 <div class="cheer" id="cheer" hidden role="dialog" aria-modal="true" aria-labelledby="cheerH">
   <div class="box">
@@ -796,6 +949,9 @@ if (S.mode !== "weekend") S.mode = "school";
 if (S.autoWeek === undefined) S.autoWeek = true;
 if (![1,2,3,4].includes(S.level)) S.level = 3;
 if (S.rocket === undefined) S.rocket = true;
+if (!["schedule","talk","timer","symbol"].includes(S.screen)) S.screen = "schedule";
+if (![3,4,5,6].includes(S.talkCols)) S.talkCols = 5;
+if (!S.timerColor) S.timerColor = "#e03131";
 Object.keys(TPL).forEach(n => { if (!S.seeded.includes(n)){ insertTemplate(n); S.seeded.push(n); } });
 // Saving is batched: many quick taps become one write, and anything pending is written when the page is hidden or closed.
 let saveT = null;
@@ -970,6 +1126,7 @@ function ctlHTML(t, i, n){
 const dateFmt = new Intl.DateTimeFormat(undefined, {weekday:"long", month:"long", day:"numeric"});
 
 function render(animate){
+  renderScreens();
   const P = PART[S.part], r = cur(), now = clockPart();
   document.documentElement.dataset.part = S.part;
   document.documentElement.style.setProperty("--tile-base", {s:"128px", m:"168px", l:"220px"}[S.size] || "168px");
@@ -1016,19 +1173,25 @@ function render(animate){
       <span class="path">${names.map((n, k) => k === names.length - 1 ? `<span class="here">${esc(n)}</span>` : `<button type="button" data-depth="${k}">${esc(n)}</button> ›`).join(" ")}</span>
       ${arr.length && adult ? `<button type="button" class="btn go inline" data-inline="1"><span class="e">📋</span> Put these ${arr.length} steps in ${esc(names[names.length - 2])}</button>` : ""}`);
   }
-  $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft");
+  $("vAll").setAttribute("aria-pressed", S.view === "all"); $("vFT").setAttribute("aria-pressed", S.view === "ft"); $("vNNT").setAttribute("aria-pressed", S.view === "nnt");
   const board = $("board");
-  board.classList.toggle("firstthen", S.view === "ft" && arr.length > 0);
+  const nn = S.view === "ft" || S.view === "nnt";
+  board.classList.toggle("firstthen", nn && arr.length > 0);
   if (!r){
     setKids(board, [`<p class="empty"><b>No routines here yet.</b> Open <b>Parent</b> mode (press and hold), then add a ready-made or blank routine for the ${P.name.toLowerCase()}.</p>`]);
   } else if (!arr.length && !adult){
     setKids(board, [`<p class="empty"><b>No steps here yet.</b> Open <b>Parent</b> mode (press and hold) to add tiles.</p>`]);
   } else {
     const tiles = arr, nowI = tiles.findIndex(t => st(t) !== "done");
-    if (S.view === "ft" && tiles.length){
-      const a = nowI < 0 ? tiles.length - 1 : nowI, b = a + 1;
-      const h = [`<div class="ft-col"><h3>First</h3><div class="cell">${tileHTML(tiles[a], a)}${adult ? ctlHTML(tiles[a], a, tiles.length) : ""}</div></div>`];
-      if (b < tiles.length) h.push(`<div class="ft-arrow" aria-hidden="true">➜</div>`, `<div class="ft-col"><h3>Then</h3><div class="cell">${tileHTML(tiles[b], b)}${adult ? ctlHTML(tiles[b], b, tiles.length) : ""}</div></div>`);
+    if (nn && tiles.length){
+      // Now & Next (2 cards) or Now · Next · Then (3 cards), then the reward card if one is set
+      const a = nowI < 0 ? tiles.length - 1 : nowI, heads = ["Now", "Next", "Then"], h = [];
+      for (let k = 0; k < (S.view === "nnt" ? 3 : 2) && a + k < tiles.length; k++){
+        if (k) h.push(`<div class="ft-arrow" aria-hidden="true">➜</div>`);
+        h.push(`<div class="ft-col"><h3>${heads[k]}</h3><div class="cell">${tileHTML(tiles[a + k], a + k)}${adult ? ctlHTML(tiles[a + k], a + k, tiles.length) : ""}</div>${k === 0 ? `<button type="button" class="btn" data-timer="${tiles[a].id}"><span class="e">⏱️</span> Timer</button>` : ""}</div>`);
+      }
+      const rw = REWARDS.find(x => x[1] === S.reward);
+      if (rw) h.push(`<div class="ft-arrow" aria-hidden="true">➜</div>`, `<div class="ft-col"><h3>Reward</h3><div class="cell"><button type="button" class="tile reward" data-reward="1" data-s="todo"><span class="badge">★</span><span class="pic"><span class="emo" aria-hidden="true">${rw[0]}</span></span><span class="word">${esc(rw[1])}</span></button></div></div>`);
       setKids(board, h);
     } else {
       setKids(board, tiles.map((t, i) => `<div class="cell">${tileHTML(t, i, nowI < 0 ? "" : i === nowI ? "Now" : i === nowI + 1 ? "Next" : "")}${adult ? ctlHTML(t, i, tiles.length) : ""}</div>`)
@@ -1066,7 +1229,8 @@ function renderPanel(r){
     return `<button type="button" class="chip" data-ready="${esc(n)}" aria-pressed="${have}"><span class="e">${ic}</span> ${esc(n)}${have ? " ✓" : ""}</button>`;
   }).join(""));
   $("followClock").checked = S.followClock; $("newDay").checked = S.newDay; $("autoWeek").checked = S.autoWeek; $("tapCycles").checked = S.tapCycles;
-  $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rocketOn").checked = S.rocket; $("rate").value = S.rate;
+  $("speakOn").checked = S.speak; $("cheerOn").checked = S.cheer; $("rocketOn").checked = S.rocket; $("labelTop").checked = !!S.labelTop;
+  setHTML($("rewardSel"), `<option value="">No reward card</option>` + REWARDS.map(x => `<option value="${esc(x[1])}">${x[0]} ${esc(x[1])}</option>`).join("")); $("rewardSel").value = S.reward || ""; $("rate").value = S.rate;
   document.querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-pressed", b.dataset.size === S.size));
   $("levelSel").value = S.level;
   renderLib();
@@ -1254,6 +1418,9 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("cheer"
 
 $("board").addEventListener("click", e => {
   if (lpFired){ lpFired = false; return; }
+  const tm = e.target.closest("[data-timer]");
+  if (tm){ const L0 = list(), t0 = L0 && L0.arr.find(x => x.id === tm.dataset.timer); timerFor(t0); return; }
+  if (e.target.closest("[data-reward]")){ const rw = REWARDS.find(x => x[1] === S.reward); if (rw) speak(`Then, ${lc(rw[2])}!`); return; }
   const L = list(); if (!L) return; const tiles = L.arr;
   if (e.target.closest("#addTile")) return openEditor(null);
   const ctl = e.target.closest(".ctl button");
@@ -1295,11 +1462,13 @@ $("board").addEventListener("contextmenu", e => {
 $("readAll").onclick = () => {
   const L = list(); if (!L || !L.arr.length) return speak(PART[S.part].greet);
   const ts = L.arr, i = ts.findIndex(t => st(t) !== "done"), name = L.trail.length ? L.trail[L.trail.length - 1].label : L.r.name;
-  if (S.view === "ft" && i >= 0) speak(`First, ${lc(ts[i].say)}.` + (ts[i+1] ? ` Then, ${lc(ts[i+1].say)}.` : ""));
+  const rw = REWARDS.find(x => x[1] === S.reward);
+  if ((S.view === "ft" || S.view === "nnt") && i >= 0) speak(`Now, ${lc(ts[i].say)}.` + (ts[i+1] ? ` Next, ${lc(ts[i+1].say)}.` : "") + (S.view === "nnt" && ts[i+2] ? ` Then, ${lc(ts[i+2].say)}.` : "") + (rw ? ` Then, ${lc(rw[2])}!` : ""));
   else speak(`${name}. ` + ts.map((t, k) => (k === 0 ? "First, " : k === ts.length - 1 ? "Last, " : "Next, ") + lc(t.say)).join(". ") + ".");
 };
 $("vAll").onclick = () => { S.view = "all"; save(); render(true); };
 $("vFT").onclick = () => { S.view = "ft"; save(); render(true); };
+$("vNNT").onclick = () => { S.view = "nnt"; save(); render(true); };
 // Parent mode opens with a press-and-hold so a child's quick tap doesn't open it. Keyboard users open it directly.
 let holdT = null, held = false;
 const ab = $("adultBtn");
@@ -1368,6 +1537,8 @@ document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
 $("tapCycles").onchange = e => { S.tapCycles = e.target.checked; save(); };
 $("speakOn").onchange = e => { S.speak = e.target.checked; save(); };
 $("cheerOn").onchange = e => { S.cheer = e.target.checked; save(); };
+$("labelTop").onchange = e => { S.labelTop = e.target.checked; save(); render(); };
+$("rewardSel").onchange = e => { S.reward = e.target.value || null; save(); render(); };
 $("rocketOn").onchange = e => { S.rocket = e.target.checked; save(); if (S.rocket) launchRocket(1); };
 $("rate").onchange = e => { S.rate = +e.target.value; save(); speak("This is how I sound."); };
 document.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { S.size = b.dataset.size; save(); render(); });
@@ -1385,6 +1556,188 @@ $("lib").onclick = e => {
   const r = L.r, [em,l,s] = LIB[cat][+b.dataset.i]; L.arr.push(mk(em,l,s)); if (!L.trail.length && r.icon === "⭐" && r.tiles.length === 1) r.icon = em;
   save(); render(); toast(`Added “${l}”.`);
 };
+
+/* ---------- screens: Schedule · Talk · Timer · Show one ---------- */
+const REWARDS = [["⭐","Choice time","choice time"],["📱","Tablet","tablet time"],["🍪","Treat","a treat"],["🛝","Playground","the playground"],["🫧","Bubbles","bubbles"],
+  ["🎵","Music","music"],["📺","TV","TV time"],["🧸","Favorite toy","your favorite toy"],["🌟","Sticker","a sticker"],["🤗","Big hug","a big hug"]];
+// Talk pages. Each cell: [emoji, word, kind]. Kinds follow the usual AAC color key.
+const KINDS = {people:["People","--k-people"], action:["Actions","--k-action"], describe:["Describing","--k-describe"], things:["Things","--k-things"],
+  social:["Social","--k-social"], question:["Questions","--k-question"], no:["No and stop","--k-no"], little:["Little words","--k-little"]};
+const TALK = [
+  {name:"Core", icon:"⭐", cells:[
+    ["🙋","I","people"],["👉","you","people"],["👤","my","people"],["🤲","want","action"],["🚶","go","action"],["🛑","stop","no"],["🤝","help","action"],["➕","more","describe"],
+    ["✅","all done","social"],["❌","no","no"],["👍","yes","social"],["👍","like","action"],["🚫","don't","no"],["🍽️","eat","action"],["🥤","drink","action"],["🧸","play","action"],
+    ["👀","look","action"],["🫴","come","action"],["📂","open","action"],["📥","put","action"],["🔁","again","little"],["📦","in","little"],["⬆️","up","little"],["⬇️","down","little"],
+    ["👆","that","little"],["📍","here","little"],["😊","happy","describe"],["😢","sad","describe"],["🤕","hurt","describe"],["🐘","big","describe"],["🐭","little","describe"],["🚽","toilet","things"],
+    ["💧","water","things"],["🛋️","break","things"],["❓","what","question"],["🗺️","where","question"],["👋","hello","social"],["🙏","please","social"],["💛","thank you","social"],["⏳","wait","action"]]},
+  {name:"Feelings", icon:"😊", cells:[
+    ["🙋","I","people"],["❤️","feel","action"],["😊","happy","describe"],["😢","sad","describe"],["😠","mad","describe"],["😨","scared","describe"],["🥱","tired","describe"],["🤕","hurt","describe"],
+    ["🤒","sick","describe"],["🤩","excited","describe"],["😌","calm","describe"],["🤪","silly","describe"],["😤","frustrated","describe"],["🥰","love","action"],["🙉","too loud","describe"],["🤗","hug","things"],
+    ["🛋️","break","things"],["🎧","headphones","things"],["🌬️","breathe","action"],["🤝","help","action"],["❌","no","no"],["🛑","stop","no"],["✅","all done","social"],["🙏","please","social"]]},
+  {name:"Food", icon:"🍎", cells:[
+    ["🤲","want","action"],["🍽️","eat","action"],["🥤","drink","action"],["➕","more","describe"],["✅","all done","social"],["❌","no","no"],["🙏","please","social"],["💛","thank you","social"],
+    ["💧","water","things"],["🥛","milk","things"],["🧃","juice","things"],["🍎","apple","things"],["🍌","banana","things"],["🍇","grapes","things"],["🥕","carrot","things"],["🧀","cheese","things"],
+    ["🍘","crackers","things"],["🥣","yogurt","things"],["🍗","chicken","things"],["🍕","pizza","things"],["🍝","pasta","things"],["🥪","sandwich","things"],["🍟","fries","things"],["🍪","cookie","things"],
+    ["🔥","hot","describe"],["🧊","cold","describe"],["😋","yummy","describe"],["🤢","yucky","describe"],["🤤","hungry","describe"],["🤝","help","action"],["📂","open","action"],["🥄","spoon","things"]]},
+  {name:"Play", icon:"🧸", cells:[
+    ["🙋","I","people"],["🤲","want","action"],["🧸","play","action"],["☝️","my turn","people"],["👉","your turn","people"],["➕","more","describe"],["🔁","again","little"],["✅","all done","social"],
+    ["🛑","stop","no"],["🚶","go","action"],["🧱","blocks","things"],["⚽","ball","things"],["🚗","cars","things"],["🚂","trains","things"],["🫧","bubbles","things"],["🧩","puzzle","things"],
+    ["🖍️","color","action"],["🎨","paint","action"],["📖","book","things"],["🎵","music","things"],["🛝","slide","things"],["🎢","swing","things"],["🌳","outside","things"],["📱","tablet","things"],
+    ["🐇","fast","describe"],["🐢","slow","describe"],["⬆️","up","little"],["⬇️","down","little"],["🤝","help","action"],["👀","look","action"]]},
+  {name:"Needs", icon:"🚽", cells:[
+    ["🙋","I","people"],["🙏","need","action"],["🚽","toilet","things"],["🤝","help","action"],["🛋️","break","things"],["💧","water","things"],["🤤","hungry","describe"],["🥤","thirsty","describe"],
+    ["🥱","tired","describe"],["🤕","hurt","describe"],["🤒","sick","describe"],["🤫","quiet","describe"],["🙉","too loud","describe"],["🎧","headphones","things"],["🤗","hug","things"],["⏳","wait","action"],
+    ["🧼","wash hands","action"],["🤧","tissue","things"],["🔥","hot","describe"],["🧊","cold","describe"],["🛑","stop","no"],["❌","no","no"],["✅","all done","social"],["🙏","please","social"]]},
+  {name:"People", icon:"👨‍👩‍👧", cells:[
+    ["🙋","I","people"],["👉","you","people"],["👩","Mom","people"],["👨","Dad","people"],["👩‍🏫","teacher","people"],["🧒","friend","people"],["👶","baby","people"],["👦","brother","people"],
+    ["👧","sister","people"],["👵","Grandma","people"],["👴","Grandpa","people"],["👩‍⚕️","doctor","people"],["🐶","dog","things"],["🐱","cat","things"],["👋","hello","social"],["🙋","bye-bye","social"],
+    ["❓","who","question"],["🗺️","where","question"],["🫴","come","action"],["🤗","hug","things"],["🧸","play","action"],["💛","thank you","social"],["🙏","please","social"],["😔","sorry","social"]]},
+  {name:"Places", icon:"🏠", cells:[
+    ["🚶","go","action"],["🤲","want","action"],["🏠","home","things"],["🏫","school","things"],["🌳","outside","things"],["🏞️","park","things"],["🛝","playground","things"],["🛒","store","things"],
+    ["🚗","car","things"],["🚌","bus","things"],["🚻","bathroom","things"],["🛏️","bedroom","things"],["🍳","kitchen","things"],["👵","Grandma's","things"],["🏥","doctor's office","things"],["📚","library","things"],
+    ["🏊","pool","things"],["🍔","restaurant","things"],["🗺️","where","question"],["❓","what","question"],["🛑","stop","no"],["⏳","wait","action"],["✅","all done","social"],["🔁","again","little"]]}
+];
+let talkPage = 0, strip = [];
+function renderScreens(){
+  const sc = S.screen;
+  document.documentElement.classList.toggle("label-top", !!S.labelTop);
+  document.querySelectorAll("#modes [data-scr]").forEach(b => b.setAttribute("aria-selected", b.dataset.scr === sc));
+  $("scrSchedule").hidden = sc !== "schedule"; $("scrTalk").hidden = sc !== "talk"; $("scrTimer").hidden = sc !== "timer"; $("scrSymbol").hidden = sc !== "symbol";
+  document.querySelectorAll(".sch-only").forEach(el => el.hidden = sc !== "schedule");
+  if (sc === "talk") renderTalk();
+  if (sc === "timer") renderTimer();
+  if (sc === "symbol") renderSymbols();
+}
+$("modes").onclick = e => {
+  const b = e.target.closest("[data-scr]"); if (!b || b.dataset.scr === S.screen) return;
+  S.screen = b.dataset.scr; save(); render(true);
+};
+
+/* Talk board */
+const talkCols = () => innerWidth < 560 ? Math.min(S.talkCols, 4) : S.talkCols;
+function cellHTML(c, i){ return `<button type="button" class="tcell" data-ci="${i}" style="--kc:var(${KINDS[c[2]][1]})"><span class="e" aria-hidden="true">${c[0]}</span><span class="w">${esc(c[1])}</span></button>`; }
+function renderTalk(){
+  setHTML($("talkTabs"), TALK.map((p, i) => `<button type="button" role="tab" data-tp="${i}" aria-selected="${i === talkPage}"><span class="e" aria-hidden="true">${p.icon}</span>${esc(p.name)}</button>`).join(""));
+  $("talkGrid").style.setProperty("--cols", talkCols());
+  document.querySelectorAll("#talkCols [data-cols]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.cols === S.talkCols));
+  setHTML($("talkGrid"), TALK[talkPage].cells.map(cellHTML).join(""));
+  setHTML($("talkKey"), Object.values(KINDS).map(([n, v]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join(""));
+  renderStrip();
+}
+function renderStrip(){
+  setHTML($("stripWords"), strip.length ? strip.map((c, i) => `<button type="button" class="schip" data-si="${i}" style="--kc:var(${KINDS[c[2]][1]})"><span class="e" aria-hidden="true">${c[0]}</span>${esc(c[1])}</button>`).join("")
+    : `<span class="hint">Tap pictures to make a sentence, then tap Speak.</span>`);
+  const w = $("stripWords"); w.scrollLeft = w.scrollWidth;
+}
+$("talkTabs").onclick = e => { const b = e.target.closest("[data-tp]"); if (b){ talkPage = +b.dataset.tp; renderTalk(); } };
+$("talkCols").onclick = e => { const b = e.target.closest("[data-cols]"); if (b){ S.talkCols = +b.dataset.cols; save(); renderTalk(); } };
+$("talkGrid").onclick = e => {
+  const b = e.target.closest("[data-ci]"); if (!b) return;
+  const c = TALK[talkPage].cells[+b.dataset.ci]; strip.push(c); speak(c[1]); renderStrip();
+};
+$("stripWords").onclick = e => { const b = e.target.closest("[data-si]"); if (b) speak(strip[+b.dataset.si][1]); };
+$("stripBack").onclick = () => { strip.pop(); renderStrip(); };
+$("stripClear").onclick = () => { strip = []; renderStrip(); };
+$("stripSpeak").onclick = () => { if (strip.length) speak(strip.map(c => c[1]).join(" ")); };
+addEventListener("resize", () => { if (S.screen === "talk") $("talkGrid").style.setProperty("--cols", talkCols()); });
+
+/* Picture timer: a colored disc that shrinks as time runs out, with the activity's picture in the middle */
+const TMR = {total:5 * 60000, left:5 * 60000, end:0, running:false, pic:null, iv:null};
+const TPICS = [["now","Now step"],["wait","⏳ Wait"],["tablet","📱 Tablet"],["play","🧸 Play"],["clean","🧹 Clean up"],["bath","🛁 Bath"],["eat","🍽️ Eat"],["rest","😴 Rest"]];
+const TPICMAP = {wait:["⏳","Wait","wait"], tablet:["📱","Tablet","tablet time"], play:["🧸","Play","play time"], clean:["🧹","Clean up","clean up"], bath:["🛁","Bath","bath time"], eat:["🍽️","Eat","eat"], rest:["😴","Rest","rest"]};
+let tPicKey = "now";
+function nowTile(){ const L = list(); if (!L || !L.arr.length) return null; return L.arr.find(t => st(t) !== "done") || null; }
+function timerPic(){
+  if (TMR.pic) return TMR.pic;
+  if (tPicKey !== "now"){ const x = TPICMAP[tPicKey]; return {emoji:x[0], label:x[1], say:x[2]}; }
+  return nowTile() || {emoji:"⏳", label:"Wait", say:"wait"};
+}
+const fmt = ms => { const sec = Math.ceil(ms / 1000), m = Math.floor(sec / 60); return `${m}:${String(sec % 60).padStart(2, "0")}`; };
+function wedgePath(frac){
+  if (frac <= 0) return "";
+  if (frac >= 0.9999) return "M100,100 m-88,0 a88,88 0 1,0 176,0 a88,88 0 1,0 -176,0";
+  const a = frac * Math.PI * 2, x = 100 + 88 * Math.sin(a), y = 100 - 88 * Math.cos(a);
+  return `M100,100 L100,12 A88,88 0 ${frac > 0.5 ? 1 : 0},1 ${x.toFixed(2)},${y.toFixed(2)} Z`;
+}
+$("tTicks").innerHTML = Array.from({length:12}, (_, i) => { const a = i * Math.PI / 6, r1 = i % 3 ? 90 : 84; return `<line x1="${100 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${100 + 95 * Math.sin(a)}" y2="${100 - 95 * Math.cos(a)}" stroke="#1d1f2b" stroke-width="${i % 3 ? 2 : 4}"/>`; }).join("");
+function renderTimer(){
+  const p = timerPic(), frac = TMR.total ? TMR.left / TMR.total : 0;
+  $("tWedge").setAttribute("d", wedgePath(frac)); $("tWedge").setAttribute("fill", S.timerColor);
+  $("tDigits").textContent = fmt(TMR.left);
+  const im = imgSrc(p.photo) || imgSrc(p.img);
+  setHTML($("tSym"), im ? `<img src="${im}" alt="">` : esc(p.emoji || "⏳"));
+  const L = list(), nt = nowTile(), nx = nt && L ? L.arr[L.arr.indexOf(nt) + 1] : null;
+  setHTML($("tLabel"), `<small>${TMR.running ? "Now" : "Timer for"}</small>${esc(p.label)}${nx && !TMR.pic && tPicKey === "now" ? `<small style="margin-top:6px">When it ends: ${esc(nx.label)}</small>` : ""}`);
+  $("tGo").innerHTML = TMR.running ? "⏸ Pause" : TMR.left > 0 && TMR.left < TMR.total ? "▶ Keep going" : "▶ Start";
+  setHTML($("tPicSel"), TPICS.map(([k, n]) => `<option value="${k}">${n}</option>`).join("")); $("tPicSel").value = TMR.pic ? "now" : tPicKey;
+  document.querySelectorAll("#tColors [data-tc]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tc === S.timerColor));
+  const mini = $("timerMini"); mini.hidden = !TMR.running; if (TMR.running) mini.textContent = fmt(TMR.left);
+}
+function tick(){
+  if (!TMR.running) return;
+  TMR.left = Math.max(0, TMR.end - Date.now());
+  if (TMR.left <= 0){ TMR.running = false; clearInterval(TMR.iv); timerDone(); }
+  if (S.screen === "timer") renderTimer(); else { const mini = $("timerMini"); mini.hidden = !TMR.running; mini.textContent = fmt(TMR.left); }
+}
+function timerDone(){
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const a = audio, now = a.currentTime;
+    [0, 0.6, 1.2].forEach(d => [784, 1047].forEach((f, i) => { const o = a.createOscillator(), g = a.createGain(), t0 = now + d + i * 0.15;
+      o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+      o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + 0.55); }));
+  } catch(e){}
+  const L = list(), nt = nowTile(), nx = nt && L ? L.arr[L.arr.indexOf(nt) + 1] : null;
+  setTimeout(() => speak(`Time's up!${nx && tPicKey === "now" && !TMR.pic ? ` Next, ${lc(nx.say)}.` : ""}`), 1800);
+  const f = $("tFace"); f.classList.remove("ding"); void f.offsetWidth; f.classList.add("ding");
+  $("timerMini").hidden = true;
+}
+function setTimer(ms){ TMR.running = false; clearInterval(TMR.iv); TMR.total = TMR.left = Math.max(60000, Math.min(60 * 60000, ms)); renderTimer(); }
+$("tGo").onclick = () => {
+  if (TMR.running){ TMR.running = false; clearInterval(TMR.iv); TMR.left = Math.max(0, TMR.end - Date.now()); renderTimer(); return; }
+  if (TMR.left <= 0) TMR.left = TMR.total;
+  TMR.end = Date.now() + TMR.left; TMR.running = true; clearInterval(TMR.iv); TMR.iv = setInterval(tick, 250);
+  const p = timerPic(); speak(`${fmt(TMR.left).replace(/^(\d+):00$/, "$1 minutes")}. ${p.label}.`); renderTimer();
+};
+$("tReset").onclick = () => setTimer(TMR.total);
+$("tPresets").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.min) return setTimer(+b.dataset.min * 60000);
+  const add = +b.dataset.add * 60000;
+  if (TMR.running){ TMR.end += add; TMR.total = Math.max(TMR.total + add, 60000); tick(); }
+  else setTimer(TMR.total + add);
+};
+$("tPicSel").onchange = e => { tPicKey = e.target.value; TMR.pic = null; renderTimer(); };
+$("tColors").onclick = e => { const b = e.target.closest("[data-tc]"); if (b){ S.timerColor = b.dataset.tc; save(); renderTimer(); } };
+function timerFor(t){ if (t){ TMR.pic = t; } S.screen = "timer"; save(); render(); }
+
+/* Show one: a single picture filling the screen */
+const SYMS = (() => {
+  const seen = new Set(), out = [];
+  const add = (e, l, s) => { const k = l.toLowerCase(); if (seen.has(k)) return; seen.add(k); out.push([e, l, s || l]); };
+  ["Quiet voice","Wait","Stop","Listen","All done","Break","Help please","Walking feet","Hands to self","Sit on my spot","Line up","Clean up","Wash hands","Bathroom"].forEach(l => { if (PIC[l]) add(PIC[l][0], l, PIC[l][1]); });
+  TALK.forEach(p => p.cells.forEach(c => add(c[0], c[1], c[1])));
+  Object.values(LIB).flat().forEach(([e, l, s]) => add(e, l, s));
+  return out;
+})();
+function renderSymbols(){
+  const q = $("symQ").value.trim().toLowerCase();
+  const list2 = q ? SYMS.filter(x => (x[1] + " " + x[2]).toLowerCase().includes(q)) : SYMS;
+  setHTML($("symGrid"), list2.slice(0, 120).map(x => `<button type="button" class="tcell" data-sym="${esc(x[1])}"><span class="e" aria-hidden="true">${x[0]}</span><span class="w">${esc(x[1])}</span></button>`).join("")
+    || `<p class="hint" style="color:var(--on-muted)">No picture for “${esc(q)}”.</p>`);
+}
+let bigCur = null;
+function showBig(x){
+  bigCur = x; $("bsPic").textContent = x[0]; $("bsWord").textContent = x[1];
+  $("bigSym").hidden = false; $("bsClose").hidden = false; speak(x[2]);
+  try { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch(e){}
+}
+function hideBig(){ $("bigSym").hidden = true; $("bsClose").hidden = true; try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch(e){} }
+$("symQ").oninput = renderSymbols;
+$("symGrid").onclick = e => { const b = e.target.closest("[data-sym]"); if (b){ const x = SYMS.find(y => y[1] === b.dataset.sym); if (x) showBig(x); } };
+$("bigSym").onclick = () => { if (bigCur) speak(bigCur[2]); };
+$("bsClose").onclick = hideBig;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("bigSym").hidden) hideBig(); });
 
 /* ---------- new routine: search ready-made routines ---------- */
 // Extra ready-made routines for outings, appointments and hard moments. A step is a library word or [emoji, word, says].
@@ -1675,6 +2028,7 @@ function tmRender(){
   b.push(`<button type="button" class="btn" data-tm="say"><span class="e">🔊</span> Say it</button>`);
   if (adult) b.push(`<button type="button" class="btn" data-tm="cam"><span class="e">📷</span> ${t.photo ? "Take a new photo" : "Add a photo"}</button>`);
   if (adult) b.push(`<button type="button" class="btn" data-tm="edit"><span class="e">✏️</span> Edit tile</button>`);
+  b.push(`<button type="button" class="btn" data-tm="timer"><span class="e">⏱️</span> Timer for this step</button>`);
   b.push(`<button type="button" class="btn" data-tm="close">Close</button>`);
   $("tmActs").innerHTML = b.join("");
 }
@@ -1691,6 +2045,7 @@ $("tmActs").onclick = async e => {
   if (act === "say") return speak(t.say);
   if (act === "edit"){ closeTileMenu(); return openEditor(t); }
   if (act === "cam"){ closeTileMenu(); return snapFor(t); }
+  if (act === "timer"){ closeTileMenu(); return timerFor(t); }
   if (act === "open"){ closeTileMenu(); return stepInto(t); }
   if (act === "own"){ t.sub = []; t.status = "todo"; closeTileMenu(); save(); path.push(t.id); render(true); return toast("Add the small steps with the + tile."); }
   if (act === "merge"){

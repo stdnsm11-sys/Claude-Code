@@ -2,6 +2,19 @@
 
 A picture schedule that walks a 4-year-old through the whole day, from waking up to bedtime, at home and at school. It works like an AAC board or a Boardmaker strip. Open `index.html` in any browser on a tablet, phone, Chromebook or smartboard. Nothing to install.
 
+## The four screens
+A bar under the greeting switches between four screens, the way AAC symbol apps such as Twinkl Symbols organise their tools:
+
+| Screen | What it does |
+|---|---|
+| 📅 **Schedule** | The day's routines (everything described below). |
+| 💬 **Talk** | A communication board. Tabs along the top like a communication book (Core, Feelings, Food, Play, Needs, People, Places). Each cell is colored by kind of word: yellow people, green actions, blue describing words, orange things, pink social words, purple questions, red no/stop, grey little words. Tapping a cell says it and adds it to the orange sentence strip at the bottom; **Speak** says the whole sentence, ⌫ removes the last word, ✕ clears. Choose 3 ("Big"), 4, 5 or 6 cells across. |
+| ⏱️ **Timer** | A picture timer for waiting and "5 more minutes": a colored disc that shrinks as time runs out, with the activity's picture in the middle, big numbers, 1–15 minute presets, ±1 minute, and a choice of color. When it ends it chimes and says "Time's up! Next, …". While it runs, the time shows on the Timer button. Start it from the ⏱️ button under the **Now** card, or from a tile's menu. |
+| 🖼️ **Show one** | Search any picture and show it alone on the whole screen (for example *Quiet*, *Wait* or *Toilet*). Tap it to hear it. |
+
+### Now & Next boards
+The Schedule's view switch has **All steps**, **Now & Next** (2 big cards) and **Now · Next · Then** (3 cards). In Parent mode settings, pick a **Reward** card (choice time, tablet, treat, playground, bubbles, music, TV, favorite toy, sticker, big hug) to show at the end of both Now & Next views. Parent mode settings also has **Words above the pictures** for tiles and Talk cells.
+
 ## How the day is laid out
 - **Four tabs: 🌅 Morning, ☀️ Noon, 🌤️ Afternoon, 🌙 Night.** The app opens on the tab that matches the clock (a **Now** tag marks it). The page colors change with the time of day: peach sunrise, bright noon, soft afternoon, dark blue night.
 - Under the tabs, the routines for that part of the day sit on a **trail of round stops**. Each stop shows how many steps are done. Done routines get a green check, and the trail fills in green.
