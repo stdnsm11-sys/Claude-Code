@@ -4,6 +4,19 @@ A classroom app for I.S., a 3rd-grade student who is Deaf/Hard of Hearing and us
 
 Open `index.html` in any browser (no install). `app.html` is the same page without the document wrapper, used for the hosted version.
 
+## Launch it in Chrome (needed for follow-along)
+Follow-along word highlighting works only when the hosted link is open in Google Chrome (or Edge, or the Claude desktop app). A Chrome shortcut opens the app in Chrome every time, whatever your default browser is.
+
+Hosted link: https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ
+
+1. Open Chrome and sign in to claude.ai with the account that owns the app.
+2. Go to the hosted link above.
+3. Click Chrome's menu (⋮, top right), then **Cast, save, and share → Create shortcut…** (in some versions: **Save and share → Create shortcut…** or **More tools → Create shortcut…**).
+4. Name it "Flynn's Listening Studio". Leave **Open as window** unchecked so it opens as a normal Chrome tab, then click **Create**.
+5. The shortcut appears on the desktop (Windows/Mac) or in the launcher (Chromebook). Pin it to the taskbar or shelf if you like.
+
+Other options: set Chrome as the device's default browser, or bookmark the link in Chrome. If the app is opened somewhere follow-along can't run, teacher mode shows a **Copy link** button to paste into Chrome. Chrome on iPad and iPhone is not supported, because Apple requires a different browser engine there.
+
 ## Two modes
 - **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (a two-paragraph *Flynn's Day at the Dog Park* that you take turns reading) before you've made one.
 - **Teacher mode:** press and hold **Teacher: hold** (top right) for about a second. A quick tap does nothing, so she won't wander in by accident. Here you choose the goal, passage category, theme, length, key details, how she answers and the accommodations, score trials and see **Teacher data**. The pink panels show a live **student preview**. Press **Present in student mode** or **Start student mode** to hand the screen back.

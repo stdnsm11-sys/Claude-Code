@@ -967,7 +967,11 @@ function renderListen(){
   seg($('#l-turnby'),L.turnBy,v=>{L.turnBy=v;L.turn=0;saveLessonCfg();renderListen()});
   seg($('#l-first'),L.first,v=>{L.first=v;L.turn=0;saveLessonCfg();renderListen()});
   $('#l-hidet').checked=L.hideT;$('#l-follow').checked=!!L.follow;$('#l-follow').disabled=!DICT;
-  $('#l-follow-note').textContent=DICT?(L.follow?'She taps Start reading on her turn. Tap any word to move the highlight if it loses her place. The page gets only text, never a recording.':''):'Word highlighting works on the hosted page in Chrome, Edge or the Claude desktop app. It isn\'t available in this browser.';$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
+  const fn=$('#l-follow-note');
+  if(DICT){fn.textContent=L.follow?'She taps Start reading on her turn. Tap any word to move the highlight if it loses her place. The page gets only text, never a recording.':''}
+  else{fn.innerHTML=`Word highlighting needs this app's link opened in <b>Google Chrome</b> (or the Claude desktop app). Copy the link and open it in Chrome:<br><input type="text" id="l-app-link" readonly value="${APP_URL}" aria-label="App link" style="margin-top:6px"> <button class="sbtn" id="l-copy-link" type="button" style="margin-top:6px">Copy link</button>`;
+    $('#l-copy-link').onclick=()=>copyText(APP_URL,$('#l-app-link'),'Link copied. Paste it into Chrome.');
+    $('#l-app-link').onclick=e=>e.target.select();}$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
   $('#l-pass-field').hidden=L.type!=='passage';
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
@@ -1150,6 +1154,7 @@ function wMatch(a,b){if(!a||!b)return false;if(a===b)return true;
   if(Math.min(a.length,b.length)>=4&&lev(a,b)<=1)return true;
   if(b.length>=4&&a.startsWith(b))return true;return false}
 function faWords(){const out=[];L.item.plain.forEach((s,si)=>s.split(/\s+/).filter(Boolean).forEach(t=>out.push({s:si,t,n:normW(t)})));return out}
+const APP_URL='https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ';
 const followOn=()=>!!(L.follow&&DICT&&shown());
 function faAlign(text){let p=FA.base;
   text.split(/\s+/).map(normW).filter(Boolean).forEach(tok=>{
