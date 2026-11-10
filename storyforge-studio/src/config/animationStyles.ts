@@ -167,7 +167,7 @@ export const ANIMATION_STYLES: Record<AnimationStyleId, AnimationStyle> = {
     loras: [],
     generation: { guidanceScale: 3.5, numInferenceSteps: 30, referenceScale: 0.72 },
     palette: { sky: ["#c9b8a3", "#f2e2c4"], ground: "#8d6e4f", accent: "#c0504d", ink: "#3a2e25" },
-    typography: { fontFamily: "'Rockwell', 'Courier New', 'American Typewriter', serif", pdfFont: "courier" },
+    typography: { fontFamily: "'Rockwell', 'Roboto Slab', 'Georgia', serif", pdfFont: "times" },
   },
   "vector-folklore": {
     id: "vector-folklore",

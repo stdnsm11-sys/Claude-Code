@@ -22,6 +22,7 @@ export interface ImageGenerationRequest {
   meta: {
     styleId: AnimationStyleId;
     pageNumber?: number;
+    mood?: string;
     title?: string;
     characters: { name: string; colors: string[] }[];
   };

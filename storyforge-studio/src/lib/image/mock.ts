@@ -148,7 +148,7 @@ export function renderMockSvg(req: ImageGenerationRequest): string {
 
   // Story page
   const [skyTop, skyBottom] = style.palette.sky;
-  const night = /night|dusk|dark|star|moon|blue light/i.test(req.prompt);
+  const night = /night|dusk|dark|star|moon|blue light/i.test(req.meta.mood ?? "");
   const sunX = 120 + rand() * (W - 240);
   const sunY = 80 + rand() * 120;
   const hills = [0, 1, 2]

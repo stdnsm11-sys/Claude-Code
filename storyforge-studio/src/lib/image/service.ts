@@ -83,6 +83,7 @@ export async function generatePageIllustration(
       meta: {
         styleId: style.id,
         pageNumber: args.page.pageNumber,
+        mood: args.page.mood,
         characters: metaCharacters(args.bible, args.page.charactersPresent),
       },
     },
