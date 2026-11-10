@@ -13,6 +13,11 @@ Open `index.html` in Chrome or Edge on the smart board. Nothing needs to be inst
 | 🌗 | Colors: Dark (YouTube dark mode), Light, or **High contrast** (yellow on black) |
 | ⛶ | Full screen. The player's own ⛶ button keeps the Coach Panel visible |
 
+**Voice quality.** The app uses voices built into the browser. It ranks them and automatically picks the most human-sounding one on the device. In Studio Settings, voices are labeled ✨ Most natural, 👍 Good, or 🤖 Robotic, and there is a pitch slider. It speaks one sentence at a time with natural pauses, and the word highlighting follows the voice. For the best voice:
+- **Windows board or PC:** use **Microsoft Edge**. It has free neural "Natural" voices (Ava, Andrew, Emma, Jenny).
+- **iPad or Mac:** download a **Premium** or **Enhanced** voice in Settings → Accessibility → Spoken Content → Voices.
+- **Android or Chromebook:** use Chrome's "Google" voices.
+
 **Studio Settings** has more: caption size, voice speed, which voice to use, channel name, picture, student initials, and the device name ("hearing aid", "cochlear implant", and so on).
 
 Scores always show an icon and a word with the color: ✅ Independent · 🤝 With prompt · 🔁 Not yet · ➖ No response.

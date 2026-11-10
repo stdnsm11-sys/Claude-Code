@@ -492,7 +492,7 @@ const SCORE = Object.fromEntries(SCORES.map(s=>[s.k,s]));
 const KEY = 'je-tv-studio-v1';
 function defaults(){
   return {
-    settings:{sound:true,captions:true,scale:1,capScale:1,theme:'dark',rate:0.85,voice:'',
+    settings:{sound:true,captions:true,scale:1,capScale:1,theme:'dark',rate:0.95,pitch:1,voice:'',voiceV:2,
       channel:'J.E. TV',handle:'@JE',avatar:'😎',student:'J.E.',device:'hearing aid',
       interests:Object.keys(TOPICS),level:'mix',customPassages:'',customWords:''},
     log:[], uploads:[], subs:1250, subscribed:false, n:0
@@ -502,6 +502,7 @@ let store;
 try{ store = JSON.parse(localStorage.getItem(KEY)) || defaults(); }catch(e){ store = defaults(); }
 { const d = defaults(); store = Object.assign(d, store); store.settings = Object.assign(defaults().settings, store.settings||{}); }
 const S = store.settings;
+if(S.voiceV!==2){ if(S.rate===0.85) S.rate=0.95; S.voiceV=2; }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){ toast('⚠️ Could not save. Export a backup from Data Tracker.'); } sideStats(); }
 
 /* =====================================================================
@@ -525,19 +526,56 @@ function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
 
 /* ---------- Speech + captions ---------- */
 let voices=[];
-function loadVoices(){ if(!('speechSynthesis' in window))return; voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)); }
-if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
-function pickVoice(){ return voices.find(v=>v.name===S.voice) || voices.find(v=>/en[-_]US/i.test(v.lang)) || voices[0]; }
-let lastSaid='', capTimer=null;
-function say(text,{caption=true}={}){
+/* Browsers ship very different voices. Rank them so the most human-sounding one is used:
+   neural "Natural" voices (Microsoft Edge), Apple "Premium"/"Enhanced" voices, Google's online voices.
+   Old desktop and novelty voices (eSpeak, Microsoft David/Zira Desktop, Apple Fred...) are robotic. */
+function voiceScore(v){
+  const n=v.name; let s=0;
+  if(/natural|neural/i.test(n)) s+=100;
+  if(/premium/i.test(n)) s+=95;
+  if(/enhanced/i.test(n)) s+=75;
+  if(/multilingual/i.test(n)) s+=5;
+  if(/online/i.test(n)) s+=30;
+  if(/^google us english$/i.test(n)) s+=65; else if(/google/i.test(n)) s+=50;
+  if(/\b(ava|andrew|emma|brian|jenny|aria|guy|michelle|christopher|eric|steffan|roger|samantha|allison|evan|nathan|zoe|joelle|noelle|susan|tom|nicky|siri)\b/i.test(n)) s+=12;
+  if(/desktop|espeak|robot|\b(fred|albert|bahh|bells|boing|bubbles|cellos|wobble|organ|jester|superstar|ralph|junior|kathy|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy|zarvox|trinoids|whisper|good news|bad news)\b/i.test(n)) s-=80;
+  if(/en[-_]US/i.test(v.lang)) s+=10; else if(/^en/i.test(v.lang)) s+=4;
+  return s;
+}
+const voiceTier=v=>{ const sc=voiceScore(v); return sc>=90?'✨ Most natural':sc>=55?'👍 Good':'🤖 Robotic'; };
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  if(document.getElementById('sVoice')) fillVoiceList();
+}
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.addEventListener('voiceschanged',loadVoices); }
+function pickVoice(){ return voices.find(v=>v.name===S.voice) || voices[0]; }
+let lastSaid='', capTimer=null, speakGen=0;
+/* Speaks one sentence at a time (the voice pauses naturally between sentences, and long text
+   is not cut off). onWord(charIndex) fires as each word is spoken, when the voice supports it.
+   Returns true if the computer voice is speaking. */
+function say(text,{caption=true,onWord,onEnd}={}){
   text=String(text); lastSaid=text;
   if(caption) showCaption(text);
-  if(S.sound && 'speechSynthesis' in window){
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=S.rate; u.volume=1; const v=pickVoice(); if(v)u.voice=v;
+  const gen=++speakGen;
+  if(!(S.sound && 'speechSynthesis' in window)) return false;
+  speechSynthesis.cancel();
+  const v=pickVoice();
+  const chunks=[]; const re=/[^.!?]+[.!?]*["”']?\s*/g; let m;
+  while((m=re.exec(text))) if(m[0].trim()) chunks.push({t:m[0],off:m.index});
+  if(!chunks.length) chunks.push({t:text,off:0});
+  chunks.forEach((c,k)=>{
+    const lead=c.t.length-c.t.trimStart().length;
+    const u=new SpeechSynthesisUtterance(c.t.trim());
+    u.rate=S.rate; u.pitch=S.pitch||1; u.volume=1; if(v){ u.voice=v; u.lang=v.lang; }
+    if(onWord){
+      u.onstart=()=>{ if(gen===speakGen) onWord(c.off+lead); };
+      u.onboundary=e=>{ if(gen===speakGen && (!e.name||e.name==='word')) onWord(c.off+lead+e.charIndex); };
+    }
+    if(k===chunks.length-1) u.onend=()=>{ if(gen===speakGen&&onEnd) onEnd(); };
     speechSynthesis.speak(u);
-  }
+  });
+  return true;
 }
 function showCaption(text){
   if(!S.captions) return;
@@ -838,15 +876,22 @@ function passageHTML(s,id='psg',small=false){
     return `<span class="w${HF.has(clean)?' hf':''}" data-i="${i}">${esc(w)}</span>`;
   }).join(' ')+'</p>';
 }
-/* Read-along: highlights each word as it is read. */
+/* Read-along: highlights each word as it is read. Follows the voice's own word timing when the
+   voice reports it, and waits for the voice to finish before moving on ("Your turn!"). */
 function readAlong(s,id='psg',done){
   clearTimers();
-  say(s);
   const spans=$$('#'+id+' .w');
-  let i=0;
-  const step=()=>{ spans.forEach(x=>x.classList.remove('on')); if(i>=spans.length){ done&&done(); return; }
-    spans[i].classList.add('on'); const len=spans[i].textContent.length; i++; later(step,(300+len*75)/S.rate); };
+  const starts=[]; { const re=/\S+/g; let m; while((m=re.exec(s))) starts.push(m.index); }
+  let i=0, synced=false, finished=false;
+  const show=k=>{ spans.forEach(x=>x.classList.remove('on')); if(spans[k]) spans[k].classList.add('on'); };
+  const end=()=>{ if(finished) return; finished=true; spans.forEach(x=>x.classList.remove('on')); done&&done(); };
+  const speaking=say(s,{caption:false,
+    onWord:ci=>{ if(finished) return; synced=true; let k=0; while(k+1<starts.length&&starts[k+1]<=ci) k++; show(k); },
+    onEnd:()=>later(end,350)});
+  const step=()=>{ if(synced||finished) return; if(i>=spans.length){ if(!speaking) end(); return; }
+    show(i); const len=spans[i].textContent.length; i++; later(step,(300+len*75)/S.rate); };
   later(step,150);
+  if(speaking){ const est=spans.reduce((a,x)=>a+(300+x.textContent.length*75)/S.rate,0); later(end,est*2.5+4000); }
 }
 function scoreButtons(){ return `<div class="scores">${SCORES.map(s=>`<button class="score s-${s.k}" data-score="${s.k}"><b>${s.icon}</b>${s.label}</button>`).join('')}</div>`; }
 function onScore(cb){ $$('#coachBody [data-score]').forEach(b=>b.onclick=()=>cb(b.dataset.score)); }
@@ -1318,6 +1363,24 @@ $('#restoreFile').onchange=e=>{
 /* =====================================================================
    SETTINGS
    ===================================================================== */
+function fillVoiceList(){
+  const sel=$('#sVoice'); if(!sel) return;
+  sel.innerHTML=`<option value="">⭐ Automatic: best voice on this device${voices[0]?` (${esc(voices[0].name)})`:''}</option>`+
+    voices.map(v=>`<option value="${esc(v.name)}">${voiceTier(v)} · ${esc(v.name)}</option>`).join('');
+  sel.value=voices.some(v=>v.name===S.voice)?S.voice:'';
+  voiceTipUpdate();
+}
+function voiceTipUpdate(){
+  const tip=$('#voiceTip'); if(!tip) return;
+  if(!('speechSynthesis' in window)){ tip.innerHTML='⚠️ This browser has no computer voice. Use captions, or read aloud yourself.'; return; }
+  const v=pickVoice();
+  if(!v){ tip.innerHTML='Loading voices…'; return; }
+  const best=voiceScore(voices[0])>=90;
+  tip.innerHTML=`Using: <b>${esc(v.name)}</b> (${voiceTier(v)}).`+(best?'':`<br><b>No natural voices on this device.</b> To get a much more human voice:
+    <br>• <b>Windows smart board or PC:</b> open this page in <b>Microsoft Edge</b>. It has free “Natural” voices (for example Ava, Andrew, Emma, Jenny).
+    <br>• <b>iPad or Mac:</b> Settings → Accessibility → Spoken Content (Read &amp; Speak) → Voices → English → download a <b>Premium</b> or <b>Enhanced</b> voice (for example Ava, Zoe, Evan), then reload this page.
+    <br>• <b>Android or Chromebook board:</b> use Chrome and pick a “Google” voice. On Android: Settings → Text-to-speech → install voice data.`);
+}
 function viewSettings(){
   $('#main').innerHTML=`
   <div class="goalhead"><span class="gi">⚙️</span><h1>Studio Settings</h1></div>
@@ -1336,8 +1399,11 @@ function viewSettings(){
       <label class="f" for="sCap">Caption size: <span id="capV">${Math.round(S.capScale*100)}%</span></label><input type="range" id="sCap" min="0.8" max="2" step="0.1" value="${S.capScale}" style="width:100%">
       <label class="f" for="sTheme">Colors</label><select class="t" id="sTheme"><option value="dark">Dark (YouTube dark mode)</option><option value="light">Light</option><option value="contrast">High contrast (yellow on black)</option></select>
       <label class="f" for="sRate">Voice speed: <span id="rateV">${S.rate}</span></label><input type="range" id="sRate" min="0.5" max="1.3" step="0.05" value="${S.rate}" style="width:100%">
-      <label class="f" for="sVoice">Voice</label><select class="t" id="sVoice"><option value="">Default</option>${voices.map(v=>`<option ${v.name===S.voice?'selected':''}>${esc(v.name)}</option>`).join('')}</select>
+      <label class="f" for="sPitch">Voice pitch: <span id="pitchV">${S.pitch||1}</span></label><input type="range" id="sPitch" min="0.8" max="1.2" step="0.05" value="${S.pitch||1}" style="width:100%">
+      <label class="f" for="sVoice">Voice</label><select class="t" id="sVoice"></select>
+      <small class="help">Voices are sorted best-sounding first. ✨ = natural (human-like), 👍 = good, 🤖 = robotic.</small>
       <div class="btnrow" style="margin-top:.6rem"><button class="btn" id="testVoice">🔊 Test voice &amp; captions</button></div>
+      <div id="voiceTip" class="help" style="margin-top:.6rem"></div>
     </div>
   </div>
   <div class="panel"><h3>🎯 Interests &amp; levels (Goal 1 passages)</h3>
@@ -1356,12 +1422,14 @@ function viewSettings(){
   </div>`;
   $('#sTheme').value=S.theme; $('#sLevel').value=S.level;
   const live=()=>{ S.scale=+$('#sScale').value; S.capScale=+$('#sCap').value; S.rate=+$('#sRate').value; S.theme=$('#sTheme').value;
-    S.sound=$('#sSound').checked; S.captions=$('#sCC').checked; S.voice=$('#sVoice').value;
+    S.sound=$('#sSound').checked; S.captions=$('#sCC').checked; S.voice=$('#sVoice').value; voiceTipUpdate();
     $('#scaleV').textContent=Math.round(S.scale*100)+'%'; $('#capV').textContent=Math.round(S.capScale*100)+'%'; $('#rateV').textContent=S.rate;
     applySettings(); save(); };
   ['sScale','sCap','sRate'].forEach(id=>$('#'+id).oninput=live);
   ['sTheme','sSound','sCC','sVoice'].forEach(id=>$('#'+id).onchange=live);
-  bind('testVoice',()=>say(`Hi! Welcome to ${S.channel}. Do not forget to subscribe!`));
+  bind('testVoice',()=>say(`Hi! Welcome to ${S.channel}. Today we are going to practice some new words. Are you ready? Let's go!`));
+  fillVoiceList();
+  $('#sPitch').oninput=()=>{ S.pitch=+$('#sPitch').value; $('#pitchV').textContent=S.pitch; save(); };
   bind('saveSet',()=>{
     S.channel=$('#sCh').value.trim()||'J.E. TV'; S.handle=$('#sHa').value.trim(); S.avatar=$('#sAv').value.trim()||'😎';
     S.student=$('#sSt').value.trim()||'J.E.'; S.device=$('#sDev').value.trim()||'hearing aid';
