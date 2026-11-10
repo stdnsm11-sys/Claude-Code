@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Flynn's Listening Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* Layout: graphic-novel studio for a 3rd grader. Pastel blue sky with pink accents (her favorite colors), every student
+   surface is a comic panel (ink outline + offset shadow), speech bubbles carry prompts, music notes and paw prints
+   are the reward stickers. Teacher controls sit in dashed "margin notes" so the student's panels stand out.
+   Deliberately one light pastel look for the classroom screen, so no dark-mode blocks. */
+:root{
+  --sky:#e4f1ff; --sky-2:#cfe5ff; --blue:#8cc0f2; --blue-d:#3d7fc7; --blue-s:#eef6ff;
+  --pink:#ffc9de; --pink-2:#ff9ec4; --pink-d:#cf4f86; --pink-s:#fff0f6;
+  --lav:#e6defd; --lav-d:#7b62c9;
+  --ink:#2b2f55; --muted:#5d6390; --line:#c5d2ee; --paper:#ffffff; --quiet:#f5f8fe;
+  --good:#23945e; --good-s:#dbf5e8; --try:#e0782f; --try-s:#ffecdc; --gold:#f5c542; --gold-s:#fff6d6;
+  --display:"Fredoka","Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
+  --r:16px;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;color:var(--ink);background-color:var(--sky);font-family:var(--body);font-size:clamp(16px,1.15vw,21px);line-height:1.45;
+  background-image:radial-gradient(circle at 12px 12px,rgba(255,158,196,.22) 2.5px,transparent 3.5px),radial-gradient(circle at 36px 36px,rgba(61,127,199,.10) 2.5px,transparent 3.5px);
+  background-size:48px 48px;touch-action:manipulation}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--paper);border-bottom:3px solid var(--ink);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;font-family:var(--display);font-weight:700;font-size:1.5em;line-height:1.05}
+.brand svg{width:54px;height:54px;flex:none}
+.brand small{display:block;font-family:var(--body);font-weight:400;font-size:.5em;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{display:flex;align-items:center;gap:8px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:6px 16px 6px 8px;min-height:54px;
+  font-family:var(--display);font-weight:600;font-size:1.02em;box-shadow:3px 3px 0 var(--ink);transition:transform .08s}
+.tab svg{width:34px;height:34px;flex:none}
+.tab:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tab[aria-selected="true"]{background:var(--pink)}
+.tab.t-data{border-style:dashed;box-shadow:none;font-family:var(--body);font-size:.9em}
+.tab.t-data[aria-selected="true"]{background:var(--lav)}
+.stickers{display:flex;align-items:center;gap:6px;border:3px solid var(--ink);border-radius:999px;background:var(--gold-s);padding:4px 14px 4px 6px;min-height:54px;font-family:var(--display);font-weight:700;font-size:1.25em}
+.stickers svg{width:36px;height:36px}
+
+main{max-width:1700px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.view{display:grid;gap:18px}
+.split{display:grid;gap:18px;grid-template-columns:minmax(300px,400px) minmax(0,1fr);align-items:start}
+@media (max-width:900px){.split{grid-template-columns:minmax(0,1fr)}}
+h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-size:1.9em} h3{font-size:1.3em}
+p{margin:0}
+.lede{color:var(--muted);max-width:65ch}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stack{display:grid;gap:12px}
+.label{font-size:.74em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mini{font-size:.85em;color:var(--muted)}
+
+/* comic panel */
+.panel{background:var(--paper);border:3px solid var(--ink);border-radius:var(--r);box-shadow:6px 6px 0 var(--ink);padding:18px;min-width:0}
+.panel.pink{background:var(--pink-s)} .panel.blue{background:var(--blue-s)}
+.panel-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-18px -18px 16px;padding:10px 18px;border-bottom:3px solid var(--ink);border-radius:13px 13px 0 0;
+  background-color:var(--pink);background-image:radial-gradient(rgba(255,255,255,.55) 1.6px,transparent 2px);background-size:9px 9px}
+.panel-head.blue{background-color:var(--blue)}
+.panel-head.lav{background-color:var(--lav)}
+
+/* teacher margin notes */
+.teacher{background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:12px;min-width:0;font-size:.92em}
+.teacher h3{font-family:var(--body);font-size:1em;font-weight:700;display:flex;align-items:center;gap:8px}
+.teacher h3::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.field{display:grid;gap:6px}
+
+/* controls */
+.btn{border:3px solid var(--ink);border-radius:14px;background:var(--paper);padding:8px 18px;min-height:52px;font-family:var(--display);font-weight:600;font-size:1.05em;
+  box-shadow:3px 3px 0 var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.pink{background:var(--pink-2)} .btn.blue{background:var(--blue)} .btn.good{background:var(--good);color:#fff} .btn.gold{background:var(--gold)}
+.btn.big{min-height:70px;font-size:1.35em;padding:10px 26px;border-radius:18px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn svg{width:26px;height:26px}
+.sbtn{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:6px 12px;min-height:44px;font-weight:700;color:var(--ink)}
+.sbtn:hover{border-color:var(--muted)}
+.sbtn.danger{color:var(--pink-d)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;min-height:44px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;padding:4px 0;cursor:pointer}
+.check input{width:22px;height:22px;flex:none;margin-top:2px;accent-color:var(--pink-d)}
+select,input[type=text],textarea{border:2px solid var(--line);border-radius:10px;background:var(--paper);padding:8px 10px;min-height:44px;width:100%}
+textarea{min-height:90px;resize:vertical}
+
+/* script (teacher only) */
+.script{position:relative;background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:12px 14px;line-height:1.6;min-height:120px;
+  -webkit-user-select:none;user-select:none}
+.script .txt{filter:blur(7px);transition:filter .15s}
+.script.show .txt{filter:none}
+.script .hint{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--muted);pointer-events:none;text-align:center;padding:10px}
+.script.show .hint{display:none}
+.script mark{background:var(--gold-s);border-bottom:3px solid var(--gold);color:inherit;padding:0 2px;border-radius:3px}
+.script .pause{display:inline-block;margin:0 4px;color:var(--pink-d);font-weight:700}
+.reps{display:flex;align-items:center;gap:10px;font-weight:700}
+.reps .count{font-family:var(--display);font-size:1.6em;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums}
+.warn{background:var(--try-s);border:2px solid var(--try);border-radius:10px;padding:8px 10px;font-size:.92em}
+.ok{background:var(--good-s);border:2px solid var(--good);border-radius:10px;padding:8px 10px;font-size:.92em}
+
+/* stage (student) */
+.stage{display:grid;gap:18px;justify-items:center;text-align:center;padding-block:10px}
+.flynn{width:min(230px,50vw);height:auto}
+.flynn.bob{animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-2deg)}}
+.bubble{position:relative;background:var(--paper);border:3px solid var(--ink);border-radius:26px;padding:14px 24px;font-family:var(--display);font-weight:600;font-size:1.7em;line-height:1.2;max-width:28ch;text-wrap:balance}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-19px;width:26px;height:26px;background:var(--paper);border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:translateX(-50%) rotate(45deg) skew(10deg,10deg)}
+.cues{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.cue{border:3px solid var(--ink);border-radius:999px;padding:6px 18px;font-family:var(--display);font-weight:600;font-size:1.25em;background:var(--blue-s)}
+.cue:nth-child(2n){background:var(--pink-s)}
+.organizer{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;width:100%}
+.org-box{border:3px solid var(--ink);border-radius:12px;background:var(--paper);min-height:120px;padding:10px;text-align:left;box-shadow:4px 4px 0 var(--ink)}
+.org-box b{font-family:var(--display);font-size:1.2em;display:block}
+.org-box.main{grid-column:1/-1;background:var(--pink-s);min-height:90px}
+.tip{display:flex;gap:12px;align-items:center;border:3px dashed var(--pink-d);border-radius:14px;padding:10px 16px;background:var(--paper);text-align:left;max-width:640px}
+.tip svg{width:44px;height:44px;flex:none}
+
+/* questions */
+.qcard{width:100%;max-width:900px;display:grid;gap:16px}
+.qtext{font-family:var(--display);font-weight:600;font-size:1.8em;line-height:1.2;text-wrap:balance}
+.choices{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.choice{border:3px solid var(--ink);border-radius:20px;background:var(--paper);padding:14px 18px;min-height:86px;font-family:var(--display);font-weight:600;font-size:1.35em;box-shadow:4px 4px 0 var(--ink);text-wrap:balance}
+.choice:nth-child(1){background:var(--blue-s)} .choice:nth-child(2){background:var(--pink-s)} .choice:nth-child(3){background:var(--lav)}
+.choice.right{background:var(--good-s)!important;border-color:var(--good);box-shadow:4px 4px 0 var(--good)}
+.choice.wrong{background:var(--try-s)!important;border-color:var(--try);box-shadow:4px 4px 0 var(--try);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.progress{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.progress i{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink);background:var(--paper)}
+.progress i.on{background:var(--pink-2)} .progress i.done{background:var(--blue)}
+
+/* detail checklist */
+.dlist{display:grid;gap:8px}
+.dchip{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:8px 12px;min-height:50px;text-align:left;font-weight:700}
+.dchip .box{width:28px;height:28px;border-radius:8px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-weight:800}
+.dchip[aria-pressed="true"]{border-color:var(--good);background:var(--good-s)}
+.dchip[aria-pressed="true"] .box{background:var(--good);border-color:var(--good);color:#fff}
+.dchip[aria-pressed="true"] .box::after{content:"✓"}
+.dchip .cueword{font-weight:400;color:var(--muted);font-size:.85em}
+
+/* ALD lesson */
+.subtabs{display:flex;flex-wrap:wrap;gap:8px}
+.subtabs button{border:3px solid var(--ink);border-radius:12px;background:var(--paper);padding:6px 14px;min-height:50px;font-family:var(--display);font-weight:600;font-size:1em}
+.subtabs button[aria-pressed="true"]{background:var(--blue)}
+.strip{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.cpanel{border:3px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:4px 4px 0 var(--ink);padding:12px;display:grid;gap:8px;align-content:start;position:relative}
+.cpanel .num{position:absolute;top:-14px;left:-10px;width:38px;height:38px;border-radius:50%;background:var(--pink-2);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+.cpanel svg.ic{width:64px;height:64px;justify-self:center}
+.cpanel p{font-family:var(--display);font-weight:500;font-size:1.12em;line-height:1.25}
+.song{display:grid;gap:6px;text-align:left}
+.song .line{font-family:var(--display);font-weight:600;font-size:1.4em;padding:6px 14px;border-radius:12px;border:3px solid transparent;transition:background .2s}
+.song .line.now{background:var(--pink);border-color:var(--ink)}
+.song .line .n{display:inline-block;width:1.2em;color:var(--pink-d)}
+.seq-slots,.seq-pool{display:grid;gap:10px}
+.seq-slot{display:flex;align-items:center;gap:12px;border:3px dashed var(--muted);border-radius:14px;min-height:64px;padding:8px 12px;background:var(--paper);text-align:left}
+.seq-slot.filled{border-style:solid;border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.seq-slot .n{width:38px;height:38px;border-radius:50%;background:var(--blue);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;flex:none}
+.seq-slot.right{background:var(--good-s);border-color:var(--good)} .seq-slot.wrong{background:var(--try-s);border-color:var(--try)}
+.seq-card{display:flex;align-items:center;gap:12px;border:3px solid var(--ink);border-radius:14px;background:var(--pink-s);box-shadow:3px 3px 0 var(--ink);padding:8px 14px;min-height:64px;text-align:left;font-family:var(--display);font-weight:500;font-size:1.1em}
+.seq-card svg,.seq-slot svg{width:40px;height:40px;flex:none}
+.seq-wrap{display:grid;gap:18px;grid-template-columns:1fr 1fr;width:100%;text-align:left}
+@media (max-width:700px){.seq-wrap{grid-template-columns:1fr}}
+.yesno{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:700px}
+.scene{border:3px solid var(--ink);border-radius:14px;background:var(--blue-s);padding:18px;font-family:var(--display);font-weight:600;font-size:1.5em;line-height:1.25;box-shadow:5px 5px 0 var(--ink);max-width:900px;text-wrap:balance;display:flex;gap:16px;align-items:center;text-align:left}
+.scene svg{width:90px;height:90px;flex:none}
+@media (max-width:560px){.scene{flex-direction:column;text-align:center}}
+.feedback{font-family:var(--display);font-weight:600;font-size:1.2em;padding:10px 16px;border-radius:14px;border:3px solid var(--good);background:var(--good-s);max-width:800px}
+.feedback.try{border-color:var(--try);background:var(--try-s)}
+.democheck{display:grid;gap:8px}
+.demorow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
+
+/* speak-up cards */
+.cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.sucard{border:3px solid var(--ink);border-radius:18px;padding:16px;min-height:140px;box-shadow:5px 5px 0 var(--ink);font-family:var(--display);font-weight:600;font-size:1.3em;line-height:1.2;text-align:left;display:flex;flex-direction:column;gap:10px;justify-content:space-between}
+.sucard svg{width:46px;height:46px}
+.sucard:nth-child(3n+1){background:var(--pink)} .sucard:nth-child(3n+2){background:var(--blue)} .sucard:nth-child(3n){background:var(--lav)}
+.showcard{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));background:var(--pink)}
+.showcard .inner{display:grid;gap:24px;justify-items:center;text-align:center}
+.showcard .say{font-family:var(--display);font-weight:700;font-size:clamp(2rem,6vw,4.6rem);line-height:1.1;max-width:18ch;text-wrap:balance}
+.showcard svg.flynn{width:min(220px,40vw)}
+
+/* data */
+.goals{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.gcard{display:grid;gap:12px;align-content:start}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 12px;font-weight:700;font-size:.85em;border:2px solid var(--line);background:var(--paper)}
+.pill.met{background:var(--good-s);border-color:var(--good);color:#14663f}
+.pill.close{background:var(--gold-s);border-color:var(--gold);color:#7a5a00}
+.pill.build{background:var(--blue-s);border-color:var(--blue-d);color:#25578f}
+.streak{display:flex;gap:8px;align-items:center}
+.streak i{width:26px;height:26px;border-radius:50%;border:3px solid var(--ink);background:var(--paper)}
+.streak i.on{background:var(--good)}
+.gtext{font-size:.88em;color:var(--muted);border-left:4px solid var(--pink-2);padding-left:10px}
+.chart{width:100%;height:auto;display:block}
+.tablewrap{overflow-x:auto;border:2px solid var(--line);border-radius:12px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:.85em;min-width:760px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--quiet);font-size:.8em;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.yes{color:var(--good);font-weight:700} .no{color:var(--muted)}
+.empty{border:3px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);text-align:center;background:var(--paper)}
+.period{border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:10px 12px;display:grid;gap:6px}
+.period.current{border-color:var(--pink-d)}
+.opp{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:.88em;border-top:1px solid var(--line);padding-top:6px}
+.save-state{font-size:.82em;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:#fff;border-radius:999px;padding:10px 22px;font-weight:700;box-shadow:0 6px 20px rgba(43,47,85,.3);max-width:calc(100% - 32px);text-align:center}
+.celebrate{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
+.celebrate span{position:absolute;top:-60px;animation:fall 2.2s ease-in forwards}
+.celebrate svg{width:44px;height:44px}
+@keyframes fall{to{transform:translateY(115vh) rotate(260deg)}}
+</style>
+
+<header class="top">
+  <div class="brand" id="brand"></div>
+  <nav class="tabs" role="tablist" aria-label="Activities">
+    <button class="tab" role="tab" id="tab-listen" aria-selected="true" data-view="listen"></button>
+    <button class="tab" role="tab" id="tab-ald" aria-selected="false" data-view="ald"></button>
+    <button class="tab" role="tab" id="tab-speak" aria-selected="false" data-view="speak"></button>
+    <button class="tab t-data" role="tab" id="tab-data" aria-selected="false" data-view="data">Teacher data</button>
+  </nav>
+  <div class="stickers" title="Stickers earned" id="stickers"></div>
+</header>
+
+<main>
+  <!-- ========== LISTEN & REMEMBER (Goals 1 & 2) ========== -->
+  <section class="view" id="view-listen">
+    <div class="split">
+      <aside class="teacher" aria-label="Teacher controls">
+        <h3>Teacher: set up the listening task</h3>
+        <div class="field"><span class="label">IEP goal</span>
+          <div class="seg" id="l-goal">
+            <button data-v="1" aria-pressed="true">Goal 1 · Recall details</button>
+            <button data-v="2" aria-pressed="false">Goal 2 · Main idea + details</button>
+          </div></div>
+        <div class="field"><span class="label">What I present orally</span><div class="seg" id="l-type"></div></div>
+        <div class="field"><span class="label" id="l-len-label">Length</span><div class="seg" id="l-len"></div></div>
+        <div class="field"><span class="label">Theme (from her interests)</span><div class="seg" id="l-theme"></div></div>
+        <div class="field"><span class="label">Key details to check</span>
+          <div class="seg" id="l-keys"><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="99">All</button></div></div>
+        <div class="field"><span class="label">How she answers</span>
+          <div class="seg" id="l-mode"><button data-v="open">She tells or signs me (I check)</button><button data-v="tap">She taps answer choices</button></div></div>
+        <details>
+          <summary class="label" style="cursor:pointer;padding:6px 0">Accommodations used this trial</summary>
+          <div id="l-acc" class="stack" style="gap:2px;padding-top:6px"></div>
+        </details>
+        <button class="btn pink" id="l-new">New passage</button>
+
+        <div class="field">
+          <div class="row" style="justify-content:space-between"><span class="label">Script · read this aloud</span>
+            <label class="check" style="padding:0"><input type="checkbox" id="l-peek"> <span class="mini">Keep script visible</span></label></div>
+          <div class="script" id="l-script" tabindex="0" aria-label="Teacher script. Press and hold to read."><div class="txt" id="l-script-txt"></div><div class="hint">Press and hold to read<br>(blurred so she listens instead of reads)</div></div>
+          <div class="row">
+            <button class="sbtn" id="l-say">Computer voice: read it</button>
+            <span class="mini" id="l-voice-note"></span>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Repetitions (goal allows 1)</span>
+          <div class="reps"><button class="sbtn" id="l-rep-minus" aria-label="Remove a repetition">−</button><span class="count" id="l-reps">0</span><button class="sbtn" id="l-rep-plus" aria-label="Add a repetition">+ Repeated</button></div>
+          <div id="l-rep-warn"></div>
+        </div>
+        <div id="l-score-panel" class="stack" hidden></div>
+      </aside>
+
+      <section class="panel" aria-live="polite">
+        <div class="panel-head"><h2 id="l-title">Listen &amp; Remember</h2><span class="mini" id="l-sub"></span></div>
+        <div class="stage" id="l-stage"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ========== MY LISTENING DEVICE (Goal 3) ========== -->
+  <section class="view" id="view-ald" hidden>
+    <div class="split">
+      <aside class="teacher" aria-label="Teacher controls">
+        <h3>Teacher: ALD instruction &amp; practice</h3>
+        <p class="mini">Goal 3: she identifies when and how to use her ALD and shows appropriate use (80% across 3 consecutive data opportunities).</p>
+        <div class="field"><span class="label">Accommodations used</span><div id="a-acc" class="stack" style="gap:2px"></div></div>
+        <div class="field"><span class="label">Support given</span><select id="a-support"></select></div>
+        <div class="field"><span class="label">Notes</span><textarea id="a-notes" placeholder="What did you notice?"></textarea></div>
+        <label class="check"><input type="checkbox" id="a-counts" checked> <span>Count as a data collection opportunity</span></label>
+        <p class="mini">Step names come from <b>Teacher data → Settings</b>, so they can match her actual device.</p>
+      </aside>
+      <section class="panel">
+        <div class="panel-head blue"><h2 id="a-title">My Listening Device</h2></div>
+        <div class="stack">
+          <div class="subtabs" id="a-sub">
+            <button data-v="learn" aria-pressed="true">1 · Learn it</button>
+            <button data-v="song" aria-pressed="false">2 · Sing it</button>
+            <button data-v="order" aria-pressed="false">3 · Put steps in order</button>
+            <button data-v="when" aria-pressed="false">4 · When do I use it?</button>
+            <button data-v="why" aria-pressed="false">5 · Why does it help?</button>
+            <button data-v="demo" aria-pressed="false">6 · Show me (teacher checks)</button>
+          </div>
+          <div id="a-stage" class="stage"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ========== SPEAK UP (Goal 4) ========== -->
+  <section class="view" id="view-speak" hidden>
+    <div class="split">
+      <aside class="teacher" aria-label="Teacher controls">
+        <h3>Teacher: real classroom opportunities</h3>
+        <p class="mini">Goal 4 data. Log each real moment when the ALD would improve her access. A period meets the goal at 4 of 5 (80%) with at least 5 opportunities.</p>
+        <div id="s-period"></div>
+        <div class="field"><span class="label">Setting</span><select id="s-ctx"></select></div>
+        <div class="field"><span class="label">Did she recognize the need?</span>
+          <div class="seg" id="s-rec"><button data-v="ind">On her own</button><button data-v="pr">With a prompt</button><button data-v="no">Not yet</button></div></div>
+        <div class="field"><span class="label">Did she communicate it appropriately?</span>
+          <div class="seg" id="s-com"><button data-v="ind">On her own</button><button data-v="pr">With a prompt</button><button data-v="no">Not yet</button></div></div>
+        <div class="field"><span class="label">What she said or did</span><input type="text" id="s-said" placeholder="e.g. showed the 'mic on' card"></div>
+        <button class="btn good" id="s-log">Log this opportunity</button>
+        <button class="sbtn" id="s-newperiod">Start a new data period</button>
+        <hr style="border:0;border-top:2px dashed var(--line);width:100%">
+        <h3>Teacher: practice scenarios</h3>
+        <div class="field"><span class="label">Accommodations used</span><div id="sp-acc" class="stack" style="gap:2px"></div></div>
+        <div class="field"><span class="label">Support given</span><select id="sp-support"></select></div>
+        <label class="check"><input type="checkbox" id="sp-counts" checked> <span>Save practice score to data</span></label>
+      </aside>
+      <section class="panel">
+        <div class="panel-head lav"><h2>Speak Up!</h2><span class="mini">Know when you need it. Say what you need.</span></div>
+        <div class="stack">
+          <div class="subtabs" id="s-sub">
+            <button data-v="cards" aria-pressed="true">My Speak-Up cards</button>
+            <button data-v="practice" aria-pressed="false">Practice: what would you do?</button>
+          </div>
+          <div id="s-stage" class="stage"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ========== TEACHER DATA ========== -->
+  <section class="view" id="view-data" hidden>
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="stack" style="gap:4px"><h2>Progress on IEP goals</h2><p class="lede">Mastery needs 3 consecutive data opportunities (Goals 1–3) or 3 consecutive data periods (Goal 4) that meet criterion. Practice trials you didn't count are listed but don't affect mastery.</p></div>
+      <span class="save-state" id="save-state">Saved on this device</span>
+    </div>
+    <div class="goals" id="d-goals"></div>
+    <section class="panel">
+      <div class="panel-head lav"><h3>All trials</h3>
+        <div class="row" style="margin-left:auto"><button class="sbtn" id="d-csv">Copy data as CSV</button></div></div>
+      <div id="d-table"></div>
+      <textarea id="d-csv-out" hidden readonly aria-label="CSV data"></textarea>
+    </section>
+    <section class="panel">
+      <div class="panel-head blue"><h3>Settings</h3></div>
+      <div class="stack" style="max-width:820px">
+        <div class="row" style="align-items:stretch">
+          <div class="field" style="flex:1 1 180px"><span class="label">Student initials</span><input type="text" id="set-student"></div>
+          <div class="field" style="flex:1 1 180px"><span class="label">Dog's name</span><input type="text" id="set-dog"></div>
+          <div class="field" style="flex:1 1 220px"><span class="label">What she calls her ALD</span><input type="text" id="set-ald" placeholder="e.g. Roger, my FM, my mic"></div>
+          <div class="field" style="flex:1 1 220px"><span class="label">Her hearing devices</span><input type="text" id="set-hear" placeholder="e.g. hearing aids, cochlear implants"></div>
+        </div>
+        <div class="field"><span class="label">ALD steps, in order (one per line). These drive the lesson, the song panel cards, the sequencing practice and the "Show me" checklist.</span>
+          <textarea id="set-steps" style="min-height:200px"></textarea></div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="set-voice"> <span>Allow computer voice (teacher's live voice is best for the goal)</span></label>
+          <label class="check"><input type="checkbox" id="set-prompted"> <span>Goal 4: count "with a prompt" as a success</span></label>
+        </div>
+        <div class="row"><button class="btn blue" id="set-save">Save settings</button><button class="sbtn" id="set-reset-steps">Restore default steps</button></div>
+        <details><summary class="label" style="cursor:pointer;padding:6px 0">Backup or move data</summary>
+          <div class="stack" style="padding-top:8px">
+            <p class="mini">Copy a backup and keep it in a safe place, or paste a backup below and restore it. Restoring adds any trials that aren't already here.</p>
+            <div class="row"><button class="sbtn" id="bk-copy">Copy backup</button><button class="sbtn" id="bk-restore">Restore from pasted backup</button></div>
+            <textarea id="bk-text" placeholder="Paste a backup here"></textarea>
+          </div></details>
+        <p class="mini">Use initials only. On the hosted page, data is saved privately to your claude.ai account (only you can see it). When opened as a file, data stays in this browser.</p>
+      </div>
+    </section>
+  </section>
+</main>
+<div class="celebrate" id="celebrate" aria-hidden="true"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>new Date().toISOString();
+const fmtDate=d=>{try{return new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}catch(e){return d}};
+
+/* ---------------- art ---------------- */
+function flynnSVG(cls='flynn',headphones=false){
+  return `<svg class="${cls}" viewBox="0 0 200 200" role="img" aria-label="Flynn the dog">
+  <ellipse cx="100" cy="186" rx="62" ry="9" fill="#2b2f55" opacity=".12"/>
+  <path d="M46 70 C18 74 16 130 40 140 C54 146 60 120 62 100 Z" fill="#a8774f" stroke="#2b2f55" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M154 70 C182 74 184 130 160 140 C146 146 140 120 138 100 Z" fill="#a8774f" stroke="#2b2f55" stroke-width="5" stroke-linejoin="round"/>
+  <ellipse cx="100" cy="102" rx="56" ry="58" fill="#e7bf8e" stroke="#2b2f55" stroke-width="5"/>
+  <ellipse cx="100" cy="128" rx="32" ry="24" fill="#fbe8d1" stroke="#2b2f55" stroke-width="4"/>
+  <circle cx="78" cy="92" r="8" fill="#2b2f55"/><circle cx="122" cy="92" r="8" fill="#2b2f55"/>
+  <circle cx="81" cy="89" r="2.6" fill="#fff"/><circle cx="125" cy="89" r="2.6" fill="#fff"/>
+  <ellipse cx="100" cy="116" rx="11" ry="8" fill="#2b2f55"/>
+  <path d="M100 124 v8 M88 134 q12 10 24 0" stroke="#2b2f55" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M95 138 q5 14 10 0" fill="#ff9ec4" stroke="#2b2f55" stroke-width="3"/>
+  <circle cx="66" cy="112" r="7" fill="#ffc9de" opacity=".8"/><circle cx="134" cy="112" r="7" fill="#ffc9de" opacity=".8"/>
+  <path d="M58 150 q42 22 84 0 l-4 14 q-38 18 -76 0z" fill="#8cc0f2" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="100" cy="168" r="8" fill="#f5c542" stroke="#2b2f55" stroke-width="3"/>
+  ${headphones?`<path d="M44 92 C44 30 156 30 156 92" fill="none" stroke="#ff9ec4" stroke-width="10" stroke-linecap="round"/><path d="M44 92 C44 30 156 30 156 92" fill="none" stroke="#2b2f55" stroke-width="3" stroke-linecap="round" opacity=".5"/><rect x="34" y="82" width="20" height="30" rx="8" fill="#ff9ec4" stroke="#2b2f55" stroke-width="4"/><rect x="146" y="82" width="20" height="30" rx="8" fill="#ff9ec4" stroke="#2b2f55" stroke-width="4"/>`:''}
+  </svg>`;
+}
+const I={
+ ear:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 26a14 14 0 1 1 28 0c0 9-9 11-9 20a8 8 0 0 1-15 3" fill="#ffc9de" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/><path d="M28 26a6 6 0 1 1 11 3c-2 3-5 3-5 7" fill="none" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/></svg>`,
+ mic:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="20" height="32" rx="10" fill="#8cc0f2" stroke="#2b2f55" stroke-width="4"/><path d="M14 30a18 18 0 0 0 36 0M32 48v10M22 58h20" fill="none" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/></svg>`,
+ power:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="34" r="22" fill="#e6defd" stroke="#2b2f55" stroke-width="4"/><path d="M32 16v18" stroke="#2b2f55" stroke-width="5" stroke-linecap="round"/><path d="M22 24a14 14 0 1 0 20 0" fill="none" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/></svg>`,
+ light:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="18" width="36" height="34" rx="8" fill="#eef6ff" stroke="#2b2f55" stroke-width="4"/><circle cx="32" cy="35" r="8" fill="#3ecf7d" stroke="#2b2f55" stroke-width="3"/><path d="M32 6v6M48 10l-4 5M16 10l4 5" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/></svg>`,
+ chat:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 14h48v28H28l-12 10V42H8z" fill="#ffc9de" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/><circle cx="22" cy="28" r="3" fill="#2b2f55"/><circle cx="32" cy="28" r="3" fill="#2b2f55"/><circle cx="42" cy="28" r="3" fill="#2b2f55"/></svg>`,
+ hand:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 34V14a4 4 0 0 1 8 0v16V10a4 4 0 0 1 8 0v20V14a4 4 0 0 1 8 0v24l4-6a4 4 0 0 1 7 4l-9 16a14 14 0 0 1-12 8h-4a14 14 0 0 1-14-14V26a4 4 0 0 1 8 0z" fill="#f5c542" stroke="#2b2f55" stroke-width="3.5" stroke-linejoin="round"/></svg>`,
+ battery:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="42" height="24" rx="5" fill="#eef6ff" stroke="#2b2f55" stroke-width="4"/><rect x="50" y="27" width="6" height="10" rx="2" fill="#2b2f55"/><path d="M30 24l-8 10h8l-4 8 10-12h-8l4-6z" fill="#f5c542" stroke="#2b2f55" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+ teacher:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="20" r="11" fill="#fbe8d1" stroke="#2b2f55" stroke-width="4"/><path d="M12 58c2-14 10-20 20-20s18 6 20 20z" fill="#e6defd" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/><rect x="28" y="40" width="8" height="12" rx="4" fill="#8cc0f2" stroke="#2b2f55" stroke-width="3"/></svg>`,
+ note:`<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M24 46V12l28-6v34" fill="none" stroke="#2b2f55" stroke-width="5" stroke-linejoin="round"/><ellipse cx="17" cy="47" rx="9" ry="7" fill="#ff9ec4" stroke="#2b2f55" stroke-width="4"/><ellipse cx="45" cy="41" rx="9" ry="7" fill="#8cc0f2" stroke="#2b2f55" stroke-width="4"/></svg>`,
+ paw:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="42" rx="14" ry="12" fill="#ff9ec4" stroke="#2b2f55" stroke-width="4"/><circle cx="15" cy="27" r="6" fill="#ff9ec4" stroke="#2b2f55" stroke-width="3.5"/><circle cx="25" cy="16" r="6" fill="#ff9ec4" stroke="#2b2f55" stroke-width="3.5"/><circle cx="39" cy="16" r="6" fill="#ff9ec4" stroke="#2b2f55" stroke-width="3.5"/><circle cx="49" cy="27" r="6" fill="#ff9ec4" stroke="#2b2f55" stroke-width="3.5"/></svg>`,
+ book:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M6 14c9-4 18-4 26 2v38c-8-6-17-6-26-2z" fill="#ffc9de" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/><path d="M58 14c-9-4-18-4-26 2v38c8-6 17-6 26-2z" fill="#8cc0f2" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/></svg>`,
+ noise:`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 26h10l14-12v36L18 38H8z" fill="#e6defd" stroke="#2b2f55" stroke-width="4" stroke-linejoin="round"/><path d="M42 22q6 10 0 20M50 16q10 16 0 32" fill="none" stroke="#2b2f55" stroke-width="4" stroke-linecap="round"/></svg>`,
+};
+const tabIcon={
+ listen:`<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#8cc0f2"/>${I.ear.replace('class="ic" ','').replace('<svg','<svg x="6" y="6" width="52" height="52"')}</svg>`,
+ ald:`<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#ffc9de"/>${I.mic.replace('class="ic" ','').replace('<svg','<svg x="8" y="8" width="48" height="48"')}</svg>`,
+ speak:`<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#e6defd"/>${I.chat.replace('class="ic" ','').replace('<svg','<svg x="8" y="8" width="48" height="48"')}</svg>`,
+};
+function stepIcon(t){t=t.toLowerCase();
+  if(/charge|put it back|turn it off|off and/.test(t))return I.battery;
+  if(/light|green|connected|pair/.test(t))return I.light;
+  if(/tell|ask|speak|say/.test(t))return I.hand;
+  if(/check|listen|sound|test/.test(t))return I.chat;
+  if(/mic|microphone|clip|wear/.test(t))return I.mic;
+  if(/turn on|switch on|power/.test(t))return I.power;
+  return I.ear;}
+
+/* ---------------- content: listening ---------------- */
+const POOLS={
+ kid:['Maya','Jada','Rosie','Lena','Ava','Nora','Zoe','Kira'],
+ day:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+ time:['morning','afternoon','evening'],
+ color:['pink','blue','purple','yellow','green','orange'],
+ num:['two','three','four','five','six'],
+ toy:['squeaky ball','rope toy','stuffed duck','tennis ball','chew bone'],
+ treat:['peanut butter biscuit','carrot stick','chicken treat','blueberry snack'],
+ place:['park','pond','beach','nature trail','big field'],
+ snack:['apple slices','popcorn','strawberries','pretzels','banana bread','grapes'],
+ instrument:['drum','ukulele','keyboard','tambourine','xylophone'],
+ song:['a song about the ocean','a song about friendship','a song about the moon','a song about summer','a song about rainbows'],
+ room:['music room','library','gym','art room','cafeteria'],
+ animal:['puppy','kitten','bunny','turtle','hamster','guinea pig'],
+ book:['The Cupcake Detectives','Space Sloth','The Moon Bakery','Unicorn Soccer','Captain Pancake','The Secret Snow Fort'],
+ gift:['a new leash','a squeaky hot dog','a soft blanket','a bandana with hearts'],
+ page:['twelve','fifteen','twenty','twenty-four','thirty'],
+ shape:['a star','a heart','a circle','a cloud'],
+};
+const CUE={kid:'Who?',day:'When?',time:'When?',color:'What color?',num:'How many?',toy:'What toy?',treat:'What treat?',place:'Where?',snack:'What food?',instrument:'What instrument?',song:'What song?',room:'Where?',animal:'What animal?',book:'What book?',gift:'What gift?',page:'What page?',shape:'What shape?'};
+const THEMES=[{id:'flynn',name:'{DOG} & pets'},{id:'music',name:'Music & singing'},{id:'comic',name:'Comic club'},{id:'animals',name:'Animal world'},{id:'any',name:'Surprise me'}];
+
+/* Fiction frames. First 3 sentences always hold at least 4 details. {key} or {key:pool}. */
+const FRAMES=[
+ {theme:'flynn',title:"{DOG}'s Muddy Day",main:'{DOG} got very muddy, so he needed a bath.',wrong:['{DOG} learned how to swim in the pond.','{DOG} went to the vet for a check-up.'],
+  q:{day:'What day did they go for the walk?',time:'What time of day was the walk?',kid:'Who took {DOG} for a walk?',place:'Where did they walk?',toy:'What toy did {DOG} bring?',color:"What color is {DOG}'s collar?",num:'How many cups of bubbles went in the tub?',treat:'What treat did {DOG} get after his bath?'},
+  s:['On {day} {time}, {kid} took {DOG} for a walk to the {place}.','{DOG} brought his favorite {toy} along.','He dropped it in a big puddle and jumped in after it!','Now {DOG} had mud on his nose, his ears, and his {color} collar.','{kid} laughed and carried him home.','She filled the tub with warm water and {num} cups of bubbles.','{DOG} shook water all over the bathroom!','After his bath, {DOG} got a {treat} and took a long nap.']},
+ {theme:'flynn',title:"{DOG}'s Birthday Party",main:'The family threw a birthday party for {DOG}.',wrong:['{DOG} ran away from home.','The family went to a music concert.'],
+  q:{day:"What day was {DOG}'s birthday?",num:'How old did {DOG} turn?',kid:'Who planned the party?',color:'What color were the balloons?',snack:'What snack did the kids eat?',gift:'What gift did {DOG} get?',song:'What did they sing after the birthday song?'},
+  s:['On {day}, {DOG} turned {num} years old.','{kid} planned a party and tied {color} balloons to the fence.','She made a doggie cake out of peanut butter and bananas.','The kids at the party ate {snack}.','Everyone sang "Happy Birthday" while {DOG} wagged his tail.','Then they sang {song} together.','{DOG} opened his present. It was {gift}!','At the end of the party, {DOG} was so tired that he fell asleep on the couch.']},
+ {theme:'music',title:'The Talent Show',main:'{kid} practiced hard and sang in the school talent show.',wrong:['{kid} learned how to bake cookies.','{kid} lost her music folder.'],
+  q:{kid:'Who sang in the talent show?',song:'What song did she sing?',day:'What day was the talent show?',num:'How many times did she practice each day?',kid2:'Who played the instrument with her?',instrument:'What instrument did her friend play?',color:'What color was her dress?'},
+  s:['{kid} wanted to sing {song} in the school talent show.','The show was on {day} night in the gym.','She practiced {num} times every day after school.','Her friend {kid2:kid} played the {instrument} with her.','On the night of the show, {kid} wore a {color} dress with sparkles.','Her hands felt shaky, but she took a deep breath.','When she sang, the whole crowd clapped along to the beat.','After the show, {kid} and {kid2} gave each other a big hug.']},
+ {theme:'music',title:'Choir Day',main:'The class got ready for their first choir concert.',wrong:['The class went on a trip to the zoo.','The class painted a big mural.'],
+  q:{room:'Where did the choir practice?',day:'What day was the concert?',num:'How many songs did they learn?',kid:'Who got to sing a solo?',instrument:'What instrument played the beat?',color:'What color shirts did the choir wear?',snack:'What snack did they have after the concert?'},
+  s:['The third grade choir practiced in the {room} every {day}.','They learned {num} new songs for their concert.','{kid} got to sing a solo part all by herself.','The music teacher played the {instrument} to keep the beat.','Everyone wore {color} shirts so they would match.','Before the concert, they did warm-ups like humming and lip trills.','The parents cheered when the last song ended.','After the concert, everyone ate {snack} in the hallway.']},
+ {theme:'comic',title:'The Comic Club',main:'The comic club worked together to make their own comic book.',wrong:['The comic club went to the movies.','The comic club cleaned the classroom.'],
+  q:{day:'What day does the comic club meet?',room:'Where does the comic club meet?',kid:'Who drew the pictures?',kid2:'Who wrote the words?',shape:'What shape was on the cover?',num:'How many pages did their comic have?',color:'What color was the cover?'},
+  s:['Every {day}, the comic club meets in the {room}.','This week, {kid} and {kid2:kid} decided to make their own comic book.','{kid} drew the pictures, and {kid2} wrote the words.','Their comic was about a dog who could talk.','They used speech bubbles to show what each character said.','The comic had {num} pages.','For the cover, they drew {shape} and colored it {color}.','When they were finished, they shared it with the whole class.']},
+ {theme:'comic',title:'A Trip to the Library',main:'The friends went to the library to find new graphic novels.',wrong:['The friends played soccer at recess.','The friends made a birthday card.'],
+  q:{kid:'Who went to the library?',day:'What day did they go?',book:'What graphic novel did she find?',num:'How many books could each kid check out?',kid2:'Who came with her?',color:'What color was the beanbag?',time:'When did they read together?'},
+  s:['On {day}, {kid} and {kid2:kid} went to the library.','They wanted to find new graphic novels.','{kid} found a book called {book}.','Each kid could check out {num} books.','They sat on a {color} beanbag to look at the pictures.','{kid2} laughed so hard at one page that she snorted!','The librarian reminded them to use quiet voices.','That {time}, they read their books together at home.']},
+ {theme:'animals',title:'Helping at the Shelter',main:'{kid} helped take care of animals at the animal shelter.',wrong:['{kid} went on a camping trip.','{kid} learned to ride a bike.'],
+  q:{kid:'Who helped at the shelter?',day:'What day did she go?',animal:'What animal did she feed first?',num:'How many puppies were in the room?',color:'What color was the leash?',toy:'What toy did the puppies play with?',kid2:'Who came to adopt a pet?'},
+  s:['On {day}, {kid} went to help at the animal shelter.','First, she fed a little {animal}.','Next, she went into a room with {num} puppies.','The puppies loved to chase a {toy}.','She took the biggest puppy for a walk on a {color} leash.','The puppy reminded her of {DOG}, her dog at home.','Later, a girl named {kid2:kid} came to adopt a pet.','{kid} felt proud that she helped the animals.']},
+ {theme:'animals',title:'Class Pet Week',main:'{kid} took the class pet home for a week and took good care of it.',wrong:['{kid} built a sand castle.','{kid} found a lost kitten.'],
+  q:{animal:'What is the class pet?',kid:'Who took the class pet home?',day:'What day did she bring it home?',snack:'What food did the pet eat?',num:'How many days did the pet stay?',color:'What color was the cage?',book:'What book did she read to the pet?'},
+  s:['Our class pet is a {animal} named Cocoa.','On {day}, {kid} got to take Cocoa home.','Cocoa stayed at her house for {num} days.','{kid} fed Cocoa little pieces of {snack}.','Cocoa slept in a {color} cage next to her bed.','{DOG} sniffed the cage, but he was very gentle.','At night, {kid} read {book} out loud to Cocoa.','When Cocoa went back to school, {kid} wrote a story about her week.']},
+];
+
+const DIRECTIONS=[
+ {theme:'comic',goal:'Make a comic strip.',wrong:['Clean out your desk.','Line up for lunch.'],
+  steps:['take out a {color} pencil','fold your paper in half two times to make four boxes','write your name on the back','in the first box, draw {DOG}','draw a speech bubble next to his mouth','write what {DOG} says inside the bubble','color the background light blue','put your comic in the {color2:color} basket']},
+ {theme:'music',goal:'Get ready to play music in music class.',wrong:['Get ready to go home.','Get ready for a spelling test.'],
+  steps:['line up quietly at the door','bring your {color} music folder','sit on your carpet square','pick up a {instrument}','play the beat {num} times','hand the {instrument} to your partner','sing the first line of the song','put the instrument back on the shelf']},
+ {theme:'flynn',goal:'Start the morning in the classroom.',wrong:['Get ready for recess.','Clean up after art.'],
+  steps:['hang up your backpack','put your folder in the {color} bin','check that your listening device is on','sharpen two pencils','sign your name on the lunch chart','open your journal to a new page','draw a picture of {DOG}','read your book until the bell rings']},
+ {theme:'animals',goal:'Do research about an animal.',wrong:['Write a thank-you letter.','Practice math facts.'],
+  steps:['open your science book to page {page}','read about the {animal}','write {num} facts about it','circle the most surprising fact','draw a picture of the {animal}','label one body part','share your facts with a partner','put your paper in the {color} tray']},
+];
+const ORD=['First','Next','Then','After that','Then','Next','After that','Last'];
+
+const INFO=[
+ {theme:'flynn',title:'How Dogs Hear',intro:'Today we are learning about how dogs hear.',main:'Dogs have amazing hearing.',wrong:['Dogs like to eat bones.','Dogs need a bath every day.'],
+  facts:[
+   ['Dogs can hear very high sounds that people cannot hear.','What sounds can dogs hear that people cannot?','Very high sounds',['Very quiet music','Only loud sounds']],
+   ['A dog can move each ear by itself to find where a sound is coming from.','Why does a dog move its ears?','To find where a sound is coming from',['To scratch an itch','To keep warm']],
+   ['Dogs have about eighteen muscles in each ear.','About how many muscles are in a dog\'s ear?','About eighteen',['About two','About one hundred']],
+   ['Dogs can hear sounds about four times farther away than people can.','How much farther away can dogs hear sounds?','About four times farther',['The same as people','Ten miles farther']],
+   ['When a dog tilts its head, it may be trying to hear better.','Why might a dog tilt its head?','To hear better',['Because it is sleepy','To smell food']],
+   ['Puppies are born with their ears closed, and they open after about two weeks.','When do a puppy\'s ears open?','After about two weeks',['Right away','After one year']],
+   ['Loud fireworks can scare dogs because their hearing is so strong.','Why can fireworks scare dogs?','Their hearing is so strong',['They do not like colors','They are hungry']],
+   ['Some dogs are hearing dogs that tap their owner when the doorbell rings.','What do hearing dogs do when the doorbell rings?','Tap their owner',['Bark at the door','Hide under the bed']],
+  ]},
+ {theme:'music',title:'How We Sing',intro:'Today we are learning how your body makes music when you sing.',main:'Your body works together to make music when you sing.',wrong:['Singing is only for grown-ups.','Instruments are made of wood.'],
+  facts:[
+   ['Your vocal cords are inside your throat.','Where are your vocal cords?','Inside your throat',['Inside your nose','In your belly']],
+   ['When you sing, air from your lungs makes your vocal cords shake, or vibrate.','What makes your vocal cords vibrate?','Air from your lungs',['Your teeth','Your eyes']],
+   ['You can feel the vibration if you gently touch your throat while you hum.','How can you feel your voice vibrate?','Touch your throat while you hum',['Touch your knee','Clap your hands']],
+   ['For high notes, your vocal cords vibrate faster.','What do your vocal cords do for high notes?','Vibrate faster',['Stop moving','Vibrate slower']],
+   ['Your mouth, tongue, and lips shape the sound into words.','What shapes the sound into words?','Your mouth, tongue, and lips',['Your ears','Your hair']],
+   ['Singers do warm-ups, like humming, to get their voices ready.','Why do singers do warm-ups?','To get their voices ready',['To get sleepy','To learn to read']],
+   ['Drinking water helps keep your voice healthy.','What helps keep your voice healthy?','Drinking water',['Yelling loudly','Eating candy']],
+   ['Standing up tall helps you take a big breath for singing.','Why should singers stand up tall?','To take a big breath',['To see the ceiling','To look taller']],
+  ]},
+ {theme:'animals',title:'How Elephants Talk',intro:'Today we are learning about how elephants talk to each other.',main:'Elephants have many ways to talk to each other.',wrong:['Elephants are the smallest animals.','Elephants live under the sea.'],
+  facts:[
+   ['Elephants make low rumbling sounds to talk to each other.','What kind of sounds do elephants make to talk?','Low rumbling sounds',['High whistles','Loud meows']],
+   ['Some rumbles are so low that people cannot hear them.','Can people hear every elephant rumble?','No, some are too low',['Yes, all of them','Only at night']],
+   ['Elephant rumbles can travel for miles across the ground.','How far can elephant rumbles travel?','For miles',['Only one foot','Across the room']],
+   ['Elephants can feel rumbles through their feet.','How can elephants feel rumbles?','Through their feet',['Through their tails','Through their tusks']],
+   ['Elephants touch each other with their trunks to say hello.','How do elephants say hello?','They touch with their trunks',['They roll in mud','They hide']],
+   ['An elephant flaps its big ears when it is excited or upset.','When does an elephant flap its ears?','When it is excited or upset',['When it is sleeping','When it is eating']],
+   ['Elephants trumpet loudly through their trunks when they feel strong feelings.','How do elephants make a trumpet sound?','Through their trunks',['With their feet','With their ears']],
+   ['Baby elephants stay close to their mothers to stay safe.','Why do baby elephants stay close to their mothers?','To stay safe',['To find toys','To learn to fly']],
+  ]},
+ {theme:'comic',title:'How Graphic Novels Work',intro:'Today we are learning how graphic novels tell a story.',main:'Graphic novels use pictures and words together to tell a story.',wrong:['Graphic novels have no pictures.','Graphic novels are only about superheroes.'],
+  facts:[
+   ['Each picture in a graphic novel is inside a box called a panel.','What is a panel?','A box with a picture',['A kind of pencil','The back cover']],
+   ['Speech bubbles show what a character says.','What do speech bubbles show?','What a character says',['What time it is','The page number']],
+   ['Thought bubbles look like clouds and show what a character is thinking.','What do thought bubbles look like?','Clouds',['Squares','Stars']],
+   ['The space between panels is called the gutter.','What is the space between panels called?','The gutter',['The bubble','The cover']],
+   ['You read the panels from left to right and top to bottom.','Which way do you read the panels?','Left to right, top to bottom',['Bottom to top','Right to left only']],
+   ['Sound words like POW and SPLASH show noises in the story.','What do words like POW and SPLASH show?','Noises in the story',['Character names','The title']],
+   ['A box called a caption tells you where or when something is happening.','What does a caption tell you?','Where or when something happens',['How to draw','Who the author is']],
+   ['Many artists draw in pencil first, then trace with ink, and then add color.','What do many artists do first?','Draw in pencil',['Add color','Write the title']],
+  ]},
+];
+
+/* ---------------- content: ALD & self-advocacy ---------------- */
+const DEFAULT_STEPS=[
+ 'Check that my {HEAR} are on.',
+ 'Turn on my {ALD} and check that it is connected.',
+ 'Give the microphone to my teacher.',
+ 'My teacher clips the mic close to her mouth, about one hand away.',
+ 'Look for the green light that means it is working.',
+ 'Do a listening check. Ask, "Can you say something?"',
+ 'If it sounds wrong or quiet, tell my teacher.',
+ 'At the end of the day, turn it off and put it on the charger.',
+];
+const WHEN=[
+ ['Your teacher is reading a story to the whole class.',true,'The mic brings her voice right to your ears, even across the room.'],
+ ['Music class is learning a brand new song.',true,'You learn songs fast when you can hear every word clearly!'],
+ ['You are reading your graphic novel quietly by yourself.',false,'Nobody is talking to you, so you don\'t need it right now.'],
+ ['The class is watching a video on the big screen.',true,'Your device can connect to the video sound.'],
+ ['There is an assembly in the loud, echoey gym.',true,'Big rooms are noisy. The mic helps the speaker\'s voice stand out.'],
+ ['Your teacher gives directions for a test.',true,'Directions are important. The mic helps you catch every step.'],
+ ['You are swimming at the pool.',false,'Keep your devices dry! Water can break them.'],
+ ['You are reading with a partner, and your partner talks quietly.',true,'Pass the mic to your partner so you can hear them.'],
+ ['You are playing tag at recess.',false,'Recess is free play. You usually don\'t need the mic outside.'],
+ ['The librarian reads aloud at story time.',true,'Ask the librarian to wear the mic.'],
+ ['Your teacher is helping a different group across the room.',false,'She isn\'t talking to you. She can mute the mic.'],
+ ['The cafeteria is noisy, and your teacher is giving an announcement.',true,'The mic helps her voice stand out from the noise.'],
+];
+const WHY=[
+ ['What does my {ALD} do?','It brings my teacher\'s voice right to my ears.',['It makes my hearing aids turn off.','It plays music for recess.']],
+ ['Why does it help in a noisy room?','My teacher\'s voice is louder than the noise.',['It makes the room quiet.','It stops other kids from talking.']],
+ ['Where should my teacher wear the mic?','Close to her mouth.',['In her pocket.','On her desk.']],
+ ['Who should wear the microphone?','The person talking to me or the class.',['Me.','Nobody.']],
+ ['My teacher is all the way across the room. What happens?','I can still hear her through the mic.',['I can\'t hear her at all.','The mic turns off.']],
+ ['What should I do if I hear buzzing or nothing at all?','Tell my teacher.',['Keep guessing.','Shake the device.']],
+ ['Does my {ALD} replace my {HEAR}?','No, it works together with them.',['Yes, I take them out.','Yes, I only need the mic.']],
+ ['Why do I charge it at the end of the day?','So it has power for tomorrow.',['So it can sleep.','So it plays music.']],
+ ['How does using it help me at school?','I catch more words and feel less tired from listening.',['I can skip my work.','It makes me read faster.']],
+];
+const SCEN=[
+ {t:'Your teacher starts the lesson, but the mic is still sitting on her desk.',need:true,good:'Raise my hand and say, "Can you please wear the mic?"',pass:'Try to guess what she is saying.',bad:'Shout, "I can\'t hear you!"',icon:'mic'},
+ {t:'The light on your {ALD} is blinking because the battery is low.',need:true,good:'Tell my teacher, "My battery is low. Can I charge it?"',pass:'Wait until the end of the day.',bad:'Hide it in my desk.',icon:'battery'},
+ {t:'You are reading with a partner, and your partner talks very quietly.',need:true,good:'Ask, "Can you talk into my mic, please?"',pass:'Nod even though I didn\'t hear.',bad:'Tell my partner to stop talking.',icon:'book'},
+ {t:'Music class is learning a new song, but the music teacher doesn\'t have your mic.',need:true,good:'Ask, "Can you use my mic so I can learn the song?"',pass:'Just move my mouth and pretend.',bad:'Leave the room without asking.',icon:'mic'},
+ {t:'The class is watching a video, and the sound is hard to understand.',need:true,good:'Ask, "Can you connect my device to the video?"',pass:'Look at the pictures and hope.',bad:'Turn the video off myself.',icon:'noise'},
+ {t:'Your teacher is wearing the mic, the green light is on, and you can hear her clearly.',need:false,icon:'light'},
+ {t:'A classmate asks a question from across the room, and you can\'t hear it.',need:true,good:'Ask, "Can you repeat what my classmate said?"',pass:'Skip it and keep working.',bad:'Say, "Talk louder!" in a mean voice.',icon:'ear'},
+ {t:'Your {ALD} starts making a buzzing sound.',need:true,good:'Tell my teacher, "My device is buzzing."',pass:'Ignore it all day.',bad:'Bang it on the table.',icon:'noise'},
+ {t:'You are drawing quietly at your desk, and nobody is talking.',need:false,icon:'book'},
+ {t:'There is a substitute teacher who doesn\'t know about your mic.',need:true,good:'Show my Speak-Up card and say, "This is my mic. Please wear it."',pass:'Don\'t use it today.',bad:'Make the sub figure it out alone.',icon:'teacher'},
+ {t:'Your teacher talked to another teacher and forgot to unmute the mic.',need:true,good:'Say, "Can you turn your mic back on, please?"',pass:'Wait and hope she remembers.',bad:'Grab the mic from her.',icon:'mic'},
+ {t:'It\'s an assembly in the loud gym, and you can\'t understand the speaker.',need:true,good:'Ask my teacher, "Can I sit closer or use my mic?"',pass:'Cover my ears and wait.',bad:'Talk to my friend instead.',icon:'noise'},
+ {t:'You are playing tag with friends at recess.',need:false,icon:'hand'},
+];
+const CARDS=[
+ ['Please turn on the mic.','mic'],['Can you say that again, please?','chat'],['My battery is low.','battery'],
+ ['My device isn\'t working.','noise'],['Please pass the mic to my friend.','mic'],['It\'s too noisy. Can you use my mic?','noise'],
+ ['Can I sit closer, please?','teacher'],['Please face me when you talk.','ear'],['Can I use my mic for the video?','light'],
+];
+const SUPPORTS=['Independent','Visual cue (picture or written)','Sign or gesture cue','Verbal prompt','Modeled'];
+const ACC={
+ listen:[['ald','ALD on and checked before listening'],['seat','Preferential seating / face-to-face'],['preview','"Listen for…" preview (shows what to listen for)'],['chunk','Chunking: pause between sentences'],['slow','Slower rate of speech'],['visual','Visual recap: comic panels after recall'],['song','Sing-it-back strategy (rehearse details to a tune)'],['organizer','Comic-panel graphic organizer for recall'],['check','Check for understanding before recall'],['quiet','Reduced background noise']],
+ ald:[['icons','Picture icons on step cards'],['songcue','Listening Song as a reminder'],['model','Teacher modeled first'],['fewer','Fewer choices (2)'],['read','Read aloud to her'],['device','Hands-on with her real device']],
+ speak:[['read','Scenario read aloud'],['icons','Picture cues'],['fewer','Fewer choices (2)'],['role','Role-play with teacher'],['cards','Speak-Up cards available']],
+};
+const CTX=['Whole-group lesson','Small group','Partner work','Music','Library / specials','Assembly','Video','Cafeteria','Substitute teacher','Other'];
+
+/* ---------------- state + storage ---------------- */
+const KEY='flynns-listening-studio-v1';
+const store={settings:{student:'I.S.',dog:'Flynn',ald:'listening device',hear:'hearing devices',steps:DEFAULT_STEPS.slice(),voice:true,prompted:false,stickers:0,
+  acc:{listen:['ald','seat'],ald:['icons'],speak:['icons']}},trials:[],periods:[],opps:[]};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){Object.assign(store,s);store.settings=Object.assign({},store.settings,s.settings||{})}}catch(e){}
+let db=null,col=null;
+const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}};
+function remote(fn){if(!col)return;try{Promise.resolve(fn()).catch(()=>toast('Could not save to your account. Saved on this device.'))}catch(e){}}
+function putDoc(prefix,obj){saveLocal();remote(()=>col.doc(prefix+obj.id).set(JSON.parse(JSON.stringify(obj))))}
+function delDoc(prefix,id){saveLocal();remote(()=>col.doc(prefix+id).delete())}
+function saveSettings(){saveLocal();remote(()=>col.doc('settings').set(JSON.parse(JSON.stringify(store.settings))))}
+async function connect(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!d||!u)return;
+    const id=await u.id(); if(!id)return;
+    db=d; col=db.collection('data/users/'+id);
+    const timer=setTimeout(()=>{$('#save-state').textContent='Saved on this device (account not responding)'},10000);
+    const snap=await col.get(); clearTimeout(timer);
+    const seen={t:new Set(),p:new Set(),o:new Set()};
+    const merge=(arr,k,obj)=>{const i=arr.findIndex(x=>x.id===obj.id);if(i>=0)arr[i]=obj;else arr.push(obj);seen[k].add(obj.id)};
+    let hadSettings=false;
+    snap.docs.forEach(doc=>{const v=doc.data();if(!v)return;
+      if(doc.id==='settings'){Object.assign(store.settings,v);hadSettings=true}
+      else if(doc.id.startsWith('t_'))merge(store.trials,'t',v);
+      else if(doc.id.startsWith('p_'))merge(store.periods,'p',v);
+      else if(doc.id.startsWith('o_'))merge(store.opps,'o',v);});
+    // push anything only on this device
+    store.trials.filter(x=>!seen.t.has(x.id)).forEach(x=>putDoc('t_',x));
+    store.periods.filter(x=>!seen.p.has(x.id)).forEach(x=>putDoc('p_',x));
+    store.opps.filter(x=>!seen.o.has(x.id)).forEach(x=>putDoc('o_',x));
+    if(!hadSettings)saveSettings();
+    saveLocal();
+    $('#save-state').textContent='Saved privately to your account';
+    renderAll();
+  }catch(e){ $('#save-state').textContent='Saved on this device'; }
+}
+
+const S=store.settings;
+const sub=t=>String(t).replace(/\{DOG\}/g,S.dog||'Flynn').replace(/\{ALD\}/g,S.ald||'listening device').replace(/\{HEAR\}/g,S.hear||'hearing devices');
+
+/* ---------------- shared UI ---------------- */
+let toastT;function toast(m){let t=$('.toast');if(!t){t=document.createElement('div');t.className='toast';t.setAttribute('role','status');document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function celebrate(){const c=$('#celebrate');if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;c.innerHTML='';
+  for(let i=0;i<18;i++){const s=document.createElement('span');s.style.left=(Math.random()*96)+'%';s.style.animationDelay=(Math.random()*.6)+'s';s.innerHTML=i%2?I.paw:I.note;c.appendChild(s)}
+  setTimeout(()=>c.innerHTML='',3200)}
+function addSticker(){S.stickers=(S.stickers||0)+1;saveSettings();renderHeader();celebrate()}
+function seg(el,val,cb){$$('button',el).forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.v==String(val)));b.onclick=()=>cb(b.dataset.v)})}
+function accList(el,group){el.innerHTML=ACC[group].map(([k,l])=>`<label class="check"><input type="checkbox" data-k="${k}" ${S.acc[group].includes(k)?'checked':''}> <span>${esc(l)}</span></label>`).join('');
+  $$('input',el).forEach(i=>i.onchange=()=>{S.acc[group]=$$('input:checked',el).map(x=>x.dataset.k);saveSettings();
+    if(group==='listen'){$('#l-script-txt').innerHTML=scriptHTML();renderStage()}
+    if(group==='ald'){A.seq=null;A.why=null;renderALD()}
+    if(group==='speak'){SP.p=null;renderSpeak()}})}
+const accOn=(g,k)=>S.acc[g].includes(k);
+const accNames=g=>ACC[g].filter(([k])=>S.acc[g].includes(k)).map(([,l])=>l);
+function supportSelect(el){el.innerHTML=SUPPORTS.map(s=>`<option>${esc(s)}</option>`).join('')}
+
+let synthOK=!!window.speechSynthesis;
+function speak(lines,opts={}){
+  if(!synthOK||!S.voice){toast('Computer voice is off. Read it aloud yourself, or turn it on in Settings.');return}
+  try{const sy=speechSynthesis;sy.cancel();const rate=opts.slow?.72:.88;
+    lines.forEach((t,i)=>{const u=new SpeechSynthesisUtterance(t);u.rate=rate;sy.speak(u);
+      if(opts.pause&&i<lines.length-1){const p=new SpeechSynthesisUtterance(' ');p.rate=.1;p.volume=0;sy.speak(p)}});
+  }catch(e){}
+}
+
+function renderHeader(){
+  $('#brand').innerHTML=`${flynnSVG('',true)}<span>${esc(S.dog||'Flynn')}'s Listening Studio<small>for ${esc(S.student||'I.S.')} · listen, remember, speak up</small></span>`;
+  $('#tab-listen').innerHTML=`${tabIcon.listen}Listen &amp; Remember`;
+  $('#tab-ald').innerHTML=`${tabIcon.ald}My Listening Device`;
+  $('#tab-speak').innerHTML=`${tabIcon.speak}Speak Up!`;
+  $('#stickers').innerHTML=`${I.paw}<span>${S.stickers||0}</span>`;
+}
+function showView(v){$$('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===v)));
+  ['listen','ald','speak','data'].forEach(x=>$('#view-'+x).hidden=x!==v);
+  if(v==='data')renderData(); try{speechSynthesis.cancel()}catch(e){} stopSong();
+  try{history.replaceState(null,'','#'+v)}catch(e){}}
+$$('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
+
+/* ================= LISTEN & REMEMBER ================= */
+const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Short passage',lens:[8],unit:'sentences'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
+const L={goal:1,type:'sentences',len:4,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
+
+function fillSlots(templates,qmap){
+  const vals={},used={},details=[];
+  const out=templates.map((tpl,si)=>tpl.replace(/\{(\w+)(?::(\w+))?\}/g,(m,key,pool)=>{
+    if(key==='DOG')return m; if(key in vals)return `[[${key}]]`; pool=pool||key; if(!POOLS[pool])return m;
+    if(!(key in vals)){used[pool]=used[pool]||[];const opts=POOLS[pool].filter(v=>!used[pool].includes(v));const v=rnd(opts);vals[key]=v;used[pool].push(v);
+      if(qmap&&qmap[key])details.push({key,pool,si,a:v});}
+    return `[[${key}]]`;}));
+  details.forEach(d=>{d.choices=shuffle([d.a,...shuffle(POOLS[d.pool].filter(v=>!used[d.pool].includes(v))).slice(0,2)])});
+  return {out,vals,details};
+}
+function generate(){
+  const pickTheme=th=>th==='any'?rnd(['flynn','music','comic','animals']):th;
+  const theme=pickTheme(L.theme); let item;
+  if(L.type==='sentences'||L.type==='passage'){
+    const fr=rnd(FRAMES.filter(f=>f.theme===theme));
+    const n=L.type==='passage'?fr.s.length:L.len;
+    const {out,vals,details}=fillSlots(fr.s.slice(0,n),fr.q);
+    const render=(s,mark)=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>mark&&mark.has(k)?`<mark>${esc(vals[k])}</mark>`:esc(vals[k])));
+    const plain=s=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>vals[k]));
+    item={kind:'story',theme,title:plain(fr.title.replace(/\{kid\}/g,'[[kid]]')),
+      sentences:out,render,plain:out.map(plain),
+      details:details.map(d=>({id:d.key,cue:CUE[d.pool]||'What?',label:`${CUE[d.pool]||''} ${d.a}`.trim(),q:sub(fr.q[d.key]),a:d.a,choices:d.choices})),
+      main:plain(fr.main.replace(/\{kid\}/g,'[[kid]]')),wrong:fr.wrong.map(w=>plain(w.replace(/\{kid\}/g,'[[kid]]')))};
+  } else if(L.type==='directions'){
+    const set=rnd(DIRECTIONS.filter(d=>d.theme===theme));
+    const idx=shuffle(set.steps.map((_,i)=>i)).slice(0,L.len).sort((a,b)=>a-b);
+    const {out,vals}=fillSlots(set.steps,null);
+    const fill=s=>sub(s.replace(/\[\[(\w+)\]\]/g,(m,k)=>vals[k]));
+    const all=out.map(fill), chosen=idx.map(i=>all[i]);
+    const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+    const sentences=chosen.map((s,i)=>`${i===chosen.length-1?'Last':ORD[i]}, ${s}.`);
+    item={kind:'directions',theme,title:'Listen to the directions',sentences,render:(s,mark)=>esc(s),plain:sentences,
+      details:chosen.map((s,i)=>{const others=shuffle(all.filter(x=>x!==s)).slice(0,2);
+        return {id:'step'+i,cue:'Step '+(i+1),label:`Step ${i+1}: ${cap(s)}`,q:`What was step ${i+1}?`,a:cap(s),choices:shuffle([cap(s),...others.map(cap)])}}),
+      main:sub(set.goal),wrong:set.wrong.map(sub)};
+    item.render=(s,mark)=>mark?`<mark>${esc(s)}</mark>`:esc(s);
+  } else {
+    const tp=rnd(INFO.filter(t=>t.theme===theme));
+    const k=L.len-1; const idx=shuffle(tp.facts.map((_,i)=>i)).slice(0,k).sort((a,b)=>a-b);
+    const facts=idx.map(i=>tp.facts[i]);
+    const sentences=[tp.intro,...facts.map(f=>f[0])];
+    item={kind:'info',theme,title:tp.title,sentences,plain:sentences,
+      details:facts.map((f,i)=>({id:'f'+i,si:i+1,cue:(['What','Why','When','Where','How','Who'].includes(f[1].split(' ')[0])?f[1].split(' ')[0]:'What')+'?',label:f[2],q:f[1],a:f[2],choices:shuffle([f[2],...f[3]])})),
+      main:tp.main,wrong:tp.wrong};
+    item.render=(s,mark,si)=>mark?`<mark>${esc(s)}</mark>`:esc(s);
+  }
+  // choose key details
+  const k=Math.min(L.keys,item.details.length);
+  const keyIdx=new Set(shuffle(item.details.map((_,i)=>i)).slice(0,k));
+  item.keys=item.details.filter((_,i)=>keyIdx.has(i));
+  item.mainChoices=shuffle([item.main,...item.wrong]);
+  L.item=item;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';
+  renderListen();
+}
+function scriptHTML(){
+  const it=L.item, keyIds=new Set(it.keys.map(d=>d.id));
+  const pause=accOn('listen','chunk')?'<span class="pause" title="pause">/ pause /</span>':' ';
+  if(it.kind==='story') return `<b>${esc(it.title)}</b><br>`+it.sentences.map(s=>it.render(s,keyIds)).join(pause);
+  if(it.kind==='directions') return it.sentences.map((s,i)=>it.render(s,keyIds.has('step'+i))).join(pause);
+  return `<b>${esc(it.title)}</b><br>`+it.sentences.map((s,i)=>it.render(s,it.keys.some(d=>d.si===i))).join(pause);
+}
+function renderListen(){
+  seg($('#l-goal'),L.goal,v=>{L.goal=+v;if(L.goal===2&&L.type==='sentences'){L.type='passage';L.len=8}buildTypeSeg();generate()});
+  buildTypeSeg();
+  seg($('#l-theme'),L.theme,v=>{L.theme=v;generate()});
+  seg($('#l-keys'),L.keys,v=>{L.keys=+v;generate()});
+  seg($('#l-mode'),L.mode,v=>{L.mode=v;renderListen()});
+  $('#l-script-txt').innerHTML=scriptHTML();
+  $('#l-reps').textContent=L.reps;
+  $('#l-rep-warn').innerHTML=L.reps>1?`<div class="warn">More than one repetition. The goal allows one, so this trial won't meet criterion.</div>`:'';
+  $('#l-title').textContent=L.item.title;
+  $('#l-sub').textContent=`Goal ${L.goal} · ${TYPES[L.type].name}${L.type==='passage'?'':' · '+L.len+' '+TYPES[L.type].unit}`;
+  $('#l-voice-note').textContent=(!synthOK||!S.voice)?'(off in Settings)':'';
+  renderStage();renderScorePanel();
+}
+function buildTypeSeg(){
+  const types=L.goal===2?['passage','directions','info']:['sentences','passage','directions','info'];
+  $('#l-type').innerHTML=types.map(t=>`<button data-v="${t}">${TYPES[t].name}</button>`).join('');
+  seg($('#l-type'),L.type,v=>{L.type=v;L.len=TYPES[v].lens.includes(L.len)?L.len:TYPES[v].lens[Math.min(1,TYPES[v].lens.length-1)];generate()});
+  const lens=TYPES[L.type].lens;
+  $('#l-len').innerHTML=lens.map(n=>`<button data-v="${n}">${n} ${TYPES[L.type].unit}</button>`).join('');
+  $('#l-len').closest('.field').hidden=lens.length<2;
+  seg($('#l-len'),L.len,v=>{L.len=+v;generate()});
+  $('#l-theme').innerHTML=THEMES.map(t=>`<button data-v="${t.id}">${esc(sub(t.name))}</button>`).join('');
+  seg($('#l-theme'),L.theme,v=>{L.theme=v;generate()});
+}
+function organizerHTML(){
+  const it=L.item;
+  const boxes=it.keys.map(d=>`<div class="org-box"><b>${esc(d.cue)}</b></div>`).join('');
+  return `<div class="organizer">${L.goal===2?`<div class="org-box main"><b>Main idea: what was it mostly about?</b></div>`:''}${boxes}</div>`;
+}
+function renderStage(){
+  const st=$('#l-stage'), it=L.item;
+  if(L.phase==='listen'){
+    const cues=[...new Set(it.keys.map(d=>d.cue))];
+    st.innerHTML=`${flynnSVG('flynn bob',accOn('listen','ald'))}
+      <div class="bubble">Listening ears on!${accOn('listen','ald')?' Is your mic on?':''}</div>
+      ${accOn('listen','preview')?`<div class="stack" style="justify-items:center"><span class="label">Listen for</span><div class="cues">${(L.goal===2?['Main idea',...cues]:cues).map(c=>`<span class="cue">${esc(c)}</span>`).join('')}</div></div>`:''}
+      ${accOn('listen','song')?`<div class="tip">${I.note}<div><b>Sing it back!</b> When you hear a detail, sing it in your head to a tune you know. Songs help you remember.</div></div>`:''}
+      <button class="btn big pink" id="l-go">I'm ready to remember</button>`;
+    $('#l-go').onclick=()=>{L.phase='recall';try{speechSynthesis.cancel()}catch(e){}renderStage();renderScorePanel()};
+  } else if(L.phase==='recall'&&L.mode==='open'){
+    st.innerHTML=`<div class="bubble">Tell me everything you remember!</div>
+      ${accOn('listen','check')?`<div class="tip">${I.chat}<div><b>Check:</b> What was it about? Who or what did you hear about?</div></div>`:''}
+      ${accOn('listen','organizer')?organizerHTML():flynnSVG('flynn')}
+      <p class="mini">Teacher: tap each detail she recalls in the panel.</p>`;
+  } else if(L.phase==='recall'&&L.mode==='tap'){
+    const qs=questions();
+    if(L.qi>=qs.length){finishTap();return}
+    const q=qs[L.qi]; const fewer=false;
+    st.innerHTML=`<div class="progress">${qs.map((_,i)=>`<i class="${i<L.qi?'done':i===L.qi?'on':''}"></i>`).join('')}</div>
+      <div class="qcard"><div class="qtext">${esc(q.q)}</div>
+      <div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div></div>`;
+    $$('.choice',st).forEach(b=>b.onclick=()=>{
+      const pick=q.choices[+b.dataset.i]; const right=pick===q.a;
+      L.answers[L.qi]={q:q.q,a:q.a,pick,right,isMain:!!q.isMain};
+      $$('.choice',st).forEach(x=>x.disabled=true);
+      b.classList.add(right?'right':'wrong');
+      setTimeout(()=>{L.qi++;renderStage()},right?700:1100);
+    });
+  } else if(L.phase==='review'){
+    st.innerHTML=reviewHTML();
+  }
+}
+function questions(){
+  const it=L.item;const qs=it.keys.map(d=>({q:d.q,a:d.a,choices:d.choices,id:d.id}));
+  if(L.goal===2)qs.push({q:'What was it mostly about?',a:it.main,choices:it.mainChoices,isMain:true});
+  return qs;
+}
+function finishTap(){
+  L.marked=new Set(L.answers.filter(a=>a.right&&!a.isMain).map((a,i)=>a.q));
+  const m=L.answers.find(a=>a.isMain); L.main=m?(m.right?'yes':'no'):null;
+  L.phase='review';renderStage();renderScorePanel();
+}
+function reviewHTML(){
+  const it=L.item;
+  const strip=it.plain.map((s,i)=>`<div class="cpanel"><span class="num">${i+1}</span><p>${esc(s)}</p></div>`).join('');
+  const sc=score();
+  return `${flynnSVG('flynn')}<div class="bubble">${sc.pct>=80?'Wow, great remembering!':'Good listening! Let\'s look at it together.'}</div>
+    ${accOn('listen','visual')?`<div class="stack" style="width:100%;text-align:left"><span class="label">Here's what you heard</span><div class="strip">${strip}</div></div>`:''}`;
+}
+function score(){
+  const it=L.item;
+  let correct,total=it.keys.length;
+  if(L.mode==='tap'){correct=L.answers.filter(a=>a.right&&!a.isMain).length}
+  else correct=it.keys.filter(d=>L.marked.has(d.id)).length;
+  const mainOk=L.goal===2?L.main==='yes':null;
+  const items=total+(L.goal===2?1:0), got=correct+(mainOk?1:0);
+  const pct=items?Math.round(got/items*100):0;
+  const meets=correct>=4&&pct>=80&&L.reps<=1&&(L.goal===1||mainOk);
+  return {correct,total,pct,mainOk,meets};
+}
+function renderScorePanel(){
+  const p=$('#l-score-panel');
+  if(L.phase==='listen'||(L.mode==='tap'&&L.phase==='recall')){p.hidden=true;return}
+  p.hidden=false;const it=L.item;
+  let h=`<h3>Score this trial</h3>`;
+  if(L.mode==='open'&&L.phase==='recall'){
+    h+=`<div class="field"><span class="label">Key details she recalled (tap)</span><div class="dlist">${it.keys.map(d=>`<button class="dchip" data-id="${esc(d.id)}" aria-pressed="${L.marked.has(d.id)}"><span class="box"></span><span>${esc(d.a)} <span class="cueword">${esc(d.cue)}</span></span></button>`).join('')}</div></div>`;
+    if(L.goal===2)h+=`<div class="field"><span class="label">Main idea: "${esc(it.main)}"</span><div class="seg" id="l-main"><button data-v="yes">Got it</button><button data-v="no">Not yet</button></div></div>`;
+  } else if(L.phase==='review'&&L.mode==='tap'){
+    h+=`<div class="dlist">${L.answers.map(a=>`<div class="dchip" aria-pressed="${a.right}"><span class="box"></span><span>${esc(a.isMain?'Main idea':a.q)}<br><span class="cueword">${a.right?'':'Chose: '+esc(a.pick)+' · '}Answer: ${esc(a.a)}</span></span></div>`).join('')}</div>`;
+  }
+  const sc=score();
+  h+=`<div class="${sc.meets?'ok':'warn'}"><b>${sc.correct} of ${sc.total} key details${L.goal===2?` · main idea ${sc.mainOk?'✓':'✗'}`:''} · ${sc.pct}%</b><br>${sc.meets?'Meets criterion (4+ details, 80%, ≤1 repetition).':'Does not meet criterion yet'+(sc.correct<4?' (needs 4+ details)':'')+(L.reps>1?' (more than 1 repetition)':'')+'.'}</div>
+    <div class="field"><span class="label">Support given</span><select id="l-support">${SUPPORTS.map(s=>`<option ${s===L.support?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+    <div class="field"><span class="label">Notes</span><textarea id="l-notes" placeholder="Details she added, how she answered…">${esc(L.notes)}</textarea></div>
+    <label class="check"><input type="checkbox" id="l-counts" ${L.counts?'checked':''}> <span>Count as a data collection opportunity</span></label>
+    <div class="row">${L.mode==='open'&&L.phase==='recall'&&accOn('listen','visual')?`<button class="sbtn" id="l-show">Show her the comic recap</button>`:''}<button class="btn good" id="l-save">Save trial</button></div>`;
+  p.innerHTML=h;
+  $$('.dchip[data-id]',p).forEach(b=>b.onclick=()=>{const id=b.dataset.id;L.marked.has(id)?L.marked.delete(id):L.marked.add(id);renderScorePanel()});
+  if($('#l-main'))seg($('#l-main'),L.main,v=>{L.main=v;renderScorePanel()});
+  $('#l-support').onchange=e=>L.support=e.target.value;
+  $('#l-notes').oninput=e=>L.notes=e.target.value;
+  $('#l-counts').onchange=e=>L.counts=e.target.checked;
+  if($('#l-show'))$('#l-show').onclick=()=>{$('#l-stage').innerHTML=reviewHTML()};
+  $('#l-save').onclick=saveListen;
+}
+function saveListen(){
+  const it=L.item,sc=score();
+  const t={id:uid(),date:today(),goal:L.goal,kind:'listen',activity:TYPES[L.type].name+(L.type==='passage'?'':` (${L.len} ${TYPES[L.type].unit})`),
+    title:it.title,theme:it.theme,correct:sc.correct+(sc.mainOk?1:0),total:sc.total+(L.goal===2?1:0),details:sc.correct,keyTotal:sc.total,
+    main:L.goal===2?!!sc.mainOk:null,pct:sc.pct,reps:L.reps,mode:L.mode==='open'?'Told/signed (teacher checked)':'Tapped choices',
+    support:L.support,acc:accNames('listen'),notes:L.notes,counts:L.counts,meets:sc.meets,
+    items:it.keys.map(d=>d.a+(L.mode==='open'?(L.marked.has(d.id)?' ✓':' ✗'):''))};
+  store.trials.push(t);putDoc('t_',t);addSticker();toast('Trial saved. New passage ready.');generate();
+}
+$('#l-new').onclick=generate;
+$('#l-rep-plus').onclick=()=>{L.reps++;renderListen()};
+$('#l-rep-minus').onclick=()=>{L.reps=Math.max(0,L.reps-1);renderListen()};
+$('#l-say').onclick=()=>speak(L.item.kind==='story'?[L.item.title,...L.item.plain]:L.item.plain,{pause:accOn('listen','chunk'),slow:accOn('listen','slow')});
+const scr=$('#l-script');
+const showS=()=>scr.classList.add('show'), hideS=()=>{if(!$('#l-peek').checked)scr.classList.remove('show')};
+scr.addEventListener('pointerdown',showS);scr.addEventListener('pointerup',hideS);scr.addEventListener('pointerleave',hideS);scr.addEventListener('pointercancel',hideS);
+scr.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();showS()}});scr.addEventListener('keyup',hideS);
+$('#l-peek').onchange=e=>scr.classList.toggle('show',e.target.checked);
+
+/* ================= MY LISTENING DEVICE ================= */
+const A={sub:'learn',seq:null,when:null,why:null,demo:{}};
+const steps=()=>S.steps.map(sub);
+function renderALD(){
+  seg($('#a-sub'),A.sub,v=>{A.sub=v;stopSong();renderALD()});
+  $('#a-title').textContent=`My ${sub('{ALD}').replace(/^my /i,'')}`.replace(/^My (\w)/,(m,c)=>'My '+c.toUpperCase());
+  const st=$('#a-stage');
+  if(A.sub==='learn'){
+    st.innerHTML=`<div class="row" style="gap:18px;justify-content:center;align-items:center">${flynnSVG('flynn',true)}
+      <div class="bubble" style="font-size:1.35em">Hi! I'm ${esc(S.dog)}. My ears are super strong, but even I like help in a noisy room. Your ${esc(sub('{ALD}'))} is your listening helper!</div></div>
+      <div class="strip" style="width:100%;text-align:left">
+        <div class="cpanel" style="background:var(--blue-s)">${I.teacher}<p><b>What is it?</b> Your teacher talks into a small mic. It sends her voice straight to your ${esc(sub('{HEAR}'))}.</p></div>
+        <div class="cpanel" style="background:var(--pink-s)">${I.noise}<p><b>Why does it help?</b> It makes her voice clear and close, even when the room is noisy or she is far away.</p></div>
+        <div class="cpanel" style="background:var(--lav)">${I.light}<p><b>When do I use it?</b> When someone is teaching, reading, giving directions, or playing a video.</p></div>
+        <div class="cpanel" style="background:var(--gold-s)">${I.hand}<p><b>If it's not working?</b> Speak up! Tell your teacher what you need.</p></div>
+      </div>
+      <div class="stack" style="width:100%;text-align:left"><span class="label">How to use it, step by step</span>
+      <div class="strip">${steps().map((s,i)=>`<div class="cpanel"><span class="num">${i+1}</span>${stepIcon(s)}<p>${esc(s)}</p></div>`).join('')}</div></div>
+      <div class="row"><button class="btn blue" id="a-read">Computer voice: read steps</button><button class="btn pink" id="a-to-order">Practice: put them in order</button></div>`;
+    $('#a-read').onclick=()=>speak(steps(),{pause:true});
+    $('#a-to-order').onclick=()=>{A.sub='order';A.seq=null;renderALD()};
+  } else if(A.sub==='song') renderSong(st);
+  else if(A.sub==='order') renderOrder(st);
+  else if(A.sub==='when') renderWhen(st);
+  else if(A.sub==='why') renderWhy(st);
+  else renderDemo(st);
+}
+/* --- song --- */
+let songT=null;
+function songLines(){return [
+  `Check my ${sub('{HEAR}')}, are they on? (clap, clap)`,
+  `Turn on my ${sub('{ALD}')}, it won't take long!`,
+  'Teacher wears the mic up near her chin,',
+  'Green light glowing, sound comes in!',
+  'Is it clear? I check and say,',
+  '"Can you say something?" Hip hooray!',
+  'If it buzzes, if it\'s low,',
+  'I speak up so my teacher knows!',
+  'End of day, it\'s time to rest,',
+  'Charge it up. I did my best!',
+]}
+function stopSong(){clearInterval(songT);songT=null;try{speechSynthesis.cancel()}catch(e){}}
+function renderSong(st){
+  st.innerHTML=`<div class="row" style="gap:18px;justify-content:center">${flynnSVG('flynn bob',true)}<div class="bubble" style="font-size:1.3em">You learn songs fast! Sing the steps and you'll never forget them.</div></div>
+    <div class="panel pink" style="width:100%;max-width:760px"><div class="panel-head"><h3>The Listening Song</h3><span class="mini">clap the beat · watch the pink line</span></div>
+    <div class="song" id="a-song">${songLines().map((l,i)=>`<div class="line" data-i="${i}"><span class="n">♪</span>${esc(l)}</div>`).join('')}</div></div>
+    <div class="row"><button class="btn pink big" id="a-sing">Sing along</button><label class="check"><input type="checkbox" id="a-sing-voice"> <span>Computer voice too</span></label></div>`;
+  $('#a-sing').onclick=()=>{
+    stopSong();const lines=$$('#a-song .line');let i=0;
+    const step=()=>{lines.forEach(l=>l.classList.remove('now'));if(i>=lines.length){stopSong();toast('Great singing!');return}
+      lines[i].classList.add('now');lines[i].scrollIntoView({block:'nearest',behavior:'smooth'});
+      if($('#a-sing-voice').checked&&S.voice&&synthOK){try{const u=new SpeechSynthesisUtterance(songLines()[i]);u.rate=.95;u.pitch=1.3;speechSynthesis.speak(u)}catch(e){}}
+      i++};
+    step();songT=setInterval(step,2800);
+  };
+}
+/* --- sequence --- */
+function renderOrder(st){
+  const all=steps(); const fewer=accOn('ald','fewer');
+  if(!A.seq){const n=A.seqN||Math.min(all.length,fewer?4:6);
+    const idx=n>=all.length?all.map((_,i)=>i):[0,...shuffle(all.map((_,i)=>i).slice(1)).slice(0,n-1)].sort((a,b)=>a-b);
+    const order=idx.map(i=>all[i]);A.seq={order,pool:shuffle(order.map((s,i)=>i)),placed:[],checked:false}}
+  const q=A.seq, icons=accOn('ald','icons');
+  st.innerHTML=`<div class="bubble">Put the steps in order! Tap a card to add it.</div>
+    <div class="row"><span class="label">How many steps</span><div class="seg" id="a-n">${[4,6,all.length].filter((v,i,a)=>a.indexOf(v)===i&&v<=all.length).map(n=>`<button data-v="${n}">${n===all.length?'All '+n:n}</button>`).join('')}</div></div>
+    ${accOn('ald','songcue')?`<div class="tip">${I.note}<div>Hum the Listening Song to help you remember the order!</div></div>`:''}
+    <div class="seq-wrap">
+      <div class="stack"><span class="label">Step cards</span><div class="seq-pool">${q.pool.filter(i=>!q.placed.includes(i)).map(i=>`<button class="seq-card" data-i="${i}">${icons?stepIcon(q.order[i]).replace('class="ic"',''):''}<span>${esc(q.order[i])}</span></button>`).join('')||'<p class="mini">All cards placed. Press Check!</p>'}</div></div>
+      <div class="stack"><span class="label">My order</span><div class="seq-slots">${q.order.map((_,pos)=>{const i=q.placed[pos];const filled=i!==undefined;
+        const cls=filled?('filled'+(q.checked?(i===pos?' right':' wrong'):'')):'';
+        return `<button class="seq-slot ${cls}" data-pos="${pos}" ${!filled||q.checked?'tabindex="-1"':''}><span class="n">${pos+1}</span>${filled?(icons?stepIcon(q.order[i]).replace('class="ic"',''):'')+`<span>${esc(q.order[i])}</span>`:'<span class="mini">tap a card</span>'}</button>`}).join('')}</div></div>
+    </div>
+    <div class="row"><button class="btn good big" id="a-check" ${q.placed.length<q.order.length||q.checked?'disabled':''}>Check my order</button><button class="sbtn" id="a-again">New set</button></div>
+    <div id="a-fb"></div>`;
+  seg($('#a-n'),q.order.length,v=>{A.seqN=+v;A.seq=null;renderOrder(st)});
+  $$('.seq-card',st).forEach(b=>b.onclick=()=>{if(q.checked)return;q.placed.push(+b.dataset.i);renderOrder(st)});
+  $$('.seq-slot.filled',st).forEach(b=>b.onclick=()=>{if(q.checked)return;const pos=+b.dataset.pos;q.placed.splice(pos,1);renderOrder(st)});
+  $('#a-again').onclick=()=>{A.seq=null;renderOrder(st)};
+  $('#a-check').onclick=()=>{q.checked=true;const c=q.placed.filter((i,pos)=>i===pos).length;renderOrder(st);
+    const pct=Math.round(c/q.order.length*100);
+    $('#a-fb').innerHTML=`<div class="feedback ${pct>=80?'':'try'}">${c} of ${q.order.length} in the right spot (${pct}%). ${pct>=80?'You know your steps!':'Green ones are right. Let\'s sing the song and try again.'}</div>`;
+    saveG3('sequence','Put ALD steps in order',c,q.order.length,q.placed.map((i,pos)=>`${pos+1}. ${q.order[i]}${i===pos?' ✓':' ✗'}`));
+  };
+}
+/* --- when --- */
+function renderWhen(st){
+  if(!A.when)A.when={list:shuffle(WHEN).slice(0,6),i:0,ans:[]};
+  const w=A.when;
+  if(w.i>=w.list.length){const c=w.ans.filter(a=>a.right).length;
+    st.innerHTML=`${flynnSVG('flynn')}<div class="bubble">You got ${c} of ${w.list.length}!</div><button class="btn pink" id="a-w-again">Play again</button>`;
+    $('#a-w-again').onclick=()=>{A.when=null;renderWhen(st)};return}
+  const [t,yes,why]=w.list[w.i]; const done=w.ans[w.i];
+  st.innerHTML=`<div class="progress">${w.list.map((_,i)=>`<i class="${i<w.i?'done':i===w.i?'on':''}"></i>`).join('')}</div>
+    <div class="scene">${I.mic}<span>${esc(sub(t))}</span></div>
+    <div class="qtext">Should I use my ${esc(sub('{ALD}'))}?</div>
+    <div class="yesno"><button class="choice" data-v="1" ${done?'disabled':''}>Yes, use it!</button><button class="choice" data-v="0" ${done?'disabled':''}>Not needed now</button></div>
+    <div id="a-fb"></div>`;
+  $$('.yesno .choice',st).forEach(b=>b.onclick=()=>{const pick=b.dataset.v==='1',right=pick===yes;w.ans[w.i]={t,right,pick};
+    b.classList.add(right?'right':'wrong');$$('.yesno .choice',st).forEach(x=>x.disabled=true);
+    $('#a-fb').innerHTML=`<div class="feedback ${right?'':'try'}">${right?'Yes!':'Hmm, think again.'} ${esc(sub(why))}</div><button class="btn blue" id="a-next" style="margin-top:12px">Next</button>`;
+    $('#a-next').onclick=()=>{w.i++;if(w.i>=w.list.length){const c=w.ans.filter(a=>a.right).length;saveG3('when','When do I use my ALD?',c,w.list.length,w.ans.map(a=>`${a.t} → ${a.pick?'use':'not needed'}${a.right?' ✓':' ✗'}`))}renderWhen(st)};
+  });
+}
+/* --- why --- */
+function renderWhy(st){
+  const fewer=accOn('ald','fewer');
+  if(!A.why)A.why={list:shuffle(WHY).slice(0,5).map(([q,a,d])=>({q:sub(q),a:sub(a),choices:shuffle([sub(a),...shuffle(d).slice(0,fewer?1:2)])})),i:0,ans:[]};
+  const w=A.why;
+  if(w.i>=w.list.length){const c=w.ans.filter(a=>a.right).length;
+    st.innerHTML=`${flynnSVG('flynn')}<div class="bubble">You got ${c} of ${w.list.length}!</div><button class="btn pink" id="a-y-again">Play again</button>`;
+    $('#a-y-again').onclick=()=>{A.why=null;renderWhy(st)};return}
+  const q=w.list[w.i];
+  st.innerHTML=`<div class="progress">${w.list.map((_,i)=>`<i class="${i<w.i?'done':i===w.i?'on':''}"></i>`).join('')}</div>
+    <div class="qcard"><div class="qtext">${esc(q.q)}</div><div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div></div>
+    ${accOn('ald','read')?`<button class="sbtn" id="a-y-read">Read it to me</button>`:''}`;
+  if($('#a-y-read'))$('#a-y-read').onclick=()=>speak([q.q,...q.choices]);
+  $$('.choice',st).forEach(b=>b.onclick=()=>{const pick=q.choices[+b.dataset.i],right=pick===q.a;w.ans[w.i]={q:q.q,right,pick};
+    b.classList.add(right?'right':'wrong');$$('.choice',st).forEach(x=>x.disabled=true);
+    if(!right)$$('.choice',st).find(x=>x.textContent===q.a)?.classList.add('right');
+    setTimeout(()=>{w.i++;if(w.i>=w.list.length){const c=w.ans.filter(a=>a.right).length;saveG3('why','Purpose & benefit questions',c,w.list.length,w.ans.map(a=>`${a.q} → ${a.pick}${a.right?' ✓':' ✗'}`))}renderWhy(st)},right?800:1800);
+  });
+}
+/* --- demo (teacher checklist) --- */
+function renderDemo(st){
+  const all=steps();
+  st.innerHTML=`<div class="bubble">Show me how you use your ${esc(sub('{ALD}'))}!</div>
+    <div class="stack" style="width:100%;max-width:820px;text-align:left"><span class="label">Teacher: mark each step she demonstrates</span>
+    <div class="democheck">${all.map((s,i)=>`<div class="demorow"><span><b>${i+1}.</b> ${esc(s)}</span><div class="seg" data-i="${i}"><button data-v="ind">On her own</button><button data-v="pr">Prompted</button><button data-v="no">Not yet</button></div></div>`).join('')}</div>
+    <div id="a-demo-score"></div>
+    <div class="row"><button class="btn good" id="a-demo-save">Save demonstration</button><button class="sbtn" id="a-demo-clear">Clear</button></div></div>`;
+  const upd=()=>{const vals=all.map((_,i)=>A.demo[i]);const ind=vals.filter(v=>v==='ind').length;const pct=Math.round(ind/all.length*100);
+    $('#a-demo-score').innerHTML=`<div class="${pct>=80?'ok':'warn'}">${ind} of ${all.length} steps on her own (${pct}%). Prompted steps don't count as independent.</div>`};
+  $$('.democheck .seg',st).forEach(el=>{const i=+el.dataset.i;const draw=()=>seg(el,A.demo[i],v=>{A.demo[i]=v;draw();upd()});draw()});
+  upd();
+  $('#a-demo-clear').onclick=()=>{A.demo={};renderDemo(st)};
+  $('#a-demo-save').onclick=()=>{const ind=all.filter((_,i)=>A.demo[i]==='ind').length;
+    saveG3('demo','Demonstrated ALD use',ind,all.length,all.map((s,i)=>`${s} → ${({ind:'on her own',pr:'prompted',no:'not yet'})[A.demo[i]]||'not observed'}`));A.demo={};renderDemo(st)};
+}
+function saveG3(kind,activity,c,n,items){
+  const pct=Math.round(c/n*100);
+  const t={id:uid(),date:today(),goal:3,kind,activity,title:activity,correct:c,total:n,pct,reps:null,mode:kind==='demo'?'Teacher observed':'Student app activity',
+    support:$('#a-support').value,acc:accNames('ald'),notes:$('#a-notes').value,counts:$('#a-counts').checked,meets:pct>=80,items};
+  store.trials.push(t);putDoc('t_',t);$('#a-notes').value='';addSticker();toast(`Saved: ${activity} · ${pct}%`);
+}
+
+/* ================= SPEAK UP ================= */
+const SP={sub:'cards',p:null};
+function latestPeriod(){return store.periods.slice().sort((a,b)=>a.start<b.start?-1:1).at(-1)||null}
+function currentPeriod(){return latestPeriod()||{id:null,start:today(),n:1}}
+function ensurePeriod(){let p=latestPeriod();if(!p){p={id:uid(),start:today(),n:1};store.periods.push(p);putDoc('p_',p)}return p}
+function oppSuccess(o){const okv=S.prompted?['ind','pr']:['ind'];return okv.includes(o.rec)&&okv.includes(o.com)}
+function periodStats(p){const os=store.opps.filter(o=>o.period===p.id);const s=os.filter(oppSuccess).length;return {n:os.length,s,pct:os.length?Math.round(s/os.length*100):0,meets:os.length>=5&&s/os.length>=.8}}
+const SP_LOG={rec:null,com:null};
+function renderSpeak(){
+  seg($('#s-sub'),SP.sub,v=>{SP.sub=v;renderSpeak()});
+  const p=currentPeriod(),ps=periodStats(p);
+  $('#s-period').innerHTML=`<div class="period current"><b>Data period ${p.n}</b><span class="mini">Started ${fmtDate(p.start)}</span>
+    <span>${ps.s} of ${ps.n} opportunities successful${ps.n?` (${ps.pct}%)`:''}</span>
+    <div class="${ps.meets?'ok':'warn'}" style="font-size:.85em">${ps.meets?'Meets the goal for this period.':ps.n<5?`Log at least ${5-ps.n} more.`:'Below 80% so far.'}</div></div>`;
+  seg($('#s-rec'),SP_LOG.rec,v=>{SP_LOG.rec=v;renderSpeak()});
+  seg($('#s-com'),SP_LOG.com,v=>{SP_LOG.com=v;renderSpeak()});
+  const st=$('#s-stage');
+  if(SP.sub==='cards'){
+    st.innerHTML=`<div class="bubble" style="font-size:1.4em">Tap a card to show your teacher what you need.</div>
+      <div class="cards" style="width:100%">${CARDS.map(([t,ic],i)=>`<button class="sucard" data-i="${i}">${I[ic].replace('class="ic"','')}<span>${esc(sub(t))}</span></button>`).join('')}</div>`;
+    $$('.sucard',st).forEach(b=>b.onclick=()=>showCard(sub(CARDS[+b.dataset.i][0])));
+  } else renderPractice(st);
+}
+function showCard(text){
+  const d=document.createElement('div');d.className='showcard';d.setAttribute('role','dialog');d.setAttribute('aria-label','Speak-Up card');
+  d.innerHTML=`<div class="inner">${flynnSVG('flynn',true)}<div class="say">${esc(text)}</div><button class="btn big" id="sc-close">Done</button></div>`;
+  document.body.appendChild(d);$('#sc-close').focus();$('#sc-close').onclick=()=>d.remove();
+}
+function renderPractice(st){
+  const fewer=accOn('speak','fewer');
+  if(!SP.p)SP.p={list:shuffle(SCEN).slice(0,5).map(s=>({...s,opts:s.need?shuffle(fewer?[s.good,s.pass]:[s.good,s.pass,s.bad]):null})),i:0,part:1,ans:[]};
+  const P=SP.p;
+  if(P.i>=P.list.length){
+    const pts=P.ans.reduce((a,x)=>a+(x.rec?1:0)+(x.com===null?0:x.com?1:0),0), tot=P.ans.reduce((a,x)=>a+1+(x.com===null?0:1),0);
+    st.innerHTML=`${flynnSVG('flynn',true)}<div class="bubble">You're a Speak-Up star! ${pts} of ${tot}</div><button class="btn pink" id="sp-again">Practice again</button>`;
+    $('#sp-again').onclick=()=>{SP.p=null;renderPractice(st)};return}
+  const s=P.list[P.i];
+  const head=`<div class="progress">${P.list.map((_,i)=>`<i class="${i<P.i?'done':i===P.i?'on':''}"></i>`).join('')}</div>
+    <div class="scene">${accOn('speak','icons')?I[s.icon]:''}<span>${esc(sub(s.t))}</span></div>
+    ${accOn('speak','read')?`<button class="sbtn" id="sp-read">Read it to me</button>`:''}`;
+  if(P.part===1){
+    st.innerHTML=`${head}<div class="qtext">Is there a listening problem?</div>
+      <div class="yesno"><button class="choice" data-v="1">Yes, I need to speak up</button><button class="choice" data-v="0">No, I can keep listening</button></div><div id="sp-fb"></div>`;
+    $$('.yesno .choice',st).forEach(b=>b.onclick=()=>{const pick=b.dataset.v==='1',right=pick===s.need;
+      P.ans[P.i]={t:sub(s.t),rec:right,com:s.need?null:null,pick:null};
+      b.classList.add(right?'right':'wrong');$$('.yesno .choice',st).forEach(x=>x.disabled=true);
+      $('#sp-fb').innerHTML=`<div class="feedback ${right?'':'try'}">${s.need?(right?'Yes! Something is getting in the way of your listening.':'Look again. Something is making it hard to hear.'):(right?'Right! Everything is working, so keep listening.':'Everything is working here, so you can keep listening.')}</div><button class="btn blue" id="sp-next" style="margin-top:12px">${s.need?'What could I say?':'Next'}</button>`;
+      $('#sp-next').onclick=()=>{if(s.need){P.part=2}else{P.i++;P.part=1;maybeFinish()}renderPractice(st)};
+    });
+  } else {
+    st.innerHTML=`${head}<div class="qtext">What could you say or do?</div>
+      <div class="choices">${s.opts.map((o,i)=>`<button class="choice" data-i="${i}">${esc(o)}</button>`).join('')}</div><div id="sp-fb"></div>`;
+    $$('.choices .choice',st).forEach(b=>b.onclick=()=>{const pick=s.opts[+b.dataset.i],right=pick===s.good;P.ans[P.i].com=right;P.ans[P.i].pick=pick;
+      b.classList.add(right?'right':'wrong');$$('.choices .choice',st).forEach(x=>x.disabled=true);
+      if(!right)$$('.choices .choice',st).find(x=>x.textContent===s.good)?.classList.add('right');
+      $('#sp-fb').innerHTML=`<div class="feedback ${right?'':'try'}">${right?'Great speaking up! Kind, clear words get you what you need.':'A better choice is the green one. Use kind, clear words to ask for what you need.'}</div><button class="btn blue" id="sp-next" style="margin-top:12px">Next</button>`;
+      $('#sp-next').onclick=()=>{P.i++;P.part=1;maybeFinish();renderPractice(st)};
+    });
+  }
+  if($('#sp-read'))$('#sp-read').onclick=()=>speak([sub(s.t)]);
+  function maybeFinish(){if(P.i<P.list.length||!$('#sp-counts').checked)return;
+    const c=P.ans.reduce((a,x)=>a+(x.rec?1:0)+(x.com?1:0),0),n=P.ans.reduce((a,x)=>a+1+(x.com===null?0:1),0),pct=Math.round(c/n*100);
+    const t={id:uid(),date:today(),goal:4,kind:'practice',activity:'Speak-Up practice scenarios',title:'Practice scenarios',correct:c,total:n,pct,reps:null,mode:'Student app activity',
+      support:$('#sp-support').value,acc:accNames('speak'),notes:'',counts:false,practice:true,meets:pct>=80,items:P.ans.map(a=>`${a.t} → need ${a.rec?'✓':'✗'}${a.com===null?'':', words '+(a.com?'✓':'✗')}`)};
+    store.trials.push(t);putDoc('t_',t);addSticker();}
+}
+$('#s-ctx').innerHTML=CTX.map(c=>`<option>${esc(c)}</option>`).join('');
+$('#s-log').onclick=()=>{
+  if(!SP_LOG.rec||!SP_LOG.com){toast('Choose an answer for both questions first.');return}
+  const p=ensurePeriod();const o={id:uid(),date:today(),period:p.id,ctx:$('#s-ctx').value,rec:SP_LOG.rec,com:SP_LOG.com,said:$('#s-said').value};
+  store.opps.push(o);putDoc('o_',o);SP_LOG.rec=SP_LOG.com=null;$('#s-said').value='';
+  toast(oppSuccess(o)?'Logged: successful opportunity':'Logged');renderSpeak();
+};
+let npArm=0;
+$('#s-newperiod').onclick=e=>{
+  if(Date.now()-npArm>3000){npArm=Date.now();e.target.textContent='Tap again to start a new period';setTimeout(()=>e.target.textContent='Start a new data period',3000);return}
+  const cur=latestPeriod();const p={id:uid(),start:today(),n:cur?(cur.n||store.periods.length)+1:1};store.periods.push(p);putDoc('p_',p);e.target.textContent='Start a new data period';npArm=0;toast(`Data period ${p.n} started`);renderSpeak();
+};
+
+/* ================= DATA ================= */
+const GOALS=[
+ {n:1,name:'Listening comprehension & auditory memory',text:'When presented orally with grade-level verbal information of increasing length (e.g., 3–5 sentences, short passages, classroom directions, or teacher-presented information), I.S. will demonstrate improved listening comprehension and auditory memory by recalling at least 4 key details with 80% accuracy across 3 consecutive data collection opportunities, with no more than one repetition of the presented information.'},
+ {n:2,name:'Main idea + details from extended information',text:'When presented orally with grade-level extended verbal information (e.g., a short passage, multi-step directions, or teacher-presented information), I.S. will demonstrate listening comprehension and auditory memory by identifying the main idea and recalling at least 4 relevant details with 80% accuracy across 3 consecutive data collection opportunities, with no more than one repetition.'},
+ {n:3,name:'Understanding & using the ALD',text:'When provided instruction and practice with her Assistive Listening Device (ALD), I.S. will demonstrate understanding of the purpose, basic use, and benefit of the ALD by identifying when and how it should be used and demonstrating appropriate use with 80% accuracy across 3 consecutive data collection opportunities.'},
+ {n:4,name:'ALD independence & self-advocacy',text:'When using her Assistive Listening Device (ALD) in the educational setting, I.S. will demonstrate increased independence with ALD use and self-advocacy by recognizing when the device would improve auditory access and appropriately communicating her listening or technology needs in 4 out of 5 opportunities across 3 consecutive data collection periods.'},
+];
+const byDate=(a,b)=>a.date<b.date?-1:1;
+function streakOf(list){let s=0;for(let i=list.length-1;i>=0;i--){if(list[i])s++;else break}return s}
+function chartSVG(vals){
+  const W=440,H=150,pl=34,pr=8,pt=10,pb=22,iw=W-pl-pr,ih=H-pt-pb;const n=Math.max(vals.length,1);const bw=Math.min(28,iw/n*.7);
+  const y=v=>pt+ih-(v/100)*ih;
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Percent correct for recent trials">`;
+  [0,50,80,100].forEach(v=>{g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" style="stroke:${v===80?'var(--pink-d)':'var(--line)'}" stroke-width="${v===80?2:1}" ${v===80?'stroke-dasharray="5 4"':''}/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end" font-size="11" style="fill:var(--muted)">${v}%</text>`});
+  vals.forEach((v,i)=>{const x=pl+(i+.5)*(iw/n)-bw/2;g+=`<rect x="${x}" y="${y(v.pct)}" width="${bw}" height="${Math.max(1,ih-(y(v.pct)-pt))}" rx="4" style="fill:${v.meets?'var(--good)':'var(--blue)'};stroke:var(--ink)" stroke-width="1.5"><title>${v.label}: ${v.pct}%</title></rect>`});
+  g+=`<text x="${W-pr}" y="${H-6}" text-anchor="end" font-size="11" style="fill:var(--muted)">most recent →</text><text x="${pl}" y="${H-6}" font-size="11" style="fill:var(--muted)">green = met criterion</text></svg>`;
+  return g;
+}
+function renderData(){
+  const wrap=$('#d-goals');
+  wrap.innerHTML=GOALS.map(G=>{
+    let counted,streak,label,chartVals,summary;
+    if(G.n<4){
+      const ts=store.trials.filter(t=>t.goal===G.n).sort(byDate);counted=ts.filter(t=>t.counts);
+      streak=streakOf(counted.map(t=>t.meets));
+      chartVals=counted.slice(-12).map(t=>({pct:t.pct,meets:t.meets,label:fmtDate(t.date)+' '+t.activity}));
+      const avg=counted.length?Math.round(counted.slice(-5).reduce((a,t)=>a+t.pct,0)/Math.min(5,counted.length)):null;
+      summary=`${counted.length} data opportunit${counted.length===1?'y':'ies'} · ${ts.length-counted.length} practice${avg!==null?` · last ${Math.min(5,counted.length)} avg ${avg}%`:''}`;
+      if(G.n===3&&counted.length){const kinds={sequence:'Steps in order',when:'When to use',why:'Purpose & benefit',demo:'Demonstration'};
+        summary+='<br>'+Object.entries(kinds).map(([k,l])=>{const x=counted.filter(t=>t.kind===k);return x.length?`${l}: ${x.at(-1).pct}%`:null}).filter(Boolean).join(' · ')}
+    } else {
+      const ps=store.periods.slice().sort((a,b)=>a.start<b.start?-1:1);
+      const stats=ps.map(p=>({p,...periodStats(p)})).filter(x=>x.n>0);
+      streak=streakOf(stats.map(x=>x.meets));counted=stats;
+      chartVals=stats.slice(-12).map(x=>({pct:x.pct,meets:x.meets,label:'Period '+x.p.n}));
+      const prac=store.trials.filter(t=>t.goal===4);
+      summary=`${stats.length} data period${stats.length===1?'':'s'} with opportunities · ${store.opps.length} opportunit${store.opps.length===1?"y":"ies"} logged · ${prac.length} practice session${prac.length===1?'':'s'}`;
+      if(stats.length)summary+='<br>'+stats.slice(-4).map(x=>`Period ${x.p.n}: ${x.s}/${x.n}`).join(' · ');
+    }
+    const st=streak>=3?['met','Criterion met: 3 in a row']:streak>0?['close',`${streak} of 3 in a row`]:['build','Building'];
+    return `<section class="panel gcard"><div class="panel-head ${['','','blue','lav'][G.n-1]}"><h3>Goal ${G.n} · ${esc(G.name)}</h3></div>
+      <div class="row" style="justify-content:space-between"><span class="pill ${st[0]}">${st[1]}</span><div class="streak" aria-label="${Math.min(streak,3)} of 3 consecutive">${[0,1,2].map(i=>`<i class="${i<Math.min(streak,3)?'on':''}"></i>`).join('')}</div></div>
+      <p class="mini">${summary}</p>
+      ${chartVals.length?chartSVG(chartVals):`<div class="empty">No ${G.n<4?'data opportunities':'data periods'} yet. ${G.n<3?'Run a trial on <b>Listen &amp; Remember</b> and press <b>Save trial</b>.':G.n===3?'Use the practice activities on <b>My Listening Device</b>.':'Log real classroom moments on <b>Speak Up!</b>'}</div>`}
+      <details><summary class="label" style="cursor:pointer">Goal wording</summary><p class="gtext" style="margin-top:6px">${esc(G.text.replace(/I\.S\./g,S.student||'I.S.'))}</p></details></section>`;
+  }).join('');
+  // table
+  const rows=[...store.trials.map(t=>({...t,_t:'trial'})),...store.opps.map(o=>({...o,_t:'opp'}))].sort((a,b)=>a.date<b.date?1:-1);
+  if(!rows.length){$('#d-table').innerHTML=`<div class="empty">Trials appear here as soon as you save one. Each row keeps the score, repetitions, support and accommodations used.</div>`;return}
+  const pmap=Object.fromEntries(store.periods.map(p=>[p.id,p.n]));
+  const lvl={ind:'on her own',pr:'prompted',no:'not yet'};
+  $('#d-table').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Goal</th><th>Activity</th><th>Score</th><th>Reps</th><th>Support &amp; accommodations</th><th>Data?</th><th>Met?</th><th>Details &amp; notes</th><th></th></tr></thead><tbody>${rows.map(r=>r._t==='trial'?
+    `<tr><td class="num">${fmtDate(r.date)}</td><td>${r.goal}</td><td>${esc(r.activity)}${r.title&&r.title!==r.activity?`<br><span class="mini">${esc(r.title)}</span>`:''}</td><td class="num">${r.correct}/${r.total} · ${r.pct}%${r.main!==null&&r.main!==undefined?`<br><span class="mini">main idea ${r.main?'✓':'✗'}</span>`:''}</td><td class="num">${r.reps??'–'}</td><td>${esc(r.support)}${r.acc&&r.acc.length?`<br><span class="mini">${esc(r.acc.join('; '))}</span>`:''}</td><td>${r.counts?'<span class="yes">Yes</span>':'<span class="no">Practice</span>'}</td><td>${r.meets?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc((r.items||[]).join(' · '))}${r.notes?'<br><b>Note:</b> '+esc(r.notes):''}</span></td><td><button class="sbtn danger" data-del="t_${r.id}">Delete</button></td></tr>`:
+    `<tr><td class="num">${fmtDate(r.date)}</td><td>4</td><td>Classroom opportunity<br><span class="mini">${esc(r.ctx)} · period ${pmap[r.period]||'?'}</span></td><td>${oppSuccess(r)?'<span class="yes">Success</span>':'Not yet'}</td><td class="num">–</td><td><span class="mini">Recognized: ${lvl[r.rec]}<br>Communicated: ${lvl[r.com]}</span></td><td><span class="yes">Yes</span></td><td>${oppSuccess(r)?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc(r.said||'')}</span></td><td><button class="sbtn danger" data-del="o_${r.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+  $$('[data-del]').forEach(b=>{let armed=0;b.onclick=()=>{
+    if(Date.now()-armed>3000){armed=Date.now();b.textContent='Tap again';setTimeout(()=>b.textContent='Delete',3000);return}
+    const [pre,id]=[b.dataset.del.slice(0,2),b.dataset.del.slice(2)];
+    if(pre==='t_')store.trials=store.trials.filter(t=>t.id!==id);else store.opps=store.opps.filter(o=>o.id!==id);
+    delDoc(pre,id);renderData();toast('Deleted');}});
+}
+function csv(){
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const lvl={ind:'independent',pr:'prompted',no:'not yet'};const pmap=Object.fromEntries(store.periods.map(p=>[p.id,p.n]));
+  const head=['Date','Goal','Activity','Title','Correct','Total','Percent','Main idea','Repetitions','Response mode','Support','Accommodations','Counted as data','Met criterion','Data period','Details','Notes'];
+  const rows=store.trials.slice().sort(byDate).map(t=>[new Date(t.date).toLocaleString(),t.goal,t.activity,t.title,t.correct,t.total,t.pct,t.main===null||t.main===undefined?'':t.main?'yes':'no',t.reps??'',t.mode,t.support,(t.acc||[]).join('; '),t.counts?'yes':'no',t.meets?'yes':'no','',(t.items||[]).join(' | '),t.notes||'']);
+  store.opps.slice().sort(byDate).forEach(o=>rows.push([new Date(o.date).toLocaleString(),4,'Classroom opportunity',o.ctx,oppSuccess(o)?1:0,1,oppSuccess(o)?100:0,'','','Teacher observed','Recognized '+lvl[o.rec]+'; communicated '+lvl[o.com],'','yes',oppSuccess(o)?'yes':'no',pmap[o.period]||'',o.said||'','']));
+  return [head,...rows].map(r=>r.map(q).join(',')).join('\n');
+}
+async function copyText(text,area,msg){
+  try{await navigator.clipboard.writeText(text);toast(msg)}catch(e){area.hidden=false;area.value=text;area.focus();area.select();toast('Select all and copy the text in the box.')}
+}
+$('#d-csv').onclick=()=>copyText(csv(),$('#d-csv-out'),'Copied. Paste into Google Sheets or Excel.');
+$('#bk-copy').onclick=()=>copyText(JSON.stringify({app:'flynns-listening-studio',v:1,...store}),$('#bk-text'),'Backup copied.');
+let rsArm=0;
+$('#bk-restore').onclick=e=>{
+  let data;try{data=JSON.parse($('#bk-text').value)}catch(err){toast('That backup text isn\'t complete. Paste the whole backup.');return}
+  if(Date.now()-rsArm>3000){rsArm=Date.now();e.target.textContent='Tap again to restore';setTimeout(()=>e.target.textContent='Restore from pasted backup',3000);return}
+  let added=0;[['trials','t_'],['periods','p_'],['opps','o_']].forEach(([k,pre])=>(data[k]||[]).forEach(x=>{if(!store[k].some(y=>y.id===x.id)){store[k].push(x);putDoc(pre,x);added++}}));
+  if(data.settings){store.settings=Object.assign(S,data.settings);saveSettings()}
+  e.target.textContent='Restore from pasted backup';toast(`Restored ${added} records.`);renderAll();
+};
+function fillSettings(){$('#set-student').value=S.student;$('#set-dog').value=S.dog;$('#set-ald').value=S.ald;$('#set-hear').value=S.hear;$('#set-steps').value=S.steps.join('\n');$('#set-voice').checked=!!S.voice;$('#set-prompted').checked=!!S.prompted}
+$('#set-save').onclick=()=>{
+  S.student=$('#set-student').value.trim()||'I.S.';S.dog=$('#set-dog').value.trim()||'Flynn';S.ald=$('#set-ald').value.trim()||'listening device';S.hear=$('#set-hear').value.trim()||'hearing devices';
+  const st=$('#set-steps').value.split('\n').map(s=>s.trim()).filter(Boolean);if(st.length>=3)S.steps=st;
+  S.voice=$('#set-voice').checked;S.prompted=$('#set-prompted').checked;saveSettings();A.seq=null;toast('Settings saved');renderAll();
+};
+$('#set-reset-steps').onclick=()=>{$('#set-steps').value=DEFAULT_STEPS.join('\n');toast('Default steps restored. Press Save settings to keep them.')};
+
+/* ---------------- boot ---------------- */
+function renderAll(){
+  renderHeader();fillSettings();
+  accList($('#l-acc'),'listen');accList($('#a-acc'),'ald');accList($('#sp-acc'),'speak');
+  if(L.item)renderListen();renderALD();renderSpeak();
+  if(!$('#view-data').hidden)renderData();
+}
+supportSelect($('#a-support'));supportSelect($('#sp-support'));
+$$('.seg button').forEach(b=>b.type='button');
+renderAll();generate();
+const start=(location.hash||'').slice(1);if(['listen','ald','speak','data'].includes(start))showView(start);
+connect();
+})();
+</script>
+
+</body>
+</html>
