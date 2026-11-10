@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Writing Fix-Up Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap">
+<style>
+/* Layout: one-screen smartboard app. Crayon-box header (rainbow stripe), chunky 3D tool buttons down the left,
+   the student's writing on big lined notebook paper in the middle, and a slide-in side panel (photo of the paper,
+   5 W chart, CUPS checklist). Editing changes are drawn with real proofreading marks:
+   ≡ capital, / lowercase, ‸ add, strike = take out, ¶ new paragraph, old spelling shown small above the fix.
+   Teacher setup is a separate quiet screen. Deliberately one bright light look (best on a projector), so no dark-mode blocks. */
+:root{
+  --sky:#dcf1ff; --ink:#23264a; --muted:#5b6187; --line:#cbd5ef;
+  --card:#ffffff; --quiet:#f3f5fb; --paper:#fffef8; --rule:#9cc3ec; --margin:#f19aa8;
+  --blue:#2f80ed; --blue-d:#1b5cbf; --blue-s:#e3efff;
+  --purple:#8b46d6; --purple-d:#6528a8; --purple-s:#f1e7ff;
+  --pink:#ec3d84; --pink-d:#b81e5e; --pink-s:#ffe4ef;
+  --yellow:#ffc928; --yellow-d:#d9a200; --yellow-s:#fff4cc;
+  --good:#1fae5b; --good-d:#14843f; --good-s:#dcf7e7;
+  --fix:#d6331f;   /* red pen: proofreading marks */
+  --add:#14843f;   /* green pen: new words */
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
+  --r:20px;
+  --rainbow:linear-gradient(90deg,#e8382f 0 16.6%,#ff7a1a 0 33.3%,#ffc928 0 50%,#1fae5b 0 66.6%,#2f80ed 0 83.3%,#8b46d6 0);
+  --fs:44px;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{color:var(--ink);background:var(--sky);font-family:var(--body);font-size:clamp(16px,1.2vw,22px);
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:5px solid var(--yellow);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.app{height:100%;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column}
+
+/* ---------- header ---------- */
+.top{background:var(--card);position:relative;z-index:5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px 14px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;box-shadow:0 4px 0 rgba(35,38,74,.08)}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--rainbow)}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.brand h1{font-family:var(--display);font-weight:800;font-size:1.55em;line-height:1;margin:0;letter-spacing:.01em}
+.brand .sub{color:var(--muted);font-size:.85em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sep{width:2px;align-self:stretch;background:var(--line);border-radius:2px}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;min-height:52px;padding:.25em .9em;border-radius:16px;
+  border:3px solid var(--ink);background:var(--card);font-family:var(--display);font-weight:700;font-size:1em;
+  box-shadow:0 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none;box-shadow:0 4px 0 var(--ink)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue-d);box-shadow:0 4px 0 var(--blue-d)}
+.btn.go{background:var(--good);color:#fff;border-color:var(--good-d);box-shadow:0 4px 0 var(--good-d)}
+.btn.warn{background:var(--pink-s);border-color:var(--pink-d);color:var(--pink-d);box-shadow:0 4px 0 var(--pink-d)}
+.btn.on{background:var(--yellow-s);border-color:var(--yellow-d);box-shadow:0 4px 0 var(--yellow-d)}
+.btn.small{min-height:42px;font-size:.9em;padding:.15em .7em;border-radius:12px}
+.btn svg{width:1.3em;height:1.3em;flex:none}
+.seg{display:inline-flex;border:3px solid var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 4px 0 var(--ink)}
+.seg button{border:0;background:var(--card);min-height:46px;padding:0 .8em;font-family:var(--display);font-weight:700}
+.seg button+button{border-left:3px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+/* ---------- edit screen ---------- */
+.work{flex:1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px}
+.tools{display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding:4px 2px 8px}
+.tool{width:118px;min-height:84px;border-radius:18px;border:3px solid var(--ink);background:var(--card);box-shadow:0 5px 0 var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--display);font-weight:700;font-size:1em;line-height:1.05;padding:6px}
+.tool .g{font-family:var(--body);font-size:1.7em;line-height:1;height:1.15em;display:flex;align-items:center;color:var(--fix)}
+.tool .g svg{width:1.1em;height:1.1em}
+.tool[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:0 5px 0 #0d0f24}
+.tool[aria-pressed="true"] .g{color:var(--yellow)}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+
+.center{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.tip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card);border-radius:16px;padding:8px 14px;border:3px solid var(--line);min-height:62px}
+.tip .say{font-family:var(--display);font-weight:700;font-size:1.2em;margin-right:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:52px;padding:0 .9em;border-radius:999px;border:3px solid var(--ts,var(--ink));background:var(--tb,var(--card));color:var(--ts,var(--ink));
+  font-family:var(--display);font-weight:800;font-size:1.05em;display:inline-flex;align-items:center;gap:.35em}
+.chip[aria-pressed="true"]{outline:5px solid var(--ink);outline-offset:2px}
+.chip .dot{width:.8em;height:.8em;border-radius:50%;background:var(--ts)}
+.pen{width:52px;height:52px;border-radius:50%;border:4px solid var(--card);box-shadow:0 0 0 3px var(--ink)}
+.pen[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink),0 0 0 9px var(--yellow)}
+
+.paperwrap{flex:1;min-height:0;overflow:auto;border-radius:var(--r);background:var(--paper);box-shadow:0 6px 0 rgba(35,38,74,.12),0 0 0 3px var(--line);-webkit-overflow-scrolling:touch}
+.sheet{position:relative;font-family:var(--body);font-size:var(--fs);line-height:2.4;padding:1.2em 1em 1.6em 2.3em;min-height:100%;
+  background-image:linear-gradient(90deg,transparent 1.5em,var(--margin) 1.5em,var(--margin) calc(1.5em + 3px),transparent calc(1.5em + 3px)),
+    linear-gradient(transparent 1.72em,var(--rule) 1.72em,var(--rule) calc(1.72em + 2px),transparent calc(1.72em + 2px));
+  background-size:100% 100%,100% 2.4em;background-origin:padding-box,content-box;background-repeat:no-repeat,repeat}
+.sheet h2{font-family:var(--display);font-size:1em;line-height:2.4;margin:0;font-weight:700}
+.para{margin:0}
+.w{display:inline-block;position:relative;text-indent:0;padding:0 .14em;line-height:1.25;border-radius:.18em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.w.tagged{background:var(--tb);box-shadow:inset 0 -.12em 0 var(--ts)}
+.w.tagged.tl{border-top-left-radius:0;border-bottom-left-radius:0}
+.w.tagged.tr{border-top-right-radius:0;border-bottom-right-radius:0}
+.badge{position:absolute;left:0;top:-1.35em;font-family:var(--display);font-weight:800;font-size:.34em;line-height:1.3;padding:0 .45em;border-radius:.5em;background:var(--ts);color:#fff;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;pointer-events:none}
+.w.drag{outline:.08em dashed var(--ink);outline-offset:.04em}
+.w.flash{animation:flash 1.2s ease 2}
+@keyframes flash{50%{background:var(--yellow)}}
+.w.reading{background:var(--yellow)!important}
+/* proofreading marks (Marks view) */
+.marks .w.del{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--fix);text-decoration-thickness:.09em}
+.marks .w.chg .new{color:var(--fix)}
+.marks .w .old{position:absolute;left:50%;top:-1.05em;transform:translateX(-50%);font-size:.42em;line-height:1;color:var(--fix);text-decoration:line-through;white-space:nowrap;pointer-events:none;opacity:.9}
+.marks .w.ins{color:var(--add)}
+.marks .w.ins::after{content:"‸";position:absolute;left:50%;bottom:-.62em;transform:translateX(-50%);font-size:.8em;color:var(--add);line-height:1;pointer-events:none}
+.marks .w .first{position:relative;display:inline-block}
+.marks .w.capfix .first::after{content:"";position:absolute;left:0;right:0;bottom:-.34em;height:.3em;
+  background:repeating-linear-gradient(to bottom,var(--fix) 0 .055em,transparent .055em .12em)}
+.marks .w.lowfix .first::after{content:"";position:absolute;left:-.05em;right:-.05em;top:45%;height:.08em;background:var(--fix);transform:rotate(-58deg);border-radius:.04em}
+.marks .para.newp::before{content:"¶";color:var(--fix);font-weight:700;margin-right:.15em}
+.join{color:var(--fix);font-size:.6em;font-weight:700;margin:0 .1em}
+.clean .join{display:none}
+.clean .w.del{display:none}
+.clean .old,.clean .hint{display:none}
+.para.indent{text-indent:1.4em}
+.hint{position:absolute;left:50%;bottom:-.34em;transform:translateX(-50%);width:.26em;height:.26em;border-radius:50%;background:var(--hc);box-shadow:0 0 0 .05em #fff;pointer-events:none}
+.nohints .hint{display:none}
+.gap{display:inline-block;text-indent:0;vertical-align:middle;width:.62em;height:1.05em;margin:0 .02em;border-radius:.2em;background:var(--good-s);border:.05em dashed var(--add);
+  color:var(--add);font-size:.85em;line-height:1.05;text-align:center;font-weight:700;cursor:pointer}
+.gap::before{content:"‸"}
+.gap.end{width:1.6em}
+.mode-tag .w{touch-action:none}
+canvas.ink{position:absolute;left:0;top:0;pointer-events:none}
+.mode-draw canvas.ink{pointer-events:auto;touch-action:none;cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.85em;padding:0 6px}
+.legend b{color:var(--fix);font-size:1.15em}
+
+/* ---------- side panel ---------- */
+.side{width:min(34vw,520px);display:flex;flex-direction:column;gap:10px;min-height:0}
+.side[hidden]{display:none}
+.panel{flex:1;min-height:0;overflow:auto;background:var(--card);border-radius:var(--r);border:3px solid var(--line);padding:14px}
+.panel h3{font-family:var(--display);font-size:1.3em;margin:0 0 8px;line-height:1.1}
+.photo img{width:100%;border-radius:12px;border:2px solid var(--line);display:block;margin-bottom:10px;transform-origin:top left}
+.zoom{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.wcard{border-radius:16px;border:3px solid var(--ts);background:var(--tb);padding:10px 12px;margin-bottom:10px}
+.wcard h4{margin:0;font-family:var(--display);font-size:1.25em;color:var(--ts);line-height:1.1}
+.wcard .q{color:var(--ink);font-size:.95em;margin-bottom:6px}
+.wcard ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.wcard li button{width:100%;text-align:left;border:2px solid var(--ts);background:var(--card);border-radius:12px;padding:6px 10px;font-size:1.1em;min-height:48px}
+.wcard .empty{color:var(--muted);font-style:italic}
+.check{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:3px solid var(--line);background:var(--card);border-radius:16px;padding:10px 12px;margin-bottom:10px;min-height:76px}
+.check .box{flex:none;width:52px;height:52px;border-radius:12px;border:4px solid var(--ink);display:grid;place-items:center;font-size:1.8em;font-weight:800;color:var(--good)}
+.check[aria-checked="true"]{background:var(--good-s);border-color:var(--good)}
+.check[aria-checked="true"] .box::before{content:"✓"}
+.check .letter{font-family:var(--display);font-weight:800;font-size:1.9em;width:1.1em;text-align:center;color:var(--hc)}
+.check b{font-family:var(--display);font-size:1.15em}
+.check span.d{display:block;color:var(--muted);font-size:.9em}
+.cheer{text-align:center;font-family:var(--display);font-weight:800;font-size:1.4em;color:var(--good-d);padding:8px}
+.stars{font-family:var(--display);font-weight:800;background:var(--yellow-s);border:3px solid var(--yellow-d);border-radius:999px;padding:.1em .8em;white-space:nowrap}
+
+/* ---------- keyboard modal ---------- */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(35,38,74,.55);display:flex;align-items:flex-end;justify-content:center;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal[hidden]{display:none}
+.mcard{background:var(--card);border-radius:26px;border:4px solid var(--ink);box-shadow:0 8px 0 var(--ink);width:min(1100px,100%);max-height:100%;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.mcard.center-card{align-self:center;width:min(760px,100%)}
+.mhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mhead h2{font-family:var(--display);margin:0;font-size:1.6em;line-height:1.1;margin-right:auto}
+.was{font-size:1.2em;color:var(--muted)}
+.was s{color:var(--fix);font-size:1.15em}
+.hintmsg{border-radius:14px;padding:8px 12px;background:var(--yellow-s);border:3px solid var(--yellow-d);font-size:1.1em}
+.kbin{width:100%;font-family:var(--body);font-size:clamp(34px,4vw,60px);padding:.1em .4em;border-radius:16px;border:4px solid var(--blue);background:var(--blue-s);-webkit-user-select:text;user-select:text;outline:none}
+.kb{display:flex;flex-direction:column;gap:8px}
+.kbrow{display:flex;gap:8px;justify-content:center}
+.key{flex:1 1 0;max-width:88px;min-width:0;height:clamp(52px,6.2vw,76px);border-radius:14px;border:3px solid var(--ink);background:var(--quiet);box-shadow:0 4px 0 var(--ink);
+  font-family:var(--body);font-weight:700;font-size:clamp(20px,2.3vw,32px);padding:0}
+.key:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.key.wide{max-width:150px;flex-grow:1.6;font-family:var(--display);font-size:clamp(16px,1.6vw,24px)}
+.key.space{max-width:420px;flex-grow:5}
+.key.p{background:var(--pink-s)}
+.key.on{background:var(--yellow)}
+.mfoot{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+/* ---------- setup screen ---------- */
+.setup{flex:1;min-height:0;overflow:auto;-webkit-user-select:text;user-select:text}
+.setin{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.step{background:var(--card);border-radius:var(--r);border:3px dashed var(--line);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.step h2{font-family:var(--display);font-size:1.35em;margin:0;line-height:1.1;display:flex;gap:10px;align-items:center}
+.step h2 .n{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--ink);color:#fff;font-size:.8em;flex:none}
+.step p{margin:0;color:var(--muted)}
+.drop{border:4px dashed var(--blue);border-radius:18px;background:var(--blue-s);padding:22px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
+.drop.over{background:var(--yellow-s);border-color:var(--yellow-d)}
+.drop b{font-family:var(--display);font-size:1.25em}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.thumb{border:2px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px;background:var(--quiet)}
+.thumb img{width:100%;height:120px;object-fit:contain;background:#fff;border-radius:8px}
+.thumb .row{display:flex;gap:6px;justify-content:space-between}
+.status{border-radius:12px;padding:8px 12px;background:var(--quiet);font-size:.95em}
+.status.err{background:var(--pink-s);color:var(--pink-d)}
+.status.ok{background:var(--good-s);color:var(--good-d)}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-weight:700}
+.field input,.field textarea,.field select{border:3px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card);width:100%;min-width:0}
+.field textarea{min-height:260px;font-family:var(--body);font-size:1.15em;line-height:1.5;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lbls{display:flex;flex-wrap:wrap;gap:8px}
+.lbl{display:inline-flex;align-items:center;gap:6px;border:3px solid var(--ts);background:var(--tb);color:var(--ts);border-radius:999px;padding:4px 6px 4px 12px;font-weight:700}
+.lbl button{border:0;background:var(--ts);color:#fff;border-radius:50%;width:30px;height:30px;font-weight:800;line-height:1}
+.addlbl{display:flex;gap:8px;flex-wrap:wrap}
+.addlbl input{flex:1;min-width:140px;border:3px solid var(--line);border-radius:12px;padding:8px 10px}
+.note{font-size:.9em;color:var(--muted)}
+.inlineconfirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--pink-s);border-radius:12px;padding:8px 12px;color:var(--pink-d);font-weight:700}
+.worklist{display:flex;flex-direction:column;gap:8px}
+.workrow{display:flex;gap:8px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:8px 10px;flex-wrap:wrap}
+.workrow .t{margin-right:auto;min-width:0}
+.workrow .t b{display:block}
+.workrow .t span{color:var(--muted);font-size:.9em}
+.example{background:var(--yellow-s);border:3px solid var(--yellow-d);border-radius:14px;padding:6px 12px;font-weight:700}
+
+@media (max-width:900px){
+  .setin{grid-template-columns:1fr}
+  .work{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .tools{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding-bottom:8px}
+  .tool{width:96px;min-height:72px;flex:none}
+  .side{position:fixed;inset:auto 0 0 0;width:auto;height:60%;z-index:15;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--sky);box-shadow:0 -6px 0 rgba(35,38,74,.15)}
+  :root{--fs:30px}
+  .two{grid-template-columns:1fr}
+}
+@media print{
+  body{overflow:visible;background:#fff}
+  .top,.tools,.tip,.legend,.side,.modal,canvas.ink{display:none!important}
+  .work{display:block;padding:0}
+  .paperwrap{overflow:visible;box-shadow:none}
+  .sheet{font-size:22pt}
+}
+</style>
+
+<div class="app">
+
+<!-- ===================== EDIT SCREEN ===================== -->
+<section class="screen" id="editScreen">
+  <header class="top">
+    <div class="brand">
+      <h1 id="docTitle">Writing Fix-Up Board</h1>
+      <span class="sub" id="docSub"></span>
+    </div>
+    <span class="stars" id="stars" title="Fixes made">0 fixes</span>
+    <div class="bar">
+      <button class="btn" id="undoBtn" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</button>
+      <button class="btn" id="redoBtn" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Redo</button>
+    </div>
+    <span class="sep"></span>
+    <div class="seg" role="group" aria-label="View">
+      <button id="viewMarks" aria-pressed="true">Marks</button>
+      <button id="viewClean" aria-pressed="false">Clean copy</button>
+    </div>
+    <div class="bar">
+      <button class="btn small" id="smaller" aria-label="Smaller text">A−</button>
+      <button class="btn small" id="bigger" aria-label="Bigger text">A+</button>
+      <button class="btn small" id="readBtn">Read it to me</button>
+      <button class="btn small" id="hintsBtn" hidden>Hint dots</button>
+    </div>
+    <span class="sep"></span>
+    <div class="bar">
+      <button class="btn small" data-side="photo" id="sidePhoto">My paper</button>
+      <button class="btn small" data-side="chart" id="sideChart">5 W chart</button>
+      <button class="btn small" data-side="cups" id="sideCups">Checklist</button>
+      <button class="btn small" id="fsBtn">Full screen</button>
+      <button class="btn small primary" id="teacherBtn">Teacher</button>
+    </div>
+  </header>
+
+  <div class="work">
+    <nav class="tools" aria-label="Editing tools">
+      <button class="tool" data-mode="fix" aria-pressed="true"><span class="g" style="font-weight:700">sp</span>Fix a word</button>
+      <button class="tool" data-mode="add" aria-pressed="false"><span class="g" style="color:var(--add)">‸</span>Add words</button>
+      <button class="tool" data-mode="del" aria-pressed="false"><span class="g"><s>ab</s></span>Take out</button>
+      <button class="tool" data-mode="cap" aria-pressed="false"><span class="g" style="font-weight:700">≡</span>Capital</button>
+      <button class="tool" data-mode="para" aria-pressed="false"><span class="g" style="font-weight:700">¶</span>Paragraph</button>
+      <button class="tool" data-mode="tag" aria-pressed="false"><span class="g" style="color:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg></span>Label it</button>
+      <button class="tool" data-mode="draw" aria-pressed="false"><span class="g" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M3 17c3-6 5-9 7-9s0 8 3 8 4-7 8-9"/></svg></span>Draw</button>
+    </nav>
+
+    <div class="center">
+      <div class="tip" id="tipBar">
+        <span class="say" id="tipSay">Tap a word to fix it.</span>
+        <div class="chips" id="tagChips" hidden></div>
+        <div class="chips" id="drawChips" hidden></div>
+      </div>
+      <div class="paperwrap" id="paperwrap">
+        <div class="sheet marks" id="sheet" spellcheck="false"></div>
+      </div>
+      <div class="legend" id="legend">
+        <span><b>≡</b> make a capital</span><span><b>/</b> make lowercase</span><span><b style="color:var(--add)">‸</b> add a word</span>
+        <span><b><s>ab</s></b> take out</span><span><b>¶</b> new paragraph</span><span><b><s style="font-size:.8em">old</s></b> word you fixed</span>
+      </div>
+    </div>
+
+    <aside class="side" id="side" hidden>
+      <div class="bar" style="justify-content:space-between">
+        <div class="seg" role="tablist">
+          <button data-tab="photo" aria-pressed="true">My paper</button>
+          <button data-tab="chart" aria-pressed="false">5 W chart</button>
+          <button data-tab="cups" aria-pressed="false">Checklist</button>
+        </div>
+        <button class="btn small" id="sideClose" aria-label="Close side panel">✕</button>
+      </div>
+      <div class="panel" id="panel"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================== TEACHER SETUP ===================== -->
+<section class="screen" id="setupScreen" hidden>
+  <header class="top">
+    <div class="brand">
+      <h1>Teacher setup</h1>
+      <span class="sub">Add a student's writing, check the words, then start editing.</span>
+    </div>
+    <div class="bar">
+      <button class="btn small" id="newWork">New writing</button>
+      <button class="btn small" id="libBtn">Saved work</button>
+      <button class="btn go" id="startBtn">Start editing</button>
+    </div>
+  </header>
+  <div class="setup">
+    <div class="setin">
+      <div class="step">
+        <h2><span class="n">1</span>Add the writing</h2>
+        <label class="drop" id="drop" for="fileIn">
+          <b>Choose photos of the student's paper</b>
+          <span>or drag them here. Add more than one for more pages.</span>
+          <span class="btn primary small" aria-hidden="true">Choose photos</span>
+        </label>
+        <input type="file" id="fileIn" accept="image/*" multiple hidden>
+        <div class="thumbs" id="thumbs"></div>
+        <div class="bar">
+          <button class="btn primary" id="readClaude" hidden>Read handwriting with Claude</button>
+          <button class="btn primary" id="readOcr" hidden>Read handwriting</button>
+          <button class="btn small" id="stopRead" hidden>Stop</button>
+        </div>
+        <div class="status" id="readStatus">After you add a photo, the app can read the handwriting for you. You can also type the writing in step 2.</div>
+        <p class="note" id="privacyNote">Tip: fold over or cover the student's name before you take the photo.</p>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">2</span>Check the words</h2>
+        <p>Type exactly what the student wrote, <b>mistakes and all</b>, so they have something to fix. Leave a blank line between paragraphs.</p>
+        <div class="two">
+          <div class="field"><label for="titleIn">Title</label><input id="titleIn" autocomplete="off" placeholder="My Weekend"></div>
+          <div class="field"><label for="studentIn">Student (initials)</label><input id="studentIn" autocomplete="off" placeholder="J.R."></div>
+        </div>
+        <div class="field"><label for="textIn">Student's writing</label><textarea id="textIn" spellcheck="false"></textarea></div>
+        <div id="resetConfirm" hidden></div>
+        <div class="bar" id="hintRow" hidden>
+          <button class="btn small" id="hintGo">Mark spots to check with Claude</button>
+          <span class="note" id="hintStatus">Adds colored hint dots (C, U, P, S) under words that need a look. Tips never give the answer.</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">3</span>Choose the labels</h2>
+        <p>Students tag parts of their writing with these labels. They show up in the chart.</p>
+        <div class="field"><label for="setSel">Label set</label>
+          <select id="setSel"><option value="five">5 W's + How</option><option value="story">Story parts</option><option value="info">Information writing</option></select>
+        </div>
+        <div class="lbls" id="lblList"></div>
+        <div class="addlbl"><input id="newLbl" placeholder="Add a label, like Feeling" maxlength="18" autocomplete="off"><button class="btn small" id="addLbl">Add label</button></div>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">4</span>Options</h2>
+        <label class="bar"><input type="checkbox" id="optKb" checked style="width:28px;height:28px"> Use the big on-screen keyboard (turn off if the board has its own)</label>
+        <label class="bar"><input type="checkbox" id="optIndent" checked style="width:28px;height:28px"> Indent paragraphs</label>
+        <div class="bar">
+          <button class="btn small" id="copyClean">Copy the clean copy</button>
+          <button class="btn small" id="printBtn" hidden>Print</button>
+          <span class="note" id="copyNote"></span>
+        </div>
+        <p class="note">Work saves on this computer, in this browser only.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- keyboard modal -->
+<div class="modal" id="kbModal" hidden>
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="kbTitle">
+    <div class="mhead">
+      <h2 id="kbTitle">Fix this word</h2>
+      <span class="was" id="kbWas"></span>
+    </div>
+    <div class="hintmsg" id="kbHint" hidden></div>
+    <input class="kbin" id="kbIn" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Word">
+    <div class="kb" id="kb"></div>
+    <div class="mfoot">
+      <button class="btn small" id="kbOrig">Put back how it was</button>
+      <button class="btn small warn" id="kbDel">Take it out</button>
+      <button class="btn" id="kbCancel">Cancel</button>
+      <button class="btn go" id="kbDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- saved work modal -->
+<div class="modal" id="libModal" hidden>
+  <div class="mcard center-card" role="dialog" aria-modal="true" aria-labelledby="libTitle">
+    <div class="mhead"><h2 id="libTitle">Saved work</h2><button class="btn small" id="libClose">Close</button></div>
+    <div class="worklist" id="workList"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const inViewer = !!window.claude;
+
+/* ---------- label colors ---------- */
+const COLORS = [
+  ["#ffd3e4","#b81e5e"],["#cfe3ff","#1b5cbf"],["#c8f1ee","#0a7a75"],["#d4f5df","#14843f"],
+  ["#ffe0c7","#b84a00"],["#e9dcff","#6528a8"],["#fff1a8","#7d6000"],["#ffd6d2","#b3261e"],["#eadfd3","#6d4c33"]
+];
+const SETS = {
+  five:[["Who","Who is it about?"],["What","What happened?"],["When","When did it happen?"],["Where","Where did it happen?"],["Why","Why did it happen?"],["How","How did it happen?"],["Detail","What is an important detail?"]],
+  story:[["Character","Who is in the story?"],["Setting","Where and when is it?"],["Problem","What goes wrong?"],["Solution","How does it get fixed?"],["Feeling","How does someone feel?"],["Detail","What is an important detail?"]],
+  info:[["Main idea","What is it mostly about?"],["Detail","What fact tells more?"],["Fact","What can be proven?"],["Opinion","What does someone think?"],["Word to know","What word is important?"]]
+};
+const makeLabels = key => SETS[key].map(([name,q],i) => ({id:uid(), name, q, c:i % COLORS.length}));
+const HINT = {C:["Capitals","#1b5cbf","Capital letters at the start of sentences and names"],
+              U:["Usage","#6528a8","Words make sense and sound right"],
+              P:["Punctuation","#b81e5e","End marks, commas and apostrophes"],
+              S:["Spelling","#b84a00","Words are spelled right"]};
+
+const EXAMPLE = `my dog max ran away on saturday. We looked every where in the park and by the lake i was so sad becuase max is my best freind.
+
+Then mrs. lopez our nieghbor called us. she found max sleeping in her garden under the big tree. We gived her a thank you card`;
+
+/* ---------- state ---------- */
+let S = null;               // current work
+let undoStack = [], redoStack = [];
+let mode = "fix", curTag = null, pen = 0, view = "marks", sideTab = null, showHints = true;
+let opts = {kb:true, indent:true, fs:null};
+
+function parse(text){
+  text = text.replace(/\r/g, "").trim();
+  const paras = /\n\s*\n/.test(text) ? text.split(/\n\s*\n/) : text.split(/\n/);
+  const toks = [];
+  paras.forEach((p, pi) => {
+    p.split(/\s+/).filter(Boolean).forEach((w, wi) => {
+      const startP = wi === 0 && pi > 0;
+      toks.push({t:w, o:w, del:false, ins:false, tag:null, p:startP, op:startP, hint:null});
+    });
+  });
+  return toks;
+}
+function newWork(text, extra){
+  return Object.assign({id:uid(), title:"", student:"", source:text, tokens:parse(text), strokes:[],
+    labels:makeLabels("five"), set:"five", checks:{C:false,U:false,P:false,S:false}, images:[], example:false,
+    created:Date.now(), updated:Date.now()}, extra || {});
+}
+
+/* ---------- storage (per browser) ---------- */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+  del(k){ try { localStorage.removeItem(k); } catch {} }
+};
+let saveTimer = null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!S) return;
+    S.updated = Date.now();
+    const {images, ...rest} = S;
+    const list = store.get("wfb.list", []).filter(w => w.id !== S.id);
+    list.unshift({id:S.id, title:S.title, student:S.student, updated:S.updated, example:S.example});
+    store.set("wfb.list", list.slice(0, 60));
+    store.set("wfb.w." + S.id, rest);
+    if (!store.set("wfb.i." + S.id, images)) store.del("wfb.i." + S.id);
+    store.set("wfb.cur", S.id);
+  }, 300);
+}
+function loadWork(id){
+  const w = store.get("wfb.w." + id, null);
+  if (!w) return null;
+  w.images = store.get("wfb.i." + id, []) || [];
+  return w;
+}
+opts = Object.assign(opts, store.get("wfb.opts", {}));
+const saveOpts = () => store.set("wfb.opts", opts);
+
+/* ---------- undo ---------- */
+const snap = () => JSON.stringify({tokens:S.tokens, strokes:S.strokes});
+function before(){ undoStack.push(snap()); if (undoStack.length > 150) undoStack.shift(); redoStack = []; }
+function restore(str){ const o = JSON.parse(str); S.tokens = o.tokens; S.strokes = o.strokes; }
+function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); changed(); }
+function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); changed(); }
+function changed(){ render(); save(); }
+
+/* ---------- rendering ---------- */
+const sheet = $("#sheet"), paperwrap = $("#paperwrap");
+const labelById = id => S.labels.find(l => l.id === id);
+function caseKind(t){
+  if (t.o == null || t.del || t.t === t.o) return "";
+  if (t.t.toLowerCase() === t.o.toLowerCase()) {
+    const a = t.t.search(/[a-z]/i);
+    if (a >= 0 && t.t.slice(a+1) === t.o.slice(a+1)) return t.t[a] === t.t[a].toUpperCase() ? "capfix" : "lowfix";
+  }
+  return "chg";
+}
+function wordInner(t, kind){
+  if (kind === "capfix" || kind === "lowfix") {
+    const a = t.t.search(/[a-z]/i);
+    return esc(t.t.slice(0,a)) + '<span class="first">' + esc(t.t[a]) + "</span>" + esc(t.t.slice(a+1));
+  }
+  if (kind === "chg") return '<span class="old">' + esc(t.o) + '</span><span class="new">' + esc(t.t) + "</span>";
+  return esc(t.t);
+}
+function render(){
+  const toks = S.tokens;
+  sheet.className = "sheet " + view + (showHints ? "" : " nohints");
+  let html = S.title ? "<h2>" + esc(S.title) + "</h2>" : "";
+  let open = false;
+  const visible = i => view === "marks" || !toks[i].del;
+  const prevVis = i => { for (let j = i-1; j >= 0; j--) if (visible(j)) return j; return -1; };
+  const nextVis = i => { for (let j = i+1; j < toks.length; j++) if (visible(j)) return j; return -1; };
+  toks.forEach((t, i) => {
+    if (i === 0 || t.p) {
+      if (open) html += "</p>";
+      const cls = ["para"];
+      if (opts.indent) cls.push("indent");
+      if (i > 0 && t.p && !t.op) cls.push("newp");
+      html += '<p class="' + cls.join(" ") + '">';
+      open = true;
+    } else if (t.op && !t.p) {
+      html += '<span class="join" aria-hidden="true">↩</span>';
+    }
+    if (mode === "add") html += '<span class="gap" data-gap="' + i + '" role="button" aria-label="Add a word here"></span>';
+    const kind = caseKind(t);
+    const cls = ["w"];
+    if (t.del) cls.push("del");
+    if (t.ins) cls.push("ins");
+    if (kind) cls.push(kind);
+    let style = "", badge = "";
+    const lab = t.tag && labelById(t.tag);
+    if (lab) {
+      cls.push("tagged");
+      const [b, s] = COLORS[lab.c];
+      style = "--tb:" + b + ";--ts:" + s;
+      const pv = prevVis(i), nv = nextVis(i);
+      const samePrev = pv >= 0 && toks[pv].tag === t.tag && !toks[i].p;
+      const sameNext = nv >= 0 && toks[nv].tag === t.tag && !toks[nv].p;
+      if (samePrev) cls.push("tl"); else badge = '<span class="badge">' + esc(lab.name) + "</span>";
+      if (sameNext) cls.push("tr");
+    }
+    let hint = "";
+    if (t.hint && !t.del && t.t === t.o) {
+      hint = '<span class="hint" style="--hc:' + HINT[t.hint.type][1] + '"></span>';
+    }
+    html += '<span class="' + cls.join(" ") + '" data-i="' + i + '"' + (style ? ' style="' + style + '"' : "") + ">" + badge + wordInner(t, kind) + hint + "</span>";
+    html += "\u200B";
+  });
+  if (mode === "add") html += '<span class="gap end" data-gap="' + toks.length + '" role="button" aria-label="Add a word at the end"></span>';
+  if (open) html += "</p>";
+  if (!toks.length) html += '<p class="para" style="color:var(--muted)">No writing yet. Tap Teacher to add some.</p>';
+  html += '<canvas class="ink" id="ink"></canvas>';
+  sheet.innerHTML = html;
+  setupInk();
+  // header bits
+  $("#docTitle").textContent = S.title || "Writing Fix-Up Board";
+  $("#docSub").textContent = (S.example ? "Example writing · tap Teacher to add a student's paper" : [S.student, S.title ? "" : "Untitled"].filter(Boolean).join(" · ")) || " ";
+  const n = countFixes();
+  $("#stars").textContent = n + (n === 1 ? " fix" : " fixes");
+  $("#undoBtn").disabled = !undoStack.length;
+  $("#redoBtn").disabled = !redoStack.length;
+  const anyHints = S.tokens.some(t => t.hint);
+  $("#hintsBtn").hidden = !anyHints;
+  $("#hintsBtn").classList.toggle("on", showHints);
+  if (sideTab) renderSide();
+}
+function countFixes(){
+  let n = 0;
+  S.tokens.forEach(t => {
+    if (t.ins) { if (!t.del) n++; return; }
+    if (t.del) n++; else if (t.t !== t.o) n++;
+    if (t.p !== t.op) n++;
+  });
+  return n;
+}
+function cleanText(){
+  const paras = [[]];
+  S.tokens.forEach((t, i) => { if (i > 0 && t.p) paras.push([]); if (!t.del) paras[paras.length-1].push(t.t); });
+  return paras.filter(p => p.length).map(p => p.join(" ")).join("\n\n");
+}
+
+/* ---------- modes ---------- */
+const TIPS = {
+  fix:"Tap a word to fix it.",
+  add:"Tap a green ‸ to add words there.",
+  del:"Tap a word to take it out. Tap it again to put it back.",
+  cap:"Tap a word to switch its first letter: capital ≡ or lowercase /.",
+  para:"Tap the first word of a new paragraph ¶. Tap it again to join it back.",
+  tag:"Pick a label, then tap or slide your finger across the words.",
+  draw:"Draw with your finger. Circle, underline, or point."
+};
+function setMode(m){
+  mode = m;
+  $$(".tool").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+  $("#tipSay").textContent = TIPS[m];
+  $("#tagChips").hidden = m !== "tag";
+  $("#drawChips").hidden = m !== "draw";
+  $(".work").classList.toggle("mode-tag", m === "tag");
+  $(".work").classList.toggle("mode-draw", m === "draw");
+  if (m === "tag") renderTagChips();
+  if (m === "draw") renderDrawChips();
+  render();
+}
+function renderTagChips(){
+  if (!curTag || (curTag !== "erase" && !labelById(curTag))) curTag = S.labels[0] ? S.labels[0].id : "erase";
+  $("#tagChips").innerHTML = S.labels.map(l => {
+    const [b, s] = COLORS[l.c];
+    return '<button class="chip" style="--tb:' + b + ";--ts:" + s + '" data-tag="' + l.id + '" aria-pressed="' + (curTag === l.id) + '"><span class="dot"></span>' + esc(l.name) + "</button>";
+  }).join("") + '<button class="chip" data-tag="erase" aria-pressed="' + (curTag === "erase") + '">Eraser</button>';
+}
+const PENS = ["#d6331f","#1b5cbf","#14843f","#23264a"];
+function renderDrawChips(){
+  $("#drawChips").innerHTML = PENS.map((c,i) => '<button class="pen" style="background:' + c + '" data-pen="' + i + '" aria-label="Pen color" aria-pressed="' + (pen === i) + '"></button>').join("") +
+    '<button class="chip" data-pen="erase" aria-pressed="' + (pen === "erase") + '">Eraser</button><button class="chip" id="clearInk">Clear drawing</button>';
+}
+$(".tools").addEventListener("click", e => { const b = e.target.closest(".tool"); if (b) setMode(b.dataset.mode); });
+$("#tagChips").addEventListener("click", e => { const b = e.target.closest("[data-tag]"); if (!b) return; curTag = b.dataset.tag; renderTagChips(); });
+$("#drawChips").addEventListener("click", e => {
+  if (e.target.closest("#clearInk")) { if (S.strokes.length) { before(); S.strokes = []; changed(); } return; }
+  const b = e.target.closest("[data-pen]"); if (!b) return;
+  pen = b.dataset.pen === "erase" ? "erase" : +b.dataset.pen; renderDrawChips();
+});
+
+/* ---------- tapping words ---------- */
+sheet.addEventListener("click", e => {
+  if (mode === "tag" || mode === "draw") return;
+  const g = e.target.closest(".gap");
+  if (g && mode === "add") { openKb("add", +g.dataset.gap); return; }
+  const w = e.target.closest(".w"); if (!w) return;
+  const i = +w.dataset.i, t = S.tokens[i];
+  if (mode === "fix") { if (t.del) { before(); t.del = false; changed(); } else openKb("fix", i); }
+  else if (mode === "del") {
+    before();
+    if (t.ins) { const nx = S.tokens[i+1]; if (t.p && nx && !nx.p) { nx.p = true; nx.op = t.op; } S.tokens.splice(i, 1); }   // a word the student added just goes away
+    else t.del = !t.del;
+    changed();
+  }
+  else if (mode === "cap") {
+    if (t.del) return;
+    const a = t.t.search(/[a-z]/i); if (a < 0) return;
+    before();
+    const c = t.t[a];
+    t.t = t.t.slice(0,a) + (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()) + t.t.slice(a+1);
+    changed();
+  }
+  else if (mode === "para") { if (i === 0) return; before(); t.p = !t.p; changed(); }
+});
+
+/* tag: tap or drag across words */
+let drag = null;
+sheet.addEventListener("pointerdown", e => {
+  if (mode !== "tag") return;
+  const w = e.target.closest(".w"); if (!w) return;
+  e.preventDefault();
+  drag = {a:+w.dataset.i, b:+w.dataset.i, id:e.pointerId};
+  try { sheet.setPointerCapture(e.pointerId); } catch {}
+  markDrag();
+});
+sheet.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const w = el && el.closest && el.closest(".w");
+  if (w && sheet.contains(w) && +w.dataset.i !== drag.b) { drag.b = +w.dataset.i; markDrag(); }
+});
+function endDrag(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const lo = Math.min(drag.a, drag.b), hi = Math.max(drag.a, drag.b);
+  drag = null;
+  const target = curTag === "erase" ? null : curTag;
+  before();
+  if (lo === hi && S.tokens[lo].tag === target) S.tokens[lo].tag = null;   // tap again to remove
+  else for (let i = lo; i <= hi; i++) if (!S.tokens[i].del) S.tokens[i].tag = target;
+  changed();
+}
+sheet.addEventListener("pointerup", endDrag);
+sheet.addEventListener("pointercancel", e => { if (drag && e.pointerId === drag.id) { drag = null; render(); } });
+function markDrag(){
+  const lo = Math.min(drag.a, drag.b), hi = Math.max(drag.a, drag.b);
+  $$("#sheet .w").forEach(w => { const i = +w.dataset.i; w.classList.toggle("drag", i >= lo && i <= hi); });
+}
+
+/* ---------- drawing ---------- */
+let ink, ctx, stroke = null;
+function setupInk(){
+  ink = $("#ink"); ctx = ink.getContext("2d");
+  sizeInk();
+  ink.onpointerdown = e => {
+    if (mode !== "draw") return;
+    e.preventDefault(); ink.setPointerCapture(e.pointerId);
+    const p = pt(e);
+    if (pen === "erase") { eraseAt(p); stroke = {erase:true, id:e.pointerId}; return; }
+    before();
+    stroke = {c:PENS[pen], w:Math.max(5, parseFloat(getComputedStyle(sheet).fontSize) / 9), pts:[p], id:e.pointerId};
+    S.strokes.push(stroke);
+  };
+  ink.onpointermove = e => {
+    if (!stroke || e.pointerId !== stroke.id) return;
+    const p = pt(e);
+    if (stroke.erase) { eraseAt(p); return; }
+    stroke.pts.push(p); drawStroke(stroke);
+  };
+  ink.onpointerup = ink.onpointercancel = e => {
+    if (!stroke || e.pointerId !== stroke.id) return;
+    const was = stroke; stroke = null;
+    if (!was.erase) { delete was.id; save(); $("#undoBtn").disabled = false; }
+  };
+}
+function pt(e){ const r = ink.getBoundingClientRect(); return [Math.round(e.clientX - r.left), Math.round(e.clientY - r.top)]; }
+function sizeInk(){
+  if (!ink) return;
+  const w = sheet.offsetWidth, h = sheet.scrollHeight, d = window.devicePixelRatio || 1;
+  ink.style.width = w + "px"; ink.style.height = h + "px";
+  ink.width = Math.round(w * d); ink.height = Math.round(h * d);
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  S.strokes.forEach(drawStroke);
+}
+function drawStroke(s){
+  if (!s.pts || !s.pts.length) return;
+  ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.globalAlpha = .85;
+  ctx.beginPath(); ctx.moveTo(s.pts[0][0], s.pts[0][1]);
+  if (s.pts.length === 1) ctx.lineTo(s.pts[0][0] + .1, s.pts[0][1]);
+  s.pts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.stroke(); ctx.globalAlpha = 1;
+}
+function eraseAt([x, y]){
+  const hit = S.strokes.findIndex(s => s.pts.some(p => Math.hypot(p[0]-x, p[1]-y) < 26));
+  if (hit < 0) return;
+  before(); S.strokes.splice(hit, 1); sizeInk(); save(); $("#undoBtn").disabled = false;
+}
+new ResizeObserver(() => sizeInk()).observe(sheet);
+
+/* ---------- on-screen keyboard ---------- */
+let kb = {kind:null, at:0, shift:false, caps:false};
+const ROWS = [
+  "1234567890".split(""),
+  "qwertyuiop".split(""),
+  "asdfghjkl".split("").concat(["'"]),
+  ["⇧"].concat("zxcvbnm".split("")).concat(["⌫"]),
+  [".", ",", "?", "!", "\"", "SPACE", ":", ";", "-"]
+];
+function buildKb(){
+  $("#kb").innerHTML = ROWS.map(r => '<div class="kbrow">' + r.map(k => {
+    if (k === "⇧") return '<button class="key wide" data-k="shift" aria-label="Capital letters">⇧ ABC</button>';
+    if (k === "⌫") return '<button class="key wide" data-k="back" aria-label="Erase">⌫</button>';
+    if (k === "SPACE") return '<button class="key space wide" data-k=" ">space</button>';
+    const p = /[.,?!":;'-]/.test(k);
+    return '<button class="key' + (p ? " p" : "") + '" data-k="' + esc(k) + '">' + esc(k) + "</button>";
+  }).join("") + "</div>").join("");
+  $("#kb").hidden = !opts.kb;
+  $("#kbIn").inputMode = opts.kb ? "none" : "text";
+}
+function kbLetters(){
+  $$('#kb .key').forEach(b => {
+    const k = b.dataset.k;
+    if (k.length === 1 && /[a-z]/.test(k)) b.textContent = kb.shift ? k.toUpperCase() : k;
+    if (k === "shift") b.classList.toggle("on", kb.shift);
+  });
+}
+$("#kb").addEventListener("pointerdown", e => e.preventDefault());   // keep the caret in the box
+$("#kb").addEventListener("click", e => {
+  const b = e.target.closest(".key"); if (!b) return;
+  const inp = $("#kbIn"); let k = b.dataset.k;
+  const s = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? inp.value.length;
+  if (k === "shift") { kb.shift = !kb.shift; kbLetters(); return; }
+  if (k === "back") {
+    if (s !== en) inp.setRangeText("", s, en, "end");
+    else if (s > 0) inp.setRangeText("", s - 1, s, "end");
+  } else {
+    if (/[a-z]/.test(k) && kb.shift) { k = k.toUpperCase(); kb.shift = false; kbLetters(); }
+    inp.setRangeText(k, s, en, "end");
+  }
+  inp.focus();
+});
+function openKb(kind, at){
+  kb.kind = kind; kb.at = at; kb.shift = false;
+  const inp = $("#kbIn");
+  const hintEl = $("#kbHint");
+  hintEl.hidden = true;
+  if (kind === "fix") {
+    const t = S.tokens[at];
+    $("#kbTitle").textContent = "Fix this word";
+    inp.value = t.t;
+    $("#kbWas").innerHTML = t.o != null && t.o !== t.t ? "Was: <s>" + esc(t.o) + "</s>" : (t.ins ? "New word" : "");
+    $("#kbOrig").hidden = t.o == null || t.o === t.t;
+    $("#kbDel").hidden = false;
+    if (t.hint && t.t === t.o) { hintEl.hidden = false; hintEl.innerHTML = "<b>" + HINT[t.hint.type][0] + " hint:</b> " + esc(t.hint.tip); }
+  } else {
+    $("#kbTitle").textContent = "Add words here";
+    const prev = S.tokens.slice(0, at).filter(t => !t.del).pop(), next = S.tokens.slice(at).find(t => !t.del);
+    $("#kbWas").innerHTML = esc((prev ? "…" + prev.t : "") + "  ‸  " + (next ? next.t + "…" : ""));
+    inp.value = "";
+    $("#kbOrig").hidden = true; $("#kbDel").hidden = true;
+  }
+  kbLetters();
+  $("#kbModal").hidden = false;
+  setTimeout(() => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }, 30);
+}
+function closeKb(){ $("#kbModal").hidden = true; kb.kind = null; }
+function commitKb(){
+  const words = $("#kbIn").value.trim().split(/\s+/).filter(Boolean);
+  const at = kb.at;
+  if (kb.kind === "fix") {
+    const t = S.tokens[at];
+    if (!words.length) { before(); t.del = true; }
+    else if (words.length === 1 && words[0] === t.t) { closeKb(); return; }
+    else {
+      before();
+      t.t = words[0]; t.del = false;
+      const extra = words.slice(1).map(w => ({t:w, o:null, del:false, ins:true, tag:t.tag, p:false, op:false, hint:null}));
+      S.tokens.splice(at + 1, 0, ...extra);
+    }
+  } else if (kb.kind === "add") {
+    if (!words.length) { closeKb(); return; }
+    before();
+    const nextTok = S.tokens[at];
+    const startsPara = nextTok && nextTok.p;
+    const extra = words.map((w, j) => ({t:w, o:null, del:false, ins:true, tag:null, p:false, op:false, hint:null}));
+    // adding before the first word of a paragraph: the new words begin that paragraph
+    if (startsPara) { extra[0].p = true; extra[0].op = nextTok.op; nextTok.p = false; nextTok.op = false; }
+    S.tokens.splice(at, 0, ...extra);
+  }
+  closeKb(); changed();
+}
+$("#kbDone").onclick = commitKb;
+$("#kbCancel").onclick = closeKb;
+$("#kbDel").onclick = () => { $("#kbIn").value = ""; commitKb(); };
+$("#kbOrig").onclick = () => { const t = S.tokens[kb.at]; $("#kbIn").value = t.o; commitKb(); };
+$("#kbIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); commitKb(); } if (e.key === "Escape") closeKb(); });
+$("#kbModal").addEventListener("click", e => { if (e.target.id === "kbModal") closeKb(); });
+
+/* ---------- side panel ---------- */
+function openSide(tab){
+  if (sideTab === tab) { sideTab = null; $("#side").hidden = true; markSideBtns(); return; }
+  sideTab = tab; $("#side").hidden = false; renderSide(); markSideBtns();
+}
+function markSideBtns(){
+  $$("[data-side]").forEach(b => b.classList.toggle("on", b.dataset.side === sideTab));
+  $$("#side [data-tab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tab === sideTab));
+}
+let photoZoom = 1;
+function renderSide(){
+  const p = $("#panel");
+  if (sideTab === "photo") {
+    if (!S.images.length) { p.innerHTML = '<h3>My paper</h3><p class="note">No photo for this writing. A teacher can add one in Teacher setup.</p>'; return; }
+    p.innerHTML = '<h3>My paper</h3><div class="zoom"><button class="btn small" id="zOut">Zoom out</button><button class="btn small" id="zIn">Zoom in</button></div><div class="photo" style="width:' + (photoZoom*100) + '%">' +
+      S.images.map((src, i) => '<img src="' + src + '" alt="Photo of page ' + (i+1) + ' of the student\'s writing">').join("") + "</div>";
+    $("#zIn").onclick = () => { photoZoom = Math.min(3, photoZoom + .5); renderSide(); };
+    $("#zOut").onclick = () => { photoZoom = Math.max(1, photoZoom - .5); renderSide(); };
+  } else if (sideTab === "chart") {
+    p.innerHTML = "<h3>" + (S.set === "five" ? "5 W chart" : "Label chart") + "</h3>" + S.labels.map(l => {
+      const [b, s] = COLORS[l.c];
+      const ph = phrases(l.id);
+      return '<div class="wcard" style="--tb:' + b + ";--ts:" + s + '"><h4>' + esc(l.name) + '</h4><div class="q">' + esc(l.q || "") + "</div>" +
+        (ph.length ? "<ul>" + ph.map(x => '<li><button data-flash="' + x.idx.join(",") + '">' + esc(x.text) + "</button></li>").join("") + "</ul>"
+                   : '<div class="empty">Not found yet. Find it and label it!</div>') + "</div>";
+    }).join("");
+  } else if (sideTab === "cups") {
+    const done = Object.values(S.checks).every(Boolean);
+    p.innerHTML = "<h3>Did I check my…</h3>" + Object.keys(HINT).map(k =>
+      '<button class="check" role="checkbox" aria-checked="' + !!S.checks[k] + '" data-check="' + k + '" style="--hc:' + HINT[k][1] + '"><span class="letter">' + k + '</span><span><b>' + HINT[k][0] + '</b><span class="d">' + HINT[k][2] + '</span></span><span class="box" style="margin-left:auto"></span></button>'
+    ).join("") + (done ? '<div class="cheer">You checked it all! Great editing.</div>' : "");
+  }
+}
+function phrases(id){
+  const out = []; let cur = null;
+  S.tokens.forEach((t, i) => {
+    if (t.del) return;
+    if (t.tag !== id) { cur = null; return; }
+    if (!cur || t.p) { cur = {idx:[], words:[]}; out.push(cur); }
+    cur.idx.push(i); cur.words.push(t.t);
+  });
+  return out.map(c => ({idx:c.idx, text:c.words.join(" ")}));
+}
+$("#panel").addEventListener("click", e => {
+  const f = e.target.closest("[data-flash]");
+  if (f) {
+    const ids = f.dataset.flash.split(",");
+    ids.forEach(i => { const w = sheet.querySelector('.w[data-i="' + i + '"]'); if (w) { w.classList.remove("flash"); void w.offsetWidth; w.classList.add("flash"); } });
+    const w0 = sheet.querySelector('.w[data-i="' + ids[0] + '"]'); if (w0) w0.scrollIntoView({block:"center", behavior:"smooth"});
+    return;
+  }
+  const c = e.target.closest("[data-check]");
+  if (c) { S.checks[c.dataset.check] = !S.checks[c.dataset.check]; save(); renderSide(); }
+});
+$$("[data-side]").forEach(b => b.onclick = () => openSide(b.dataset.side));
+$$("#side [data-tab]").forEach(b => b.onclick = () => { sideTab = b.dataset.tab; renderSide(); markSideBtns(); });
+$("#sideClose").onclick = () => { sideTab = null; $("#side").hidden = true; markSideBtns(); };
+
+/* ---------- header controls ---------- */
+$("#undoBtn").onclick = undo; $("#redoBtn").onclick = redo;
+function setView(v){ view = v; $("#viewMarks").setAttribute("aria-pressed", v === "marks"); $("#viewClean").setAttribute("aria-pressed", v === "clean"); $("#legend").hidden = v !== "marks"; render(); }
+$("#viewMarks").onclick = () => setView("marks");
+$("#viewClean").onclick = () => setView("clean");
+function setFs(px){ opts.fs = Math.max(20, Math.min(96, px)); document.documentElement.style.setProperty("--fs", opts.fs + "px"); saveOpts(); sizeInk(); }
+$("#bigger").onclick = () => setFs(parseFloat(getComputedStyle(sheet).fontSize) + 6);
+$("#smaller").onclick = () => setFs(parseFloat(getComputedStyle(sheet).fontSize) - 6);
+if (opts.fs) document.documentElement.style.setProperty("--fs", opts.fs + "px");
+$("#hintsBtn").onclick = () => { showHints = !showHints; render(); };
+$("#fsBtn").onclick = async () => {
+  try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch {}
+};
+document.addEventListener("keydown", e => {
+  if (!$("#kbModal").hidden || $("#editScreen").hidden) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); }
+});
+
+/* read aloud, highlighting each word */
+let speaking = false;
+$("#readBtn").onclick = () => {
+  const synth = window.speechSynthesis;
+  if (!synth) { $("#tipSay").textContent = "This browser can't read aloud."; return; }
+  if (speaking) { synth.cancel(); return; }
+  const live = S.tokens.map((t, i) => ({t, i})).filter(x => !x.t.del);
+  let text = "", starts = [];
+  live.forEach(x => { starts.push(text.length); text += x.t.t + " "; });
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = .85;
+  const clear = () => $$("#sheet .w.reading").forEach(w => w.classList.remove("reading"));
+  u.onboundary = ev => {
+    let k = 0; while (k + 1 < starts.length && starts[k+1] <= ev.charIndex) k++;
+    clear(); const w = sheet.querySelector('.w[data-i="' + live[k].i + '"]'); if (w) w.classList.add("reading");
+  };
+  u.onend = u.onerror = () => { speaking = false; clear(); $("#readBtn").textContent = "Read it to me"; };
+  speaking = true; $("#readBtn").textContent = "Stop reading";
+  synth.cancel(); synth.speak(u);
+};
+
+/* ===================== TEACHER SETUP ===================== */
+let sample = null, sampleImages = null, readCtl = null;
+function showScreen(which){
+  $("#editScreen").hidden = which !== "edit";
+  $("#setupScreen").hidden = which !== "setup";
+  if (which === "setup") fillSetup();
+  else { buildKb(); render(); }
+}
+$("#teacherBtn").onclick = () => showScreen("setup");
+
+function fillSetup(){
+  $("#titleIn").value = S.title; $("#studentIn").value = S.student;
+  $("#textIn").value = S.source; $("#setSel").value = S.set in SETS ? S.set : "five";
+  $("#optKb").checked = opts.kb; $("#optIndent").checked = opts.indent;
+  $("#resetConfirm").hidden = true;
+  renderThumbs(); renderLabels(); updateReadBtns();
+  $("#printBtn").hidden = inViewer;
+}
+$("#titleIn").oninput = e => { S.title = e.target.value.slice(0, 80); S.example = false; save(); };
+$("#studentIn").oninput = e => { S.student = e.target.value.slice(0, 30); S.example = false; save(); };
+$("#optKb").onchange = e => { opts.kb = e.target.checked; saveOpts(); };
+$("#optIndent").onchange = e => { opts.indent = e.target.checked; saveOpts(); };
+
+function hasEdits(){ return countFixes() > 0 || S.tokens.some(t => t.tag) || S.strokes.length; }
+function start(){
+  const text = $("#textIn").value;
+  if (!text.trim()) { setStatus("Type or read the student's writing in step 2 first.", "err"); $("#textIn").focus(); return; }
+  if (text !== S.source) {
+    if (hasEdits()) {
+      const box = $("#resetConfirm");
+      box.hidden = false;
+      box.innerHTML = '<div class="inlineconfirm">You changed the writing. Starting again clears the student\'s edits and labels. <button class="btn small warn" id="rcYes">Start over</button><button class="btn small" id="rcNo">Keep edits, undo my change</button></div>';
+      $("#rcYes").onclick = () => { applySource(text); showScreen("edit"); };
+      $("#rcNo").onclick = () => { $("#textIn").value = S.source; box.hidden = true; showScreen("edit"); };
+      return;
+    }
+    applySource(text);
+  }
+  showScreen("edit");
+}
+function applySource(text){
+  S.source = text; S.tokens = parse(text); S.strokes = []; S.example = false;
+  S.checks = {C:false,U:false,P:false,S:false};
+  undoStack = []; redoStack = []; save();
+}
+$("#startBtn").onclick = start;
+$("#newWork").onclick = () => {
+  S = newWork("", {labels:S.labels.map(l => ({...l})), set:S.set});
+  undoStack = []; redoStack = [];
+  fillSetup(); setStatus("New writing started. Add a photo or type the writing.", "");
+};
+
+/* photos */
+function setStatus(msg, kind){ const s = $("#readStatus"); s.textContent = msg; s.className = "status" + (kind ? " " + kind : ""); }
+function renderThumbs(){
+  $("#thumbs").innerHTML = S.images.map((src, i) =>
+    '<div class="thumb"><img src="' + src + '" alt="Page ' + (i+1) + '"><div class="row"><button class="btn small" data-rot="' + i + '" aria-label="Turn page ' + (i+1) + '">Turn ↻</button><button class="btn small warn" data-rm="' + i + '" aria-label="Remove page ' + (i+1) + '">✕</button></div></div>'
+  ).join("");
+  updateReadBtns();
+}
+$("#thumbs").addEventListener("click", async e => {
+  const r = e.target.closest("[data-rot]"), x = e.target.closest("[data-rm]");
+  if (r) { const i = +r.dataset.rot; S.images[i] = await rotate(S.images[i]); renderThumbs(); save(); }
+  if (x) { S.images.splice(+x.dataset.rm, 1); renderThumbs(); save(); }
+});
+function loadImg(src){ return new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = src; }); }
+async function shrink(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const im = await loadImg(url);
+    const k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(im, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", .82);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function rotate(src){
+  const im = await loadImg(src);
+  const c = document.createElement("canvas"); c.width = im.naturalHeight; c.height = im.naturalWidth;
+  const g = c.getContext("2d"); g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(im, 0, 0);
+  return c.toDataURL("image/jpeg", .85);
+}
+async function addFiles(files){
+  const imgs = Array.from(files).filter(f => f.type.startsWith("image/"));
+  if (!imgs.length) { setStatus("Those files aren't pictures. Choose a photo (JPG or PNG).", "err"); return; }
+  setStatus("Adding " + imgs.length + (imgs.length > 1 ? " photos…" : " photo…"), "");
+  for (const f of imgs) { try { S.images.push(await shrink(f)); } catch { setStatus("One photo couldn't be opened. Try a JPG or PNG.", "err"); } }
+  S.example = false; renderThumbs(); save();
+  setStatus(S.images.length + (S.images.length > 1 ? " pages added. " : " page added. ") + (canRead() ? "Press Read handwriting, or type the writing in step 2." : "Type the writing in step 2."), "ok");
+}
+$("#fileIn").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+const drop = $("#drop");
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+document.addEventListener("paste", e => {
+  if ($("#setupScreen").hidden) return;
+  const f = Array.from(e.clipboardData?.files || []); if (f.length) addFiles(f);
+});
+
+/* reading handwriting: Claude (inside Claude) or on-device OCR (standalone) */
+const canRead = () => !!(sampleImages || !inViewer);
+function updateReadBtns(){
+  $("#readClaude").hidden = !sampleImages;
+  $("#readOcr").hidden = inViewer;
+  $("#readClaude").disabled = $("#readOcr").disabled = !S.images.length || !!readCtl;
+  $("#hintRow").hidden = !sample;
+}
+function b64Blob(dataUrl){
+  const [h, b] = dataUrl.split(","); const bin = atob(b); const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], {type:h.slice(5, h.indexOf(";"))});
+}
+const READ_PROMPT = `These photos show a student's handwritten writing, pages in order. A teacher will use your transcription for an editing lesson, where the student finds and fixes their own mistakes.
+Transcribe the student's words EXACTLY as written:
+- Keep every spelling, capitalization, punctuation and grammar mistake. Do not fix, add or remove anything.
+- If a word is hard to read, write your best reading of the letters the student actually formed.
+- Skip the student's name, the date, crossed-out words and any teacher marks.
+- Join lines that belong to the same paragraph with spaces. Put one blank line between paragraphs.
+- If the student wrote a title on its own line, put it first on its own line followed by a blank line, starting with "TITLE: ".
+Reply with only the transcription.`;
+const ERR = {
+  not_granted:"Claude wasn't allowed to read for this page. You can type the writing instead.",
+  rate_limited:"Claude is busy right now. Wait a minute and try again.",
+  image_rejected:"Claude couldn't open one of the photos. Try turning it or taking a clearer picture.",
+  images_unavailable:"Reading photos isn't available here. Type the writing instead.",
+  cancelled:"Stopped."
+};
+$("#readClaude").onclick = async () => {
+  if (!sample || !S.images.length) return;
+  readCtl = new AbortController(); updateReadBtns(); $("#stopRead").hidden = false;
+  setStatus("Claude is reading the handwriting. This can take up to a minute…", "");
+  const max = (sampleImages && sampleImages.maxCount) || 5;
+  try {
+    const {text} = await sample(READ_PROMPT, {images:S.images.slice(0, max).map(b64Blob), signal:readCtl.signal,
+      onText:({text}) => { $("#textIn").value = text; }});
+    let t = text.trim();
+    const m = t.match(/^TITLE:\s*(.+)\n+/);
+    if (m) { t = t.slice(m[0].length); if (!S.title) { S.title = m[1].trim(); $("#titleIn").value = S.title; } }
+    $("#textIn").value = t;
+    setStatus("Done. Read it over and fix anything Claude misread, but keep the student's own mistakes." + (S.images.length > max ? " Only the first " + max + " pages were read." : ""), "ok");
+  } catch (e) {
+    setStatus(ERR[e && e.code] || "Claude couldn't read it this time. Try again, or type the writing.", "err");
+  } finally { readCtl = null; $("#stopRead").hidden = true; updateReadBtns(); }
+};
+$("#stopRead").onclick = () => readCtl && readCtl.abort();
+
+function loadScript(src){ return new Promise((ok, bad) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = bad; document.head.appendChild(s); }); }
+$("#readOcr").onclick = async () => {
+  if (!S.images.length) return;
+  readCtl = {abort(){}}; updateReadBtns();
+  try {
+    setStatus("Loading the reader… (needs internet the first time)", "");
+    if (!window.Tesseract) await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
+    const parts = [];
+    for (let i = 0; i < S.images.length; i++) {
+      const r = await Tesseract.recognize(S.images[i], "eng", {logger:m => {
+        if (m.status === "recognizing text") setStatus("Reading page " + (i+1) + " of " + S.images.length + "… " + Math.round(m.progress * 100) + "%", "");
+      }});
+      parts.push(r.data.text.trim());
+    }
+    const txt = parts.join("\n\n").replace(/([^\n])\n(?!\n)/g, "$1 ");
+    $("#textIn").value = txt;
+    setStatus("Done. Computer reading of handwriting makes mistakes, so check every word against the photo. Keep the student's own mistakes.", "ok");
+  } catch {
+    setStatus("The handwriting reader couldn't load here. Type the writing in step 2.", "err");
+  } finally { readCtl = null; updateReadBtns(); }
+};
+
+/* hint dots from Claude */
+$("#hintGo").onclick = async () => {
+  if (!sample) return;
+  const text = $("#textIn").value;
+  if (!text.trim()) { $("#hintStatus").textContent = "Add the writing first."; return; }
+  if (text !== S.source) { if (hasEdits()) { $("#hintStatus").textContent = "Press Start editing first to save your changes to the writing."; return; } applySource(text); }
+  const list = S.tokens.map((t, i) => i + ": " + t.t).join("\n");
+  const prompt = `A teacher is setting up an editing lesson. Below is a student's writing, one word per numbered line (punctuation stays attached to its word).
+Find the real mistakes the student should fix. For each one give:
+- "i": the line number of the word to look at (for a missing end mark, use the word it belongs after),
+- "type": "C" (capital letter needed or not needed), "U" (usage: wrong word form or a missing/extra word nearby), "P" (punctuation missing or wrong), or "S" (spelling),
+- "tip": a short tip for a young student, under 10 words, that points at the problem WITHOUT giving the answer.
+Return JSON only, shaped {"hints":[{"i":0,"type":"C","tip":"..."}]}.
+
+${list}`;
+  $("#hintGo").disabled = true; $("#hintStatus").textContent = "Claude is looking for spots to check…";
+  try {
+    const res = await sample.json(prompt, {modelTier:"default"});
+    const hints = (res && res.hints) || [];
+    S.tokens.forEach(t => t.hint = null);
+    let n = 0;
+    hints.forEach(h => { const t = S.tokens[h.i]; if (t && HINT[h.type]) { t.hint = {type:h.type, tip:String(h.tip || "").slice(0, 90)}; n++; } });
+    showHints = true; save();
+    $("#hintStatus").textContent = n ? n + " spots marked. Students see a colored dot under each one, and the tip when they tap Fix a word." : "Claude didn't find anything to mark.";
+  } catch (e) {
+    $("#hintStatus").textContent = ERR[e && e.code] || "Couldn't mark spots this time. Try again later.";
+  } finally { $("#hintGo").disabled = false; }
+};
+
+/* labels */
+function renderLabels(){
+  $("#lblList").innerHTML = S.labels.map(l => {
+    const [b, s] = COLORS[l.c];
+    return '<span class="lbl" style="--tb:' + b + ";--ts:" + s + '">' + esc(l.name) + ' <button data-rml="' + l.id + '" aria-label="Remove ' + esc(l.name) + '">✕</button></span>';
+  }).join("") || '<span class="note">No labels. Add one below.</span>';
+}
+$("#setSel").onchange = e => {
+  const used = new Set(S.tokens.map(t => t.tag).filter(Boolean));
+  S.set = e.target.value; S.labels = makeLabels(S.set);
+  if (used.size) S.tokens.forEach(t => t.tag = null);
+  curTag = null; renderLabels(); save();
+};
+$("#lblList").addEventListener("click", e => {
+  const b = e.target.closest("[data-rml]"); if (!b) return;
+  S.labels = S.labels.filter(l => l.id !== b.dataset.rml);
+  S.tokens.forEach(t => { if (t.tag === b.dataset.rml) t.tag = null; });
+  S.set = "custom"; renderLabels(); save();
+});
+function addLabel(){
+  const v = $("#newLbl").value.trim(); if (!v) return;
+  if (S.labels.length >= 9) { $("#newLbl").value = ""; $("#newLbl").placeholder = "9 labels is the most"; return; }
+  const usedC = new Set(S.labels.map(l => l.c));
+  const c = [...COLORS.keys()].find(k => !usedC.has(k)) ?? 0;
+  S.labels.push({id:uid(), name:v, q:"", c}); S.set = "custom";
+  $("#newLbl").value = ""; renderLabels(); save();
+}
+$("#addLbl").onclick = addLabel;
+$("#newLbl").addEventListener("keydown", e => { if (e.key === "Enter") addLabel(); });
+
+/* copy / print */
+$("#copyClean").onclick = () => {
+  const text = (S.title ? S.title + "\n\n" : "") + cleanText();
+  const done = ok => { $("#copyNote").textContent = ok ? "Copied. Paste it into a document." : "Select the text in step 2 and copy it instead."; };
+  try { navigator.clipboard.writeText(text).then(() => done(true), () => done(false)); } catch { done(false); }
+};
+$("#printBtn").onclick = () => { showScreen("edit"); setView("clean"); setTimeout(() => window.print(), 200); };
+
+/* saved work */
+function renderLib(){
+  const list = store.get("wfb.list", []);
+  $("#workList").innerHTML = list.length ? list.map(w =>
+    '<div class="workrow"><div class="t"><b>' + esc(w.title || "Untitled") + (w.example ? " (example)" : "") + "</b><span>" + esc(w.student || "No name") + " · " + new Date(w.updated).toLocaleDateString() + '</span></div>' +
+    '<button class="btn small primary" data-open="' + w.id + '">Open</button><button class="btn small warn" data-delw="' + w.id + '">Delete</button></div>'
+  ).join("") : '<p class="note">Nothing saved yet.</p>';
+}
+$("#libBtn").onclick = () => { renderLib(); $("#libModal").hidden = false; };
+$("#libClose").onclick = () => $("#libModal").hidden = true;
+$("#workList").addEventListener("click", e => {
+  const o = e.target.closest("[data-open]"), d = e.target.closest("[data-delw]");
+  if (o) { const w = loadWork(o.dataset.open); if (w) { S = w; undoStack = []; redoStack = []; store.set("wfb.cur", S.id); } $("#libModal").hidden = true; showScreen("edit"); }
+  if (d) {
+    if (d.dataset.armed !== "1") { d.dataset.armed = "1"; d.textContent = "Tap again to delete"; return; }
+    const id = d.dataset.delw;
+    store.del("wfb.w." + id); store.del("wfb.i." + id);
+    store.set("wfb.list", store.get("wfb.list", []).filter(w => w.id !== id));
+    if (S.id === id) { S = newWork(EXAMPLE, {title:"The Lost Dog", student:"Example", example:true}); }
+    renderLib();
+  }
+});
+
+/* ---------- boot ---------- */
+const cur = store.get("wfb.cur", null);
+S = (cur && loadWork(cur)) || newWork(EXAMPLE, {title:"The Lost Dog", student:"Example", example:true});
+buildKb(); setMode("fix"); setView("marks");
+
+if (window.claude && claude.use) {
+  claude.use("sample").then(async s => {
+    sample = s;
+    if (s) { try { const l = await s.limits(); sampleImages = l && l.images ? l.images : null; } catch {} }
+    if (!$("#setupScreen").hidden) updateReadBtns();
+  }).catch(() => {});
+}
+try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+})();
+</script>
+
+</body>
+</html>
