@@ -36,7 +36,13 @@ In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
 - Every new day starts fresh, with all tiles back to red. You can turn this off.
 
 ## Breaking a tile into smaller steps
-**Press and hold any tile** (or right-click it) for its menu, then tap **🧩 Break it down into smaller steps**. For example, *Get dressed* becomes *Go to dresser, Open drawer, Underwear on, Pants on, Shirt on, Socks on*.
+**Press and hold any tile** (or right-click it) for its menu. Two choices:
+- **📋 Break it down into *Wake up*** (first button): the small steps go straight into the routine as their own tiles, in place of the big tile. One long-press, one tap. **Undo** puts it back.
+- **🧩 Break it down, keep it as one tile:** the small steps stay inside the big tile and open when it is tapped.
+
+Already kept inside a tile? Open it and tap **📋 Put these steps in *Wake up*** next to the Back button, or long-press the big tile → **📋 Put the steps in…**. Long-press one small step → **⬆️ Add this step to *Wake up*** copies just that step into the routine, right after the big tile.
+
+The details for the "keep it as one tile" choice: For example, *Get dressed* becomes *Go to dresser, Open drawer, Underwear on, Pants on, Shirt on, Socks on*.
 
 - The board steps **into** the tile and shows its small steps. A **⬆ Back** button and a path (*Wake up › Get dressed*) show where you are.
 - **Small steps can be broken down again.** Hold *Shirt on* and it becomes *Get shirt, Find the tag, Head in, One arm in, Other arm in, Pull it down*.
@@ -54,6 +60,9 @@ In Parent mode, **Shows on** sets any routine to school days, weekends, or both.
 | Kindergarten | 5–6 years | 5–7 | up to 5 |
 
 Ready-made breakdowns work offline for: get dressed, shirt on, pants on, socks on, shoes on, coat on, wash hands, brush teeth, potty / bathroom, bath, pajamas on, toys away / clean up, throw away trash, hang up backpack, car seat, line up, and eat my food. For any other tile, Claude writes the small steps at the chosen level (on claude.ai only).
+
+## 🚀 Rocket launch
+When the child finishes a routine, a big rocket blasts across the screen with a flame-and-smoke trail, a burst of colored stars, a whoosh-and-chime sound, and "Three, two, one, blast off!" Finishing a whole part of the day sends 2 rockets; finishing the whole day sends 3. Then the celebration shows what's next. Turn it off in Parent mode settings. With the device's "reduce motion" setting on, it skips the animation and just says "Blast off!"
 
 ## Printing
 Tap **🖨️ Print** at the top. Choose:
