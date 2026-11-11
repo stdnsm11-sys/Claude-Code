@@ -41,6 +41,21 @@ Other options: set Chrome as the device's default browser, or bookmark the link 
 - All stories and lyrics are original. They don't reuse characters or songs from her favorite books and artists.
 
 ## Listen & Remember: Goals 1 and 2
+
+### My topic (leveled text)
+The first option under **What I present orally**. Type any topic, such as "how bees make honey" or "the water cycle", and press **Write leveled text** (or Enter).
+- **Grade level:** K through 8. After a text is written, tap any grade to see the same topic rewritten at that level. Grades with a green dot are ready and appear instantly. The grades just above and below the one you picked are written in the background, so they're usually ready by the time you tap. Other grades take up to a minute.
+- **Length:** the **Paragraphs** (1–5) and **Sentences in each paragraph** (5–9) sliders work here too. Changing them rewrites the text at the current grade.
+- **Measured level:** each text shows its Flesch-Kincaid grade, so you can see whether the leveling landed where you wanted.
+- **Questions:** recall questions, the main idea, and the highlighted key details in your script are made from the text automatically. Everything else works with these texts as with the stories: taking turns, she reads it herself, word highlighting, scoring and data.
+
+**Where the facts come from.** The page can't search the web (claude.ai doesn't let pages load other websites), so there are two ways to use it:
+- **Topic only:** Claude writes from its own general knowledge. It is told to use only well-established facts found in reputable children's references and to leave out anything uncertain. Nothing is looked up live, so the app labels the text **Check the facts before teaching** and names references to check against.
+- **Use only facts from a trusted source:** paste text from a source you trust, such as Britannica Kids, National Geographic Kids, a museum or science-agency page, or your textbook. The passage uses only facts from that text and is labeled that way. If the source is too short for the length you chose, the text comes back shorter and says why.
+
+**School-appropriate topics:** topics that aren't right for a classroom (violence, weapons, drugs, adult content and similar) are declined with a short message. Always read a text before using it with a student.
+
+**Using Claude:** writing a text uses your own Claude account and usage. The first time, claude.ai asks you to allow it. It works only on the hosted claude.ai link, not in `index.html` opened as a file. Each lesson remembers its topic, pasted source and the grades already written, so toggling still works after a reload.
 1. Choose the goal, what you present (3–5 sentences, a **passage**, classroom directions, teacher information), the theme and how many key details to check (4, 5, 6 or all). Goal 2 hides the 3–5 sentence option because it targets extended information.
 2. **Passage length:** two sliders set the number of paragraphs (1–5) and the sentences in each paragraph (5–9). Each theme has its own multi-paragraph story: *Flynn's Day at the Dog Park*, *The Big Concert*, *The Comic Club Contest* and *A Visit to the Animal Rescue*.
 3. **How you present it:**

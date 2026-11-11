@@ -264,6 +264,10 @@ body.board .turnbar .who{flex:1 1 520px}
 .tdrawer{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:15;display:grid;justify-items:end;gap:10px}
 .td-sheet{width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(43,47,85,.25);font-size:.92em}
 .example{font-size:.8em;font-weight:700;color:var(--pink-d)}
+.gseg button{min-width:3.2em;position:relative}
+.gseg .gbtn.ready::after{content:"";position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--good)}
+.gseg .gbtn.busy::after{content:"";position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
 .slider{display:grid;gap:2px;font-weight:700}
 .slider span{display:flex;justify-content:space-between}
 .slider input{width:100%;accent-color:var(--pink-d);min-height:36px}
@@ -332,7 +336,17 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
           </div></div>
         <div class="field"><span class="label">What I present orally</span><div class="seg" id="l-type"></div></div>
         <div class="field"><span class="label" id="l-len-label">Length</span><div class="seg" id="l-len"></div></div>
-        <div class="field"><span class="label">Theme (from her interests)</span><div class="seg" id="l-theme"></div></div>
+        <div class="field" id="l-topic-field"><span class="label">Topic</span>
+          <input type="text" id="t-topic" placeholder="Type a topic, like how bees make honey" autocomplete="off">
+          <details id="t-src-wrap"><summary class="mini" style="cursor:pointer;padding:4px 0">Use only facts from a trusted source (optional)</summary>
+            <textarea id="t-source" placeholder="Paste text from a source you trust, such as Britannica Kids, National Geographic Kids, a museum or science-agency page, or your textbook. The passage will use only facts from this text."></textarea></details>
+          <span class="label" style="margin-top:4px">Grade level</span>
+          <div class="seg gseg" id="t-grade"></div>
+          <div class="row"><button class="btn pink" id="t-go" type="button">Write leveled text</button><button class="sbtn" id="t-stop" type="button" hidden>Stop</button></div>
+          <p class="mini" id="t-status" aria-live="polite"></p>
+          <div id="t-info"></div>
+        </div>
+        <div class="field" id="l-theme-field"><span class="label">Theme (from her interests)</span><div class="seg" id="l-theme"></div></div>
         <div class="field" id="l-pass-field"><span class="label">Passage length</span>
           <label class="slider" for="l-paras"><span>Paragraphs <b id="l-paras-v">3</b></span><input type="range" id="l-paras" min="1" max="5" step="1" value="3"></label>
           <label class="slider" for="l-spp"><span>Sentences in each paragraph <b id="l-spp-v">5</b></span><input type="range" id="l-spp" min="5" max="9" step="1" value="5"></label>
@@ -895,7 +909,7 @@ $('#td-score').onclick=()=>{setMode('teacher');showView('listen')};
 $('#go-student').onclick=()=>setMode('student');
 
 /* ================= LISTEN & REMEMBER ================= */
-const TYPES={sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Passage (paragraphs)',lens:[],unit:'paragraphs'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
+const TYPES={topic:{name:'My topic (leveled text)',lens:[],unit:'paragraphs'},sentences:{name:'3–5 sentences',lens:[3,4,5],unit:'sentences'},passage:{name:'Passage (paragraphs)',lens:[],unit:'paragraphs'},directions:{name:'Classroom directions',lens:[4,5,6],unit:'steps'},info:{name:'Teacher information',lens:[5,6,7,8],unit:'sentences'}};
 const L={goal:1,type:'sentences',len:4,paras:3,spp:5,present:'turns',follow:false,hl:'off',wpm:50,turnBy:'para',first:'teacher',hideT:false,turn:0,theme:'flynn',keys:5,mode:'open',item:null,reps:0,phase:'listen',qi:0,answers:[],marked:new Set(),main:null,support:SUPPORTS[0],notes:'',counts:true};
 
 function fillSlots(templates,qmap,preset){
@@ -910,6 +924,7 @@ function fillSlots(templates,qmap,preset){
 }
 const EXAMPLE={day:'Saturday',time:'morning',kid:'Maya',place:'park',toy:'squeaky ball',color:'blue',num:'three',treat:'peanut butter biscuit'};
 function generate(example){
+  if(L.type==='topic'&&!example){topicFromCache();return}
   const pickTheme=th=>th==='any'?rnd(['flynn','music','comic','animals']):th;
   const theme=pickTheme(L.theme); let item;
   if(L.type==='passage'){
@@ -961,7 +976,7 @@ function generate(example){
   renderListen();
 }
 function resetTrial(){faStop();paceStop();FA.item=null;L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
-function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,follow:L.follow,hl:L.hl,wpm:L.wpm,theme:L.theme,keys:L.keys,mode:L.mode}}
+function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,follow:L.follow,hl:L.hl,wpm:L.wpm,theme:L.theme,keys:L.keys,mode:L.mode,tgrade:T.grade}}
 function saveLessonCfg(){if(S.lesson){S.lesson.cfg=cfgObj();saveSettings()}}
 const EXAMPLE_P={day:'Saturday',time:'morning',kid:'Maya',color:'blue',toy:'squeaky ball',snack:'apple slices',song:'a song about friendship'};
 function genPassage(theme,example){
@@ -1023,7 +1038,10 @@ function renderListen(){
     else{why.innerHTML=`<b>Her voice</b> is greyed out because it needs this app's link opened in <b>Chrome</b> or <b>Edge</b> while signed in to claude.ai. Copy the link and open it there:<br><input type="text" id="l-app-link" readonly value="${APP_URL}" aria-label="App link" style="margin-top:6px"> <button class="sbtn" id="l-copy-link" type="button" style="margin-top:6px">Copy link</button>`}
     if(fn.textContent)fn.appendChild(document.createElement('br'));fn.appendChild(why);
     if($('#l-copy-link')){$('#l-copy-link').onclick=()=>copyText(APP_URL,$('#l-app-link'),'Link copied. Paste it into Chrome or Edge.');$('#l-app-link').onclick=e=>e.target.select();}}$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
-  $('#l-pass-field').hidden=L.type!=='passage';
+  $('#l-pass-field').hidden=!['passage','topic'].includes(L.type);
+  $('#l-topic-field').hidden=L.type!=='topic';$('#l-theme-field').hidden=L.type==='topic';
+  if(L.type==='topic'){if($('#t-topic')!==document.activeElement)$('#t-topic').value=T.topic;if($('#t-source')!==document.activeElement)$('#t-source').value=T.source;renderGrades();$('#t-go').disabled=!SAMPLE||Object.keys(T.busy).includes(tKey(T.grade));if(!SAMPLE&&!$('#t-status').textContent)$('#t-status').textContent='Writing leveled texts uses Claude, which works on the hosted claude.ai link.'}
+  topicInfo();
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
   $('#l-reps').textContent=$('#td-reps').textContent=L.reps;
@@ -1032,12 +1050,12 @@ function renderListen(){
   $('#td-hint').textContent=(L.present==='turns'?'Take turns: she taps Next after each turn. ':L.present==='solo'?'She reads the whole passage and taps Next as she goes. ':'')+(L.mode==='open'?'She tells you what she remembers. Open teacher mode to check off details.':'She taps her answers. The trial saves on its own when she finishes.');
   $('#l-title').textContent=L.item.title;
   const ip=L.item.paras.length, ispp=Math.round(L.item.plain.length/ip);
-  $('#l-sub').textContent=`Goal ${L.goal} · ${L.type==='passage'?`${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`:TYPES[L.type].name+' · '+L.len+' '+TYPES[L.type].unit} · ${L.present==='solo'?'she reads it':L.present==='turns'?'taking turns':'read aloud'}`;
+  $('#l-sub').textContent=`Goal ${L.goal} · ${L.type==='topic'?(L.item.placeholder?'my topic':`${gLong(L.item.topic.grade)} · ${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`):L.type==='passage'?`${ip} paragraph${ip>1?'s':''} · ${ispp} sentences each`:TYPES[L.type].name+' · '+L.len+' '+TYPES[L.type].unit} · ${L.present==='solo'?'she reads it':L.present==='turns'?'taking turns':'read aloud'}`;
   $('#l-voice-note').textContent=(!synthOK||!S.voice)?'(off in Settings)':'';
   renderStage();renderScorePanel();
 }
 function buildTypeSeg(){
-  const types=L.goal===2?['passage','directions','info']:['sentences','passage','directions','info'];
+  const types=L.goal===2?['topic','passage','directions','info']:['topic','sentences','passage','directions','info'];
   $('#l-type').innerHTML=types.map(t=>`<button data-v="${t}">${TYPES[t].name}</button>`).join('');
   seg($('#l-type'),L.type,v=>{L.type=v;L.len=TYPES[v].lens.includes(L.len)?L.len:TYPES[v].lens[Math.min(1,TYPES[v].lens.length-1)];generate()});
   const lens=TYPES[L.type].lens;
@@ -1086,7 +1104,7 @@ function renderStage(){
     st.innerHTML=reviewHTML();
   }
 }
-const THEME_ICON={flynn:'paw',animals:'paw',music:'note',comic:'book'};
+const THEME_ICON={flynn:'paw',animals:'paw',music:'note',comic:'book',topic:'book'};
 function pageHTML(live){
   const it=L.item,us=units(),by=turnUnitBy(),cur=L.turn;
   if(live&&hlOn()&&FA.item!==it){FA.words=faWords();FA.item=it;faStartUnit(Math.min(L.turn,us.length-1))}
@@ -1190,7 +1208,7 @@ function renderScorePanel(){
 }
 function saveListen(auto){
   const it=L.item,sc=score();
-  const t={id:L.savedId||uid(),date:today(),goal:L.goal,kind:'listen',activity:L.type==='passage'?`Passage (${it.paras.length} paragraph${it.paras.length>1?'s':''} × ${Math.round(it.plain.length/it.paras.length)} sentences)`:TYPES[L.type].name+` (${L.len} ${TYPES[L.type].unit})`,
+  const t={id:L.savedId||uid(),date:today(),goal:L.goal,kind:'listen',activity:L.type==='topic'&&it.topic?`Leveled text: ${it.topic.topic} (${gLong(it.topic.grade)}, ${it.paras.length} × ${Math.round(it.plain.length/it.paras.length)}${it.topic.fromSource?', from pasted source':''})`:L.type==='passage'?`Passage (${it.paras.length} paragraph${it.paras.length>1?'s':''} × ${Math.round(it.plain.length/it.paras.length)} sentences)`:TYPES[L.type].name+` (${L.len} ${TYPES[L.type].unit})`,
     title:it.title,theme:it.theme,correct:sc.correct+(sc.mainOk?1:0),total:sc.total+(L.goal===2?1:0),details:sc.correct,keyTotal:sc.total,
     main:L.goal===2?!!sc.mainOk:null,pct:sc.pct,reps:L.reps,mode:L.mode==='open'?'Told teacher (teacher checked)':'Tapped choices',present:presentText(),
     support:L.support,acc:accNames('listen'),notes:L.notes,counts:L.counts,meets:sc.meets,
@@ -1294,7 +1312,114 @@ else{const a=srAdapter();if(a){SR_MODE=true;wireDict(a)}}
 
 function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-spp-v').textContent=$('#l-spp').value;
   const n=+$('#l-paras').value*+$('#l-spp').value;$('#l-pass-total').textContent=`About ${n} sentences in all.`}
-['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;generate()})});
+['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;if(L.type==='topic'&&(T.topic||$('#t-topic').value).trim())genTopic(T.grade,true);else generate()})});
+/* ================= MY TOPIC: leveled informational text written by Claude (sample capability) ================= */
+let SAMPLE=null;
+const T={grade:3,topic:'',source:'',cache:{},busy:{},ctls:[],info:null};
+const GRADES=[0,1,2,3,4,5,6,7,8];
+const gName=g=>g===0?'K':String(g);
+const gLong=g=>g===0?'kindergarten':'grade '+g;
+function hashStr(x){let h=0;for(let i=0;i<x.length;i++)h=(h*31+x.charCodeAt(i))|0;return (h>>>0).toString(36)}
+const tKey=g=>[g,L.paras,L.spp,hashStr(T.topic.trim().toLowerCase()+'|'+T.source.trim())].join('|');
+const LEVEL={0:'4 to 6 words per sentence; only very common, decodable words; no commas or clauses',1:'5 to 7 words per sentence; common sight words and simple words; almost no commas',2:'6 to 9 words per sentence; everyday words; a few two-syllable words',3:'8 to 11 words per sentence; mostly everyday words; one or two topic words explained in the sentence',4:'9 to 13 words per sentence; some topic vocabulary explained by context; some sentences with "because" or "when"',5:'11 to 15 words per sentence; topic vocabulary with context clues; varied sentence beginnings',6:'12 to 17 words per sentence; academic vocabulary with context; some complex sentences',7:'13 to 18 words per sentence; academic and domain vocabulary; complex sentences',8:'14 to 20 words per sentence; domain vocabulary; complex and compound sentences'};
+function topicPrompt(g){
+  const src=T.source.trim();
+  return `You write leveled informational reading passages for an elementary and middle school classroom. The reader is a student who is Deaf/Hard of Hearing and uses spoken language, so the text must be clear and literal.
+
+TOPIC: ${T.topic.trim()}
+GRADE: ${g} (${gLong(g)} reading level)
+PARAGRAPHS: ${L.paras}
+SENTENCES_PER_PARAGRAPH: ${L.spp}
+
+Rules:
+1. Safety: the passage must be appropriate for a school classroom of young children. If the topic is not appropriate (for example graphic violence, weapons, drugs, alcohol, sexual content, self-harm, hate, gore, horror, or frightening real tragedies told in detail), reply only {"ok":false,"reason":"<one short, kind sentence>"}. Keep sensitive-but-teachable topics gentle and factual.
+2. Accuracy: ${src?`use ONLY facts stated in the SOURCE TEXT below. Do not add any fact, number, name or date that is not in the source. If the source does not have enough facts for every sentence, write fewer sentences or paragraphs rather than inventing anything, and explain in "note".`:`use only well-established facts that appear in reputable children's reference sources (children's encyclopedias, museum, science-agency, national park and zoo education pages). Leave out anything uncertain, disputed, or that you are not sure is accurate. Do not invent numbers, quotes, names or dates.`}
+3. Structure: write exactly ${L.paras} paragraph(s) with exactly ${L.spp} sentences each. Every sentence is a complete sentence that ends with a period, question mark or exclamation point. Paragraph 1 introduces the topic; each later paragraph covers one subtopic.
+4. Level: write at a ${gLong(g)} reading level: ${LEVEL[g]}. Keep the facts the same kind as you would for other grades; change the sentence length, vocabulary and how ideas are explained.
+5. Also write: a short title; "main_idea" (one sentence: what the whole passage is mostly about); "wrong_main_ideas" (two plausible but wrong main ideas of similar length); and "questions": ${Math.min(10,Math.max(6,L.paras*2))} literal recall questions spread across all paragraphs. For each question give "q", "a" (a short answer of 1 to 5 words copied exactly from the passage), "distractors" (2 wrong but believable short answers), "p" (paragraph number, starting at 0) and "s" (sentence number in that paragraph, starting at 0).
+${src?'':'6. "check_sources": 2 to 4 names of reputable, school-safe reference sources where a teacher could check these facts. Names only, no web addresses.\n'}
+Reply with only JSON in this shape:
+{"ok":true,"title":"...","paragraphs":[["sentence 1","sentence 2"]],"main_idea":"...","wrong_main_ideas":["...","..."],"questions":[{"q":"...","a":"...","distractors":["...","..."],"p":0,"s":1}],${src?'':'"check_sources":["..."],'}"note":""}
+${src?`\n<source_text note="the only facts you may use">\n${src.slice(0,20000)}\n</source_text>`:''}`;
+}
+function splitSent(t){return (String(t).match(/[^.!?]+[.!?]+["”’)]*/g)||[String(t)]).map(x=>x.trim()).filter(Boolean)}
+function cleanTopic(r,g,paras,spp){
+  if(!r||typeof r!=='object')throw {code:'invalid_json'};
+  if(r.ok===false)throw {code:'unsafe',message:String(r.reason||'This topic isn\'t a good fit for a classroom passage.')};
+  let ps=(Array.isArray(r.paragraphs)?r.paragraphs:[]).map(p=>Array.isArray(p)?p.flatMap(splitSent):splitSent(p)).map(p=>p.map(x=>String(x).trim()).filter(Boolean)).filter(p=>p.length);
+  ps=ps.slice(0,paras).map(p=>p.slice(0,spp));
+  if(!ps.length)throw {code:'invalid_json'};
+  const qs=(Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.q&&q.a&&Array.isArray(q.distractors)&&q.distractors.length)
+    .map(q=>({q:String(q.q),a:String(q.a),d:q.distractors.slice(0,2).map(String),p:Math.max(0,Math.min(ps.length-1,+q.p||0)),s:+q.s||0}));
+  return {g,title:String(r.title||T.topic),paragraphs:ps,main:String(r.main_idea||''),wrong:(Array.isArray(r.wrong_main_ideas)?r.wrong_main_ideas:[]).slice(0,2).map(String),
+    questions:qs,check:Array.isArray(r.check_sources)?r.check_sources.slice(0,4).map(String):[],note:String(r.note||''),fromSource:!!T.source.trim(),topic:T.topic.trim(),paras,spp};
+}
+function syl(w){w=w.toLowerCase().replace(/[^a-z]/g,'');if(!w)return 0;if(w.length<=3)return 1;w=w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');const m=w.match(/[aeiouy]{1,2}/g);return Math.max(1,m?m.length:1)}
+function fkGrade(sents){const words=sents.join(' ').split(/\s+/).filter(w=>/[a-z]/i.test(w));if(!words.length)return 0;
+  const sy=words.reduce((a,w)=>a+syl(w),0);return Math.max(0,0.39*(words.length/sents.length)+11.8*(sy/words.length)-15.59)}
+function buildTopic(c){
+  const plain=c.paragraphs.flat(),paras=[];let k=0;c.paragraphs.forEach(p=>paras.push(p.map(()=>k++)));
+  const idx=(p,s)=>{const pp=paras[p]||paras[0];return pp[Math.max(0,Math.min(pp.length-1,s))]};
+  const details=c.questions.map((q,i)=>{let si=idx(q.p,q.s);
+      const low=q.a.toLowerCase();if(!plain[si].toLowerCase().includes(low)){const f=plain.findIndex(x=>x.toLowerCase().includes(low));if(f>=0)si=f}
+      const w=q.q.split(' ')[0].replace(/[^A-Za-z]/g,'');
+      return {id:'q'+i,si,cue:(['What','Why','When','Where','How','Who','Which'].includes(w)?w:'What')+'?',label:q.a,q:q.q,a:q.a,choices:shuffle([q.a,...q.d])}});
+  const item={kind:'topic',theme:'topic',title:c.title,plain,paras,details,main:c.main||c.title,wrong:c.wrong.length===2?c.wrong:[...c.wrong,'Something else entirely.'].slice(0,2),
+    topic:{topic:c.topic,grade:c.g,fromSource:c.fromSource,check:c.check,note:c.note,fk:Math.round(fkGrade(plain)*10)/10}};
+  const kk=Math.min(L.keys,details.length);const keyIdx=new Set(shuffle(details.map((_,i)=>i)).slice(0,kk));
+  item.keys=details.filter((_,i)=>keyIdx.has(i));item.mainChoices=shuffle([item.main,...item.wrong]);
+  item.html=plain.map((sx,i)=>{let h=esc(sx);item.keys.filter(d=>d.si===i).forEach(d=>{const e=esc(d.a);const j=h.toLowerCase().indexOf(e.toLowerCase());if(j>=0)h=h.slice(0,j)+'<mark>'+h.slice(j,j+e.length)+'</mark>'+h.slice(j+e.length)});return h});
+  item.made=today();return item;
+}
+function placeholderItem(){const t=SAMPLE?'Type a topic in teacher mode, then press Write leveled text.':'Leveled texts are written by Claude, which works on the hosted claude.ai link.';
+  return {kind:'topic',theme:'topic',title:'My topic',plain:[t],paras:[[0]],details:[],keys:[],main:'',wrong:[],mainChoices:[],html:[esc(t)],placeholder:true,made:today()}}
+function topicFromCache(){const c=T.cache[tKey(T.grade)];
+  if(c){L.item=buildTopic(c);resetTrial();saveTopicLesson()}else{L.item=placeholderItem();resetTrial()}
+  renderListen()}
+function saveTopicLesson(){if(L.item.placeholder)return;
+  const keys=Object.keys(T.cache).slice(-12),cache={};keys.forEach(k=>cache[k]=T.cache[k]);T.cache=cache;
+  S.lesson={cfg:cfgObj(),item:L.item,topic:{topic:T.topic,source:T.source,grade:T.grade,cache}};saveSettings()}
+const SAMPLE_ERR={not_granted:'Claude isn\'t allowed to write for this page yet. Allow it when asked, or from the page\'s Permissions menu.',rate_limited:'Too many requests right now. Wait a minute and try again.',
+  refused:'Claude declined to write about this topic. Try a different topic.',invalid_json:'The text didn\'t come back complete. Press Write leveled text to try again.',empty_completion:'The text didn\'t come back complete. Try again.',
+  cancelled:'Stopped.',session_expired:'Your claude.ai sign-in expired. Reload the page and sign in again.',sampling_disabled:'Writing with Claude is turned off for this account.',prompt_too_large:'The pasted source is too long. Paste a shorter part of it.'};
+function fetchLevel(g){const key=tKey(g);
+  if(T.cache[key])return Promise.resolve(T.cache[key]);
+  if(T.busy[key])return T.busy[key];
+  if(!SAMPLE)return Promise.reject({code:'unavailable'});
+  const ctl=new AbortController();T.ctls.push(ctl);const paras=L.paras,spp=L.spp;
+  T.busy[key]=SAMPLE.json(topicPrompt(g),{modelTier:'default',signal:ctl.signal})
+    .then(r=>{const c=cleanTopic(r,g,paras,spp);T.cache[key]=c;return c})
+    .finally(()=>{delete T.busy[key];T.ctls=T.ctls.filter(x=>x!==ctl);renderGrades()});
+  renderGrades();return T.busy[key];
+}
+function tStatus(msg,busy){$('#t-status').textContent=msg||'';$('#t-stop').hidden=!busy;$('#t-go').disabled=!!busy}
+async function genTopic(g,user){
+  T.topic=$('#t-topic').value;T.source=$('#t-source').value;
+  if(!T.topic.trim()){tStatus('Type a topic first.');$('#t-topic').focus();return}
+  T.grade=g;saveLessonCfg();renderGrades();
+  const cached=T.cache[tKey(g)];
+  if(!cached)tStatus(`Writing a ${gLong(g)} text about "${T.topic.trim()}". This can take up to a minute.`,true);
+  try{const c=await fetchLevel(g);if(T.grade!==g)return;
+    L.item=buildTopic(c);resetTrial();saveTopicLesson();tStatus('');renderListen();
+    if(user)prefetchAround(g);
+  }catch(e){if(T.grade!==g)return;tStatus(e&&e.code==='unsafe'?e.message:(SAMPLE_ERR[e&&e.code]||'Something went wrong writing the text. Try again.'))}
+}
+async function prefetchAround(g){for(const n of [g+1,g-1]){if(n<0||n>8||T.cache[tKey(n)])continue;try{await fetchLevel(n)}catch(e){return}}}
+function renderGrades(){const el=$('#t-grade');if(!el)return;
+  el.innerHTML=GRADES.map(g=>{const k=tKey(g);const st=T.cache[k]?' ready':T.busy[k]?' busy':'';return `<button type="button" data-v="${g}" class="gbtn${st}" title="${T.cache[k]?'Ready':T.busy[k]?'Writing…':'Not written yet'}">${g===0?'K':'Gr '+g}</button>`}).join('');
+  seg(el,T.grade,v=>genTopic(+v,true));}
+function topicInfo(){const it=L.item,el=$('#t-info');if(!el)return;
+  if(L.type!=='topic'||!it||it.placeholder||!it.topic){el.innerHTML='';return}
+  const t=it.topic;const n=it.paras.length,m=Math.round(it.plain.length/n);
+  el.innerHTML=`<div class="${t.fromSource?'ok':'warn'}" style="font-size:.88em">${t.fromSource?'<b>Uses only facts from the source you pasted.</b>':'<b>Written by Claude from general knowledge, not looked up live.</b> Check the facts before teaching'+(t.check&&t.check.length?', for example with: '+esc(t.check.join(', '))+'.':'.')}
+    <br>Written for ${esc(gLong(t.grade))} · ${n} paragraph${n>1?'s':''} × ${m} sentences · measured reading level about grade ${t.fk} (Flesch-Kincaid)${t.note?'<br>'+esc(t.note):''}</div>`;
+}
+if(window.claude&&window.claude.use){window.claude.use('sample').then(sm=>{SAMPLE=sm||null;if(L.type==='topic'&&L.item&&L.item.placeholder)L.item=placeholderItem();renderListen()}).catch(()=>{})}
+$('#t-go').onclick=()=>genTopic(T.grade,true);
+$('#t-stop').onclick=()=>{T.ctls.forEach(c=>c.abort());tStatus('Stopped.')};
+$('#t-topic').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();genTopic(T.grade,true)}});
+['t-topic','t-source'].forEach(id=>$('#'+id).addEventListener('change',()=>{T.topic=$('#t-topic').value;T.source=$('#t-source').value;renderGrades()}));
+
 $('#l-hidet').onchange=e=>{L.hideT=e.target.checked;saveLessonCfg();renderListen()};
 $('#l-wpm').addEventListener('input',e=>{$('#l-wpm-v').textContent=e.target.value+' words a minute'});
 $('#l-wpm').addEventListener('change',e=>{L.wpm=+e.target.value;if(FA.pacer)paceStart();saveLessonCfg()});
@@ -1636,6 +1761,7 @@ supportSelect($('#a-support'));supportSelect($('#sp-support'));
 $$('.seg button').forEach(b=>b.type='button');
 document.body.classList.add('student');
 function loadLesson(){
+  if(S.lesson&&S.lesson.topic){T.topic=S.lesson.topic.topic||'';T.source=S.lesson.topic.source||'';T.grade=S.lesson.topic.grade??3;T.cache=S.lesson.topic.cache||{}}
   if(S.lesson&&S.lesson.item&&S.lesson.item.html){Object.assign(L,S.lesson.cfg||{});if(L.follow&&(!L.hl||L.hl==='off'))L.hl='voice';L.item=S.lesson.item;if(!L.item.paras)L.item.paras=[L.item.plain.map((_,i)=>i)];resetTrial();renderListen()}
   else{L.goal=1;L.type='passage';L.paras=2;L.spp=5;L.present='turns';L.turnBy='para';L.first='teacher';L.theme='flynn';L.keys=5;L.mode='tap';generate(true)}
 }
