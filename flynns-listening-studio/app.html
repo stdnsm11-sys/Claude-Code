@@ -278,7 +278,20 @@ body.board .turnbar .who{flex:1 1 520px}
   font-family:var(--display);font-weight:700;font-size:1.7em;line-height:1.1;background-color:var(--pink);background-image:radial-gradient(rgba(255,255,255,.55) 1.6px,transparent 2px);background-size:9px 9px}
 .gtitle svg{width:52px;height:52px;flex:none}
 .gpara{position:relative;border:3px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);padding:22px 22px 18px;font-size:1.3em;line-height:1.8;transition:box-shadow .2s,background .2s}
-.gpara:nth-of-type(even){background:var(--blue-s)}
+.gpara:nth-of-type(even),.gpara.even{background:var(--blue-s)}
+/* paragraph + its comic panel side by side; the panel drops below the paragraph on narrow screens */
+.prow{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,30%);gap:18px;align-items:start}
+@media (max-width:820px){.prow{grid-template-columns:minmax(0,1fr)}}
+.opanel{border:3px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);overflow:hidden;display:grid;font-size:.95em}
+.opanel .ocap{font-family:var(--display);font-weight:700;font-size:.8em;padding:4px 10px;border-bottom:3px solid var(--ink);background-color:var(--lav);background-image:radial-gradient(rgba(255,255,255,.55) 1.6px,transparent 2px);background-size:9px 9px}
+.opanel .opic{background:var(--sky);border-bottom:3px solid var(--ink);aspect-ratio:4/3;max-width:100%;display:grid;place-items:center}
+.opanel .opic svg{width:100%;height:100%;display:block}
+.opanel .opic svg.flynn,.opanel .opic>svg:not([viewBox="0 0 240 180"]){width:58%;height:auto}
+.opanel .obig{font-family:var(--display);font-weight:600;font-size:1.05em;line-height:1.2;padding:8px 10px 4px}
+.opanel .owords{display:flex;flex-wrap:wrap;gap:6px;padding:4px 10px 10px}
+.opanel .owords span{border:2px solid var(--ink);border-radius:14px 14px 14px 4px;padding:1px 10px;font-weight:700;font-size:.85em;background:var(--pink-s)}
+.opanel .owords span:nth-child(2){background:var(--blue-s)} .opanel .owords span:nth-child(3){background:var(--gold-s)}
+body.board .opanel{border-width:4px}
 .gpara .pnum{position:absolute;top:-15px;left:-10px;width:36px;height:36px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:.8em}
 .gpara .tag{position:absolute;top:-17px;left:36px;border:3px solid var(--ink);border-radius:999px;padding:0 12px;font-family:var(--display);font-weight:600;font-size:.72em;line-height:1.6}
 .tag.s{background:var(--pink)} .tag.t{background:var(--blue)}
@@ -372,6 +385,9 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
           <summary class="label" style="cursor:pointer;padding:6px 0">Accommodations used this trial</summary>
           <div id="l-acc" class="stack" style="gap:2px;padding-top:6px"></div>
         </details>
+        <div class="field" id="org-ctl" hidden><span class="label">Comic panels beside the passage</span>
+          <p class="mini" id="org-msg" aria-live="polite"></p>
+          <div class="row"><button class="sbtn" id="org-draw" type="button">Draw comic panels</button><button class="sbtn" id="org-stop" type="button" hidden>Stop</button></div></div>
         <div class="row"><button class="btn pink" id="l-new">New passage</button><button class="btn blue" id="l-present">Present in student mode</button></div>
         <p class="mini" id="l-example"></p>
 
@@ -785,7 +801,7 @@ const CARDS=[
 ];
 const SUPPORTS=['Independent','Visual cue (picture or written)','Gesture or pointing cue','Verbal prompt','Modeled'];
 const ACC={
- listen:[['ald','ALD on and checked before listening'],['seat','Preferential seating / face-to-face'],['preview','"Listen for…" preview (shows what to listen for)'],['chunk','Chunking: pause between sentences'],['slow','Slower rate of speech'],['visual','Visual recap: comic panels after recall'],['song','Sing-it-back strategy (rehearse details to a tune)'],['organizer','Comic-panel graphic organizer for recall'],['lookback','Look-back: passage stays available during questions'],['check','Check for understanding before recall'],['quiet','Reduced background noise']],
+ listen:[['ald','ALD on and checked before listening'],['seat','Preferential seating / face-to-face'],['preview','"Listen for…" preview (shows what to listen for)'],['chunk','Chunking: pause between sentences'],['slow','Slower rate of speech'],['visual','Visual recap: comic panels after recall'],['song','Sing-it-back strategy (rehearse details to a tune)'],['organizer','Comic-panel graphic organizer (a panel beside each paragraph, and boxes for recall)'],['lookback','Look-back: passage stays available during questions'],['check','Check for understanding before recall'],['quiet','Reduced background noise']],
  ald:[['icons','Picture icons on step cards'],['songcue','Listening Song as a reminder'],['model','Teacher modeled first'],['fewer','Fewer choices (2)'],['read','Read aloud to her'],['device','Hands-on with her real device']],
  speak:[['read','Scenario read aloud'],['icons','Picture cues'],['fewer','Fewer choices (2)'],['role','Role-play with teacher'],['cards','Speak-Up cards available']],
 };
@@ -844,7 +860,7 @@ function addSticker(){S.stickers=(S.stickers||0)+1;saveSettings();renderHeader()
 function seg(el,val,cb){$$('button',el).forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.v==String(val)));b.onclick=()=>cb(b.dataset.v)})}
 function accList(el,group){el.innerHTML=ACC[group].map(([k,l])=>`<label class="check"><input type="checkbox" data-k="${k}" ${S.acc[group].includes(k)?'checked':''}> <span>${esc(l)}</span></label>`).join('');
   $$('input',el).forEach(i=>i.onchange=()=>{S.acc[group]=$$('input:checked',el).map(x=>x.dataset.k);saveSettings();
-    if(group==='listen'){$('#l-script-txt').innerHTML=scriptHTML();renderStage()}
+    if(group==='listen'){$('#l-script-txt').innerHTML=scriptHTML();renderStage();orgStatus();if(i.dataset.k==='organizer'&&i.checked)makePanels(false)}
     if(group==='ald'){A.seq=null;A.why=null;renderALD()}
     if(group==='speak'){SP.p=null;renderSpeak()}})}
 const accOn=(g,k)=>S.acc[g].includes(k);
@@ -974,7 +990,7 @@ function generate(example){
   delete item.render;delete item.sentences;item.example=!!example;item.made=today();
   if(!item.paras)item.paras=[item.plain.map((_,i)=>i)];
   L.item=item;resetTrial();
-  if(!example){S.lesson={cfg:cfgObj(),item};saveSettings()}
+  if(!example){S.lesson={cfg:cfgObj(),item};saveSettings();PANEL.msg='';setTimeout(()=>makePanels(false))}
   renderListen();
 }
 function resetTrial(){faStop();paceStop();FA.item=null;L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
@@ -1043,7 +1059,7 @@ function renderListen(){
   $('#l-pass-field').hidden=!['passage','topic'].includes(L.type);
   $('#l-topic-field').hidden=L.type!=='topic';$('#l-theme-field').hidden=L.type==='topic';
   if(L.type==='topic'){if($('#t-topic')!==document.activeElement)$('#t-topic').value=T.topic;if($('#t-source')!==document.activeElement)$('#t-source').value=T.source;renderGrades();$('#t-go').disabled=Object.keys(T.busy).includes(tKey(T.grade))}
-  topicInfo();
+  topicInfo();orgStatus();
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
   $('#l-reps').textContent=$('#td-reps').textContent=L.reps;
@@ -1120,7 +1136,8 @@ function pageHTML(live){
     const cls=isCur?' now-'+w:(live&&by==='para'&&pi>cur?' dim':'');
     const tag=live&&by==='para'?`<span class="tag ${w}">${L.present==='solo'?'Read this part':w==='s'?'Your turn':'Teacher reads'}</span>`:'';
     const fa=live&&hlOn();
-    return `<section class="gpara${cls}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${fa?FA.words.map((w,k)=>w.s===i?`<span class="w" data-w="${k}">${esc(w.t)}</span>`:'').filter(Boolean).join(' '):esc(it.plain[i])}</span>`).join(' ')}</section>`}).join('');
+    const sec=`<section class="gpara${cls}${pi%2?' even':''}" data-p="${pi}"><span class="pnum">${pi+1}</span>${tag}${ps.map(i=>`<span class="sent${sentCls(i)}" data-s="${i}">${fa?FA.words.map((w,k)=>w.s===i?`<span class="w" data-w="${k}">${esc(w.t)}</span>`:'').filter(Boolean).join(' '):esc(it.plain[i])}</span>`).join(' ')}</section>`;
+    return orgOn()&&!it.placeholder?`<div class="prow">${sec}${panelHTML(it,pi,live&&L.hideT&&whoOf(pi)==='t'&&(by!=='para'||pi>=cur))}</div>`:sec}).join('');
   return `<article class="gpage${live&&hlOn()&&effHL()==='finger'?' finger':''}"><div class="gtitle">${icon}<span>${esc(it.title)}</span></div>${paras}</article>`;
 }
 function renderReadPage(st){
@@ -1367,7 +1384,7 @@ function buildTopic(c){
       const w=q.q.split(' ')[0].replace(/[^A-Za-z]/g,'');
       return {id:'q'+i,si,cue:(['What','Why','When','Where','How','Who','Which'].includes(w)?w:'What')+'?',label:q.a,q:q.q,a:q.a,choices:shuffle([q.a,...q.d])}});
   const item={kind:'topic',theme:'topic',title:c.title,plain,paras,details,main:c.main||c.title,wrong:c.wrong.length===2?c.wrong:[...c.wrong,'Something else entirely.'].slice(0,2),
-    topic:{topic:c.topic,grade:c.g,fromSource:c.fromSource,check:c.check,note:c.note,fk:Math.round(fkGrade(plain)*10)/10}};
+    topic:{topic:c.topic,grade:c.g,fromSource:c.fromSource,check:c.check,note:c.note,fk:Math.round(fkGrade(plain)*10)/10},panels:c.panels||null};
   const kk=Math.min(L.keys,details.length);const keyIdx=new Set(shuffle(details.map((_,i)=>i)).slice(0,kk));
   item.keys=details.filter((_,i)=>keyIdx.has(i));item.mainChoices=shuffle([item.main,...item.wrong]);
   item.html=plain.map((sx,i)=>{let h=esc(sx);item.keys.filter(d=>d.si===i).forEach(d=>{const e=esc(d.a);const j=h.toLowerCase().indexOf(e.toLowerCase());if(j>=0)h=h.slice(0,j)+'<mark>'+h.slice(j,j+e.length)+'</mark>'+h.slice(j+e.length)});return h});
@@ -1414,7 +1431,7 @@ async function genTopic(g,user){
   try{const c=await fetchLevel(g,cached?null:({text})=>{gotText=true;if(T.grade===g)tStatus(`Writing a ${gLong(g)} text… ${text.split(/\s+/).length} words so far`,true)});
     clearTimeout(waitT);if(T.grade!==g)return;
     L.item=buildTopic(c);resetTrial();saveTopicLesson();tStatus('');renderListen();
-    toast(`Grade ${gName(g)} text ready.`);
+    toast(`Grade ${gName(g)} text ready.`);PANEL.msg='';makePanels(false);
     if(user)prefetchAround(g);
   }catch(e){clearTimeout(waitT);if(T.grade!==g)return;
     const code=e&&e.code;tStatus(code==='unsafe'?e.message:(SAMPLE_ERR[code]||`Something went wrong writing the text${code?' ('+code+')':''}. Press Write leveled text to try again.`))}
@@ -1431,6 +1448,71 @@ function topicInfo(){const it=L.item,el=$('#t-info');if(!el)return;
     <br>Written for ${esc(gLong(t.grade))} · ${n} paragraph${n>1?'s':''} × ${m} sentences · measured reading level about grade ${t.fk} (Flesch-Kincaid)${t.note?'<br>'+esc(t.note):''}</div>`;
 }
 if(window.claude&&window.claude.use){window.claude.use('sample').then(sm=>{SAMPLE=sm||null;SAMPLE_STATE=sm?'ready':'none';if(L.type==='topic'&&L.item&&L.item.placeholder)L.item=placeholderItem();renderListen()}).catch(()=>{SAMPLE_STATE='none'})}
+
+/* ================= comic-panel graphic organizer beside each paragraph ================= */
+const SVG_TAGS=new Set(['svg','g','rect','circle','ellipse','line','polyline','polygon','path','text','tspan']);
+const SVG_ATTR=new Set(['viewBox','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','d','x','y','x1','y1','x2','y2','cx','cy','r','rx','ry','width','height','points','transform','opacity','fill-opacity','stroke-opacity','font-size','font-weight','text-anchor','font-family','dx','dy']);
+/* Claude's drawings are untrusted markup: keep only plain shapes and safe attributes. */
+function cleanSVG(src){try{
+  const doc=new DOMParser().parseFromString(String(src||''),'image/svg+xml');const root=doc.documentElement;
+  if(!root||root.nodeName.toLowerCase()!=='svg'||doc.getElementsByTagName('parsererror').length)return '';
+  const walk=el=>{[...el.children].forEach(ch=>{if(!SVG_TAGS.has(ch.nodeName.toLowerCase())){ch.remove();return}walk(ch)});
+    [...el.attributes].forEach(a=>{const bad=/url\s*\(|javascript:|data:|expression|&#/i.test(a.value);if(!SVG_ATTR.has(a.name)||bad){if(bad&&(a.name==='fill'||a.name==='stroke'))el.setAttribute(a.name,'none');else el.removeAttribute(a.name)}})};
+  [...root.childNodes].forEach(n=>{if(n.nodeType===8||n.nodeType===7)n.remove()});
+  walk(root);if(!root.getAttribute('viewBox'))root.setAttribute('viewBox','0 0 240 180');root.removeAttribute('width');root.removeAttribute('height');
+  const out=new XMLSerializer().serializeToString(root);return out.length<24000?out:''}catch(e){return ''}}
+const PANEL={busy:null,ctl:null,msg:''};
+function fallbackPanel(it,pi){
+  const ps=it.paras[pi]||[];const first=(it.plain[ps[0]]||'').replace(/[.!?]+$/,'').split(/\s+/);
+  const ptxt=ps.map(j=>it.plain[j]).join(' ').toLowerCase();
+  const words=(it.details||[]).filter(d=>d.si!==undefined?ps.includes(d.si):ptxt.includes(String(d.a).toLowerCase())).map(d=>d.a).filter((w,i,a)=>a.indexOf(w)===i).slice(0,3);
+  return {caption:first.length>9?first.slice(0,9).join(' ')+'…':first.join(' '),words,svg:''};
+}
+function panelHTML(it,pi,blur){
+  const P=(it.panels&&it.panels[pi])||fallbackPanel(it,pi);
+  const pic=cleanSVG(P.svg)||(it.theme==='flynn'?flynnSVG(''):(I[THEME_ICON[it.theme]]||I.book).replace('class="ic" ',''));
+  return `<aside class="opanel${blur?' blurT':''}" aria-label="Comic panel for paragraph ${pi+1}"><div class="ocap">Panel ${pi+1}</div><div class="opic">${pic}</div>
+    <div class="obig">${esc(P.caption||'')}</div>${P.words&&P.words.length?`<div class="owords">${P.words.slice(0,3).map(w=>`<span>${esc(w)}</span>`).join('')}</div>`:''}</aside>`;
+}
+const orgOn=()=>accOn('listen','organizer');
+function panelPrompt(it){
+  return `You are illustrating a children's graphic-novel version of a reading passage for a 3rd-grade classroom. For EACH paragraph below, make one comic panel.
+For each panel give:
+- "caption": the paragraph's big idea in 4 to 9 simple words.
+- "words": 2 or 3 key words or short phrases copied exactly from that paragraph (names, places, things, numbers).
+- "svg": a simple, friendly picture of what happens in that paragraph, as one complete <svg> element with viewBox="0 0 240 180". Style: flat cartoon with rounded shapes, pastel colors (light blue #cfe5ff, pink #ffc9de, lavender #e6defd, soft yellow #fff6d6, plus natural greens and browns), dark navy outlines (#2b2f55, stroke-width 3), and a simple background such as sky and ground. Use ONLY these elements: svg, g, rect, circle, ellipse, line, polyline, polygon, path, text. No images, style, script, links, gradients, filters or masks. At most one short word inside the picture. Keep it gentle and school-appropriate; draw animals, places and objects rather than detailed human faces. Keep each svg under 3000 characters.
+There are ${it.paras.length} paragraph(s); return exactly ${it.paras.length} panel(s) in the same order.
+
+${it.paras.map((ps,i)=>`Paragraph ${i+1}: ${ps.map(j=>it.plain[j]).join(' ')}`).join('\n\n')}
+
+Reply with only JSON: {"panels":[{"caption":"...","words":["...","..."],"svg":"<svg viewBox=\\"0 0 240 180\\">...</svg>"}]}`;
+}
+function orgStatus(){const el=$('#org-ctl');if(!el)return;
+  if(!orgOn()||!L.item||L.item.placeholder){el.hidden=true;return}el.hidden=false;
+  const drawn=!!(L.item.panels&&L.item.panels.length);
+  $('#org-msg').textContent=PANEL.busy?'Drawing a comic panel for each paragraph… (up to a minute)':PANEL.msg||(drawn?'Comic panels drawn by Claude. Look them over before showing her.':SAMPLE?'Showing simple panels made from the passage. Press Draw comic panels to have Claude draw a picture for each paragraph.':'Showing simple panels made from the passage. Pictures drawn by Claude need the hosted claude.ai link.');
+  $('#org-draw').textContent=drawn?'Redraw comic panels':'Draw comic panels';$('#org-draw').disabled=!!PANEL.busy;$('#org-stop').hidden=!PANEL.busy;
+}
+async function makePanels(force){
+  const it=L.item;if(!it||it.placeholder||!orgOn())return;
+  if(!SAMPLE){PANEL.msg=SAMPLE_STATE==='pending'?'Still connecting to Claude. Try again in a few seconds.':'';orgStatus();return}
+  if(PANEL.busy||(!force&&it.panels&&it.panels.length===it.paras.length))return;
+  PANEL.msg='';const ctl=new AbortController();PANEL.ctl=ctl;PANEL.busy=it;orgStatus();
+  try{
+    const r=await SAMPLE.json(panelPrompt(it),{modelTier:'default',signal:ctl.signal});
+    const arr=(r&&Array.isArray(r.panels))?r.panels:[];
+    const panels=it.paras.map((_,i)=>{const x=arr[i]||{};return {caption:String(x.caption||fallbackPanel(it,i).caption).slice(0,80),words:(Array.isArray(x.words)?x.words:[]).slice(0,3).map(w=>String(w).slice(0,40)),svg:cleanSVG(x.svg)}});
+    if(!arr.length)throw {code:'invalid_json'};
+    it.panels=panels;
+    if(it.kind==='topic'&&it.topic){const c=T.cache[tKey(it.topic.grade)];if(c&&c.title===it.title)c.panels=panels}
+    if(L.item===it){if(it.kind==='topic')saveTopicLesson();else if(S.lesson&&S.lesson.item===it)saveSettings();else{S.lesson={cfg:cfgObj(),item:it};saveSettings()}}
+    PANEL.msg=panels.some(x=>!x.svg)?'Some pictures couldn\'t be drawn, so those panels show a simple picture.':'';
+  }catch(e){PANEL.msg=e&&e.code==='cancelled'?'Stopped.':(SAMPLE_ERR[e&&e.code]||'The comic panels couldn\'t be drawn. Press Draw comic panels to try again.')}
+  finally{PANEL.busy=null;PANEL.ctl=null;if(L.item===it&&L.phase==='listen')renderStage();orgStatus()}
+}
+$('#org-draw').onclick=()=>makePanels(true);
+$('#org-stop').onclick=()=>{if(PANEL.ctl)PANEL.ctl.abort()};
+
 $('#t-go').onclick=()=>genTopic(T.grade,true);
 $('#t-stop').onclick=()=>{T.ctls.forEach(c=>c.abort());tStatus('Stopped.')};
 $('#t-topic').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();genTopic(T.grade,true)}});
