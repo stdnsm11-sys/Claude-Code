@@ -250,6 +250,38 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
 .workrow .t span{color:var(--muted);font-size:.9em}
 .example{background:var(--yellow-s);border:3px solid var(--yellow-d);border-radius:14px;padding:6px 12px;font-weight:700}
 
+/* sync status, device handoff, goals, student data */
+.sync{font-size:.8em;color:var(--muted);white-space:nowrap}
+.sync.ok{color:var(--good-d)}
+.sync.err{color:var(--pink-d);font-weight:700}
+.handoff{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:19;background:var(--card);border:4px solid var(--good);border-radius:20px;box-shadow:0 6px 0 var(--good-d);padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:max-content;max-width:calc(100% - 32px);font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));z-index:21;background:var(--ink);color:#fff;border-radius:14px;padding:8px 16px;font-weight:700;max-width:calc(100% - 32px)}
+.goalpick{display:flex;flex-wrap:wrap;gap:8px}
+.gp{min-height:48px;border-radius:999px;border:3px solid var(--hc);background:var(--card);color:var(--hc);font-weight:800;padding:0 .9em;display:inline-flex;align-items:center;gap:.4em}
+.gp[aria-pressed="true"]{background:var(--hc);color:#fff}
+.datain{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.goalcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.gcard{background:var(--card);border:3px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.gcard.focus{border-color:var(--hc)}
+.gcard .gt{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:1.15em;color:var(--hc)}
+.gcard .big{font-family:var(--display);font-weight:800;font-size:2.1em;line-height:1;font-variant-numeric:tabular-nums}
+.gcard .big small{font-size:.42em;color:var(--muted);font-weight:700;margin-left:4px}
+.meter{height:12px;border-radius:6px;background:var(--quiet);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--hc)}
+.gcard .d{color:var(--muted);font-size:.88em;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;background:var(--card);border-radius:16px;border:3px solid var(--line)}
+.dtable{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text}
+.dtable th,.dtable td{padding:9px 10px;text-align:left;border-bottom:2px solid var(--quiet);white-space:nowrap;vertical-align:top}
+.dtable th{font-family:var(--display);font-size:.92em;color:var(--muted);background:var(--quiet)}
+.dtable td.wrap{white-space:normal;min-width:220px}
+.dtable tbody tr[data-row]{cursor:pointer}
+.dtable tr.sel td{background:var(--yellow-s)}
+.gl{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;padding:0 .2em;border-radius:6px;background:var(--hc);color:#fff;font-weight:800;font-size:.85em;margin-right:3px}
+.okm{color:var(--good-d);font-weight:800}
+.nom{color:var(--pink-d);font-weight:800}
+.emptyd{background:var(--card);border:3px dashed var(--line);border-radius:16px;padding:20px;color:var(--muted)}
+.csvout{width:100%;min-height:140px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em;border:3px solid var(--line);border-radius:12px;padding:8px}
 @media (max-width:900px){
   .setin{grid-template-columns:1fr}
   .work{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
@@ -278,6 +310,7 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
       <span class="sub" id="docSub"></span>
     </div>
     <span class="stars" id="stars" title="Fixes made">0 fixes</span>
+    <span class="sync" id="syncEdit" role="status"></span>
     <div class="bar">
       <button class="btn" id="undoBtn" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Undo</button>
       <button class="btn" id="redoBtn" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Redo</button>
@@ -361,10 +394,11 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
   <header class="top">
     <div class="brand">
       <h1>Teacher setup</h1>
-      <span class="sub">Add a student's writing, check the words, then start editing.</span>
+      <span class="sub">Add a student's writing, check the words, then start editing. <span class="sync" id="syncSetup" role="status"></span></span>
     </div>
     <div class="bar">
       <button class="btn small" id="newWork">New writing</button>
+      <button class="btn small" id="dataBtn">Student data</button>
       <button class="btn small" id="libBtn">Saved work</button>
       <button class="btn go" id="startBtn">Start editing</button>
     </div>
@@ -424,7 +458,9 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
       </div>
 
       <div class="step">
-        <h2><span class="n">3</span>Choose the labels</h2>
+        <h2><span class="n">3</span>Choose goals and labels</h2>
+        <p>Goals are what this lesson tracks. Every edit the student makes is saved as an attempt toward one of them, on whatever device they use.</p>
+        <div class="goalpick" id="goalPick"></div>
         <p>Students tag parts of their writing with these labels. They show up in the chart.</p>
         <div class="field"><label for="setSel">Label set</label>
           <select id="setSel"><option value="five">5 W's + How</option><option value="story">Story parts</option><option value="info">Information writing</option></select>
@@ -437,17 +473,50 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
         <h2><span class="n">4</span>Options</h2>
         <label class="bar"><input type="checkbox" id="optKb" checked style="width:28px;height:28px"> Use the big on-screen keyboard (turn off if the board has its own)</label>
         <label class="bar"><input type="checkbox" id="optIndent" checked style="width:28px;height:28px"> Indent paragraphs</label>
+        <div class="field"><label for="devName">This device's name (shown in the data)</label><input id="devName" maxlength="30" autocomplete="off"></div>
         <div class="bar">
           <button class="btn small" id="copyClean">Copy the clean copy</button>
           <button class="btn small" id="printBtn" hidden>Print</button>
           <span class="note" id="copyNote"></span>
         </div>
-        <p class="note">Work saves on this computer, in this browser only.</p>
+        <p class="note" id="saveNote">Work saves on this computer, in this browser only.</p>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ===================== STUDENT DATA ===================== -->
+<section class="screen" id="dataScreen" hidden>
+  <header class="top">
+    <div class="brand">
+      <h1>Student data</h1>
+      <span class="sub">Every attempt from every device, sorted by goal. <span class="sync" id="syncData" role="status"></span></span>
+    </div>
+    <div class="bar">
+      <select id="dataStudent" class="btn small" aria-label="Student"></select>
+      <button class="btn small" id="dataCsv">Copy as CSV</button>
+      <button class="btn small" id="dataBack">Teacher setup</button>
+      <button class="btn small primary" id="dataLesson">Back to the lesson</button>
+    </div>
+  </header>
+  <div class="setup">
+    <div class="datain">
+      <p class="note" id="dataNote"></p>
+      <div class="goalcards" id="goalCards"></div>
+      <div id="lessonTable"></div>
+      <div class="step" id="detail" hidden></div>
+      <textarea class="csvout" id="csvOut" hidden readonly aria-label="CSV data"></textarea>
+    </div>
+  </div>
+</section>
 </div>
+
+<div class="handoff" id="handoff" role="status" hidden>
+  <span id="handoffText"></span>
+  <button class="btn small go" id="handoffGo">Continue here</button>
+  <button class="btn small" id="handoffNo">Not now</button>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <!-- keyboard modal -->
 <div class="modal" id="kbModal" hidden>
@@ -500,6 +569,14 @@ const HINT = {C:["Capitals","#1b5cbf","Capital letters at the start of sentences
               U:["Usage","#6528a8","Words make sense and sound right"],
               P:["Punctuation","#b81e5e","End marks, commas and apostrophes"],
               S:["Spelling","#b84a00","Words are spelled right"]};
+const GOALS = {C:["Capitals","#1b5cbf","Capital letters at the start of sentences and names","C"],
+               U:["Usage","#6528a8","Words make sense and sound right","U"],
+               P:["Punctuation","#b81e5e","End marks, commas and apostrophes","P"],
+               S:["Spelling","#b84a00","Words are spelled right","S"],
+               R:["Paragraphs","#0a7a75","New ideas start a new paragraph","¶"],
+               L:["Labeling","#14843f","I labeled the important parts","L"]};
+const DEFAULT_GOALS = ["C","U","P","S","L"];
+const NOT_EDIT = new Set(["undo","redo","checked off","unchecked"]);
 
 const EXAMPLE = `my dog max ran away on saturday. We looked every where in the park and by the lake i was so sad becuase max is my best freind.
 
@@ -525,8 +602,8 @@ function parse(text){
 }
 function newWork(text, extra){
   return Object.assign({id:uid(), title:"", student:"", source:text, tokens:parse(text), strokes:[],
-    pmarks:[], labels:makeLabels("five"), set:"five", checks:{C:false,U:false,P:false,S:false}, images:[], example:false,
-    created:Date.now(), updated:Date.now()}, extra || {});
+    pmarks:[], labels:makeLabels("five"), set:"five", checks:{}, goals:DEFAULT_GOALS.slice(), images:[], example:false,
+    created:Date.now(), updated:Date.now(), uW:0, uM:0}, extra || {});
 }
 
 /* ---------- storage (per browser) ---------- */
@@ -535,27 +612,111 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
   del(k){ try { localStorage.removeItem(k); } catch {} }
 };
+/* attempts log for the open lesson: every edit, from every device */
+const newLog = () => ({attempts:[], check:null, u:0});
+let LOG = newLog();
+function guessDevice(){
+  const u = navigator.userAgent || "";
+  if (/iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/iPhone/.test(u)) return "iPhone";
+  if (/Android/.test(u)) return "Android tablet";
+  if (/CrOS/.test(u)) return "Chromebook";
+  if (/Windows/.test(u)) return navigator.maxTouchPoints > 1 ? "Smartboard" : "Windows computer";
+  if (/Macintosh/.test(u)) return "Mac";
+  return "This device";
+}
+const DEVICE = (() => { let v = store.get("wfb.device", null); if (!v || !v.id) { v = {id:uid() + uid(), name:guessDevice()}; store.set("wfb.device", v); } return v; })();
 let saveTimer = null;
 function save(){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    if (!S) return;
-    S.updated = Date.now();
-    const {images, ...rest} = S;
-    const list = store.get("wfb.list", []).filter(w => w.id !== S.id);
-    list.unshift({id:S.id, title:S.title, student:S.student, updated:S.updated, example:S.example});
-    store.set("wfb.list", list.slice(0, 60));
-    store.set("wfb.w." + S.id, rest);
-    if (!store.set("wfb.i." + S.id, images)) store.del("wfb.i." + S.id);
-    store.set("wfb.cur", S.id);
-  }, 300);
+  saveTimer = setTimeout(() => { saveTimer = null; saveLocal(); }, 300);
+  scheduleCloud();
+}
+const isEmptyWork = W => !W.title && !W.student && !W.tokens.length && !W.images.length;
+function saveLocalOf(W, L, cur){
+  if (isEmptyWork(W)) return;
+  const {images, ...rest} = W;
+  const list = store.get("wfb.list", []).filter(w => w.id !== W.id);
+  list.unshift({id:W.id, title:W.title, student:W.student, updated:W.updated, example:W.example});
+  store.set("wfb.list", list.slice(0, 60));
+  store.set("wfb.w." + W.id, rest);
+  if (!store.set("wfb.i." + W.id, images)) store.del("wfb.i." + W.id);
+  store.set("wfb.l." + W.id, L);
+  if (cur) store.set("wfb.cur", W.id);
+}
+function saveLocal(){ if (!S) return; S.updated = Date.now(); saveLocalOf(S, LOG, true); }
+function dropLocal(id){
+  ["wfb.w.", "wfb.i.", "wfb.l.", "wfb.sync."].forEach(k => store.del(k + id));
+  store.set("wfb.list", store.get("wfb.list", []).filter(w => w.id !== id));
+}
+function fixWork(w){
+  w.pmarks = w.pmarks || []; w.strokes = w.strokes || []; w.tokens = w.tokens || []; w.images = w.images || [];
+  w.goals = w.goals || DEFAULT_GOALS.slice(); w.checks = w.checks || {}; w.labels = w.labels || makeLabels("five");
+  w.set = w.set || "five"; w.title = w.title || ""; w.student = w.student || ""; w.source = w.source || "";
+  return w;
 }
 function loadWork(id){
   const w = store.get("wfb.w." + id, null);
   if (!w) return null;
   w.images = store.get("wfb.i." + id, []) || [];
-  w.pmarks = w.pmarks || [];
-  return w;
+  return fixWork(w);
+}
+function loadLog(id){ const l = store.get("wfb.l." + id, null); return l && Array.isArray(l.attempts) ? l : newLog(); }
+
+/* logging an attempt toward a goal */
+function logA(g, a, f, to, extra){
+  LOG.attempts.push(Object.assign({id:uid() + uid(), t:Date.now(), g:g || null, a,
+    f:f == null ? null : String(f).slice(0, 80), to:to == null ? null : String(to).slice(0, 80), d:DEVICE.name}, extra || {}));
+}
+const bare = x => String(x).replace(/[^\p{L}\p{N}]/gu, "");
+const marksOf = x => String(x).replace(/[\p{L}\p{N}]/gu, "");
+const punctOnly = x => !bare(x);
+function lev(a, b){
+  if (!a.length) return b.length; if (!b.length) return a.length;
+  let prev = Array.from({length:b.length + 1}, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+/* which goal(s) a word change works on */
+function fixGoals(from, to){
+  if (from === to) return [];
+  if (/\s/.test(to.trim())) return ["U"];
+  const bf = bare(from), bt = bare(to), pm = marksOf(from) !== marksOf(to);
+  if (bf === bt) return ["P"];
+  if (bf.toLowerCase() === bt.toLowerCase()) return pm ? ["C", "P"] : ["C"];
+  const g = lev(bf.toLowerCase(), bt.toLowerCase()) <= Math.max(2, Math.ceil(bf.length / 3)) ? "S" : "U";
+  return pm ? [g, "P"] : [g];
+}
+const noteGoal = v => punctOnly(v) ? "P" : (/\s/.test(v.trim()) ? "U" : "S");
+const STAMP_GOAL = {cap:"C", low:"C", per:"P", sp:"S", add:"U", del:"U", para:"R"};
+function countFixesOf(W){
+  let n = 0;
+  W.tokens.forEach(t => {
+    if (t.ins) { if (!t.del) n++; return; }
+    if (t.del) n++; else if (t.t !== t.o) n++;
+    if (t.p !== t.op) n++;
+  });
+  return n + W.pmarks.filter(m => m.k === "stamp" || m.k === "note").length;
+}
+/* per-goal numbers for one lesson */
+function summarize(W, L){
+  const g = {};
+  Object.keys(GOALS).forEach(k => g[k] = {a:0, on:0, flag:0, fixed:0, ok:0, tot:0, missed:null});
+  const edits = L.attempts.filter(x => !NOT_EDIT.has(x.a));
+  edits.forEach(x => { if (g[x.g]) { g[x.g].a++; if (x.h && x.h === x.g) g[x.g].on++; } });
+  W.tokens.forEach(t => { if (t.hint && g[t.hint.type]) { g[t.hint.type].flag++; if (t.del || t.t !== t.o) g[t.hint.type].fixed++; } });
+  if (L.check) {
+    (L.check.changes || []).forEach(c => { if (g[c.goal]) { g[c.goal].tot++; if (c.ok) g[c.goal].ok++; } });
+    Object.entries(L.check.missed || {}).forEach(([k, v]) => { if (g[k]) g[k].missed = v; });
+  }
+  const ts = L.attempts.map(x => x.t);
+  return {g, n:edits.length, undos:L.attempts.filter(x => x.a === "undo").length,
+    first:ts.length ? Math.min(...ts) : null, last:ts.length ? Math.max(...ts) : null,
+    devices:[...new Set(L.attempts.map(x => x.d).filter(Boolean))], checked:!!L.check};
 }
 opts = Object.assign(opts, store.get("wfb.opts", {}));
 const saveOpts = () => store.set("wfb.opts", opts);
@@ -564,8 +725,8 @@ const saveOpts = () => store.set("wfb.opts", opts);
 const snap = () => JSON.stringify({tokens:S.tokens, strokes:S.strokes, pmarks:S.pmarks});
 function before(){ undoStack.push(snap()); if (undoStack.length > 150) undoStack.shift(); redoStack = []; }
 function restore(str){ const o = JSON.parse(str); S.tokens = o.tokens; S.strokes = o.strokes; S.pmarks = o.pmarks || []; }
-function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); changed(); }
-function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); changed(); }
+function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); logA(null, "undo"); changed(); }
+function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); logA(null, "redo"); changed(); }
 function changed(){ render(); save(); }
 
 /* ---------- rendering ---------- */
@@ -654,19 +815,11 @@ function renderHeader(){
   $("#hintsBtn").classList.toggle("on", showHints);
   if (sideTab) renderSide();
 }
-function countFixes(){
-  let n = 0;
-  S.tokens.forEach(t => {
-    if (t.ins) { if (!t.del) n++; return; }
-    if (t.del) n++; else if (t.t !== t.o) n++;
-    if (t.p !== t.op) n++;
-  });
-  n += S.pmarks.filter(m => m.k === "stamp" || m.k === "note").length;
-  return n;
-}
-function cleanText(){
+function countFixes(){ return countFixesOf(S); }
+function cleanText(){ return cleanTextOf(S); }
+function cleanTextOf(W){
   const paras = [[]];
-  S.tokens.forEach((t, i) => { if (i > 0 && t.p) paras.push([]); if (!t.del) paras[paras.length-1].push(t.t); });
+  W.tokens.forEach((t, i) => { if (i > 0 && t.p) paras.push([]); if (!t.del) paras[paras.length-1].push(t.t); });
   return paras.filter(p => p.length).map(p => p.join(" ")).join("\n\n");
 }
 
@@ -728,22 +881,24 @@ sheet.addEventListener("click", e => {
   if (g && mode === "add") { openKb("add", +g.dataset.gap); return; }
   const w = e.target.closest(".w"); if (!w) return;
   const i = +w.dataset.i, t = S.tokens[i];
-  if (mode === "fix") { if (t.del) { before(); t.del = false; changed(); } else openKb("fix", i); }
+  const h = t.hint ? {h:t.hint.type} : null;
+  if (mode === "fix") { if (t.del) { before(); t.del = false; logA(punctOnly(t.t) ? "P" : "U", "put back", t.t, null, h); changed(); } else openKb("fix", i); }
   else if (mode === "del") {
     before();
-    if (t.ins) { const nx = S.tokens[i+1]; if (t.p && nx && !nx.p) { nx.p = true; nx.op = t.op; } S.tokens.splice(i, 1); }   // a word the student added just goes away
-    else t.del = !t.del;
+    if (t.ins) { const nx = S.tokens[i+1]; if (t.p && nx && !nx.p) { nx.p = true; nx.op = t.op; } S.tokens.splice(i, 1); logA(punctOnly(t.t) ? "P" : "U", "took out added", t.t); }   // a word the student added just goes away
+    else { t.del = !t.del; logA(punctOnly(t.t) ? "P" : "U", t.del ? "take out" : "put back", t.t, null, h); }
     changed();
   }
   else if (mode === "cap") {
     if (t.del) return;
     const a = t.t.search(/[a-z]/i); if (a < 0) return;
     before();
-    const c = t.t[a];
+    const c = t.t[a], from = t.t;
     t.t = t.t.slice(0,a) + (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()) + t.t.slice(a+1);
+    logA("C", "capital", from, t.t, h);
     changed();
   }
-  else if (mode === "para") { if (i === 0) return; before(); t.p = !t.p; changed(); }
+  else if (mode === "para") { if (i === 0) return; before(); t.p = !t.p; logA("R", t.p ? "new paragraph" : "join paragraphs", null, t.t); changed(); }
 });
 
 /* tag: tap or drag across words */
@@ -768,8 +923,13 @@ function endDrag(e){
   drag = null;
   const target = curTag === "erase" ? null : curTag;
   before();
-  if (lo === hi && S.tokens[lo].tag === target) S.tokens[lo].tag = null;   // tap again to remove
-  else for (let i = lo; i <= hi; i++) if (!S.tokens[i].del) S.tokens[i].tag = target;
+  const words = S.tokens.slice(lo, hi + 1).filter(t => !t.del).map(t => t.t).join(" ");
+  if (lo === hi && S.tokens[lo].tag === target) { S.tokens[lo].tag = null; logA("L", "remove label", words); }   // tap again to remove
+  else {
+    for (let i = lo; i <= hi; i++) if (!S.tokens[i].del) S.tokens[i].tag = target;
+    const lab = target && labelById(target);
+    logA("L", lab ? "label" : "remove label", words, lab ? lab.name : null);
+  }
   changed();
 }
 sheet.addEventListener("pointerup", endDrag);
@@ -802,8 +962,15 @@ function setupInk(){
   ink.onpointerup = ink.onpointercancel = e => {
     if (!stroke || e.pointerId !== stroke.id) return;
     const was = stroke; stroke = null;
-    if (!was.erase) { delete was.id; save(); $("#undoBtn").disabled = false; }
+    if (!was.erase) { delete was.id; was.pts = thin(was.pts, 2.5); save(); $("#undoBtn").disabled = false; }
   };
+}
+function thin(pts, d){
+  if (pts.length < 3) return pts;
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) { const q = out[out.length - 1]; if (Math.hypot(pts[i][0] - q[0], pts[i][1] - q[1]) >= d) out.push(pts[i]); }
+  out.push(pts[pts.length - 1]);
+  return out;
 }
 function pt(e){ const r = ink.getBoundingClientRect(); return [Math.round(e.clientX - r.left), Math.round(e.clientY - r.top)]; }
 function sizeInk(){
@@ -923,7 +1090,11 @@ function eraseHit(e, onlyBoxes){
   if (!h || !pv.contains(h)) return;
   const m = markById(h.dataset.id); if (!m || (onlyBoxes && m.k !== "box")) return;
   if (!G.snapped) { before(); G.snapped = true; }
-  S.pmarks = S.pmarks.filter(x => x !== m); h.remove(); save();
+  S.pmarks = S.pmarks.filter(x => x !== m); h.remove();
+  const st = m.k === "stamp" && STAMPS.find(x => x.id === m.s), lab = m.k === "box" && labelById(m.tag);
+  logA(m.k === "stamp" ? STAMP_GOAL[m.s] : m.k === "note" ? noteGoal(m.t) : m.k === "box" ? "L" : null, "erase", null,
+    st ? st.n + " mark" : m.k === "note" ? m.t : lab ? lab.name + " box" : m.hl ? "highlight" : "drawing", {pg:m.pg + 1});
+  save();
 }
 pv.addEventListener("pointerdown", e => {
   const svg = e.target.closest("svg.ov"); if (!svg || mode === "ppan") return;
@@ -970,7 +1141,7 @@ function endPhoto(e){
   const p = svgPt(g.svg, e), dx = p[0] - g.start[0], dy = p[1] - g.start[1], rd = v => Math.round(v * 10) / 10;
   if (e.type === "pointercancel") { render(); return; }
   if (g.erase) { render(); return; }
-  if (g.mark) { if (g.mark.pts.length === 1) g.mark.pts.push([g.mark.pts[0][0] + .5, g.mark.pts[0][1]]); changed(); return; }
+  if (g.mark) { if (g.mark.pts.length === 1) g.mark.pts.push([g.mark.pts[0][0] + .5, g.mark.pts[0][1]]); else g.mark.pts = thin(g.mark.pts, 1.5); changed(); return; }
   if (g.drag) {
     if (g.moved) { before(); g.drag.x = rd(g.drag.x + dx); g.drag.y = rd(g.drag.y + dy); changed(); }
     else if (mode === "pnote") openKb("pnote", {id:g.drag.id});
@@ -980,12 +1151,17 @@ function endPhoto(e){
     if (Math.abs(dx) > 15 && Math.abs(dy) > 15 && labelById(curTag)) {
       before();
       S.pmarks.push({id:uid(), pg:g.pg, k:"box", tag:curTag, x:rd(Math.min(p[0], g.start[0])), y:rd(Math.min(p[1], g.start[1])), w:rd(Math.abs(dx)), h:rd(Math.abs(dy))});
+      logA("L", "box", null, labelById(curTag).name, {pg:g.pg + 1});
       changed();
     } else render();
     return;
   }
   if (g.place && !g.moved) {
-    if (mode === "pstamp") { before(); S.pmarks.push({id:uid(), pg:g.pg, k:"stamp", s:curStamp, x:g.start[0], y:g.start[1], size:Math.round(60 * sizeK())}); changed(); }
+    if (mode === "pstamp") {
+      before(); S.pmarks.push({id:uid(), pg:g.pg, k:"stamp", s:curStamp, x:g.start[0], y:g.start[1], size:Math.round(60 * sizeK())});
+      logA(STAMP_GOAL[curStamp] || null, "mark", null, (STAMPS.find(x => x.id === curStamp) || {}).n, {pg:g.pg + 1});
+      changed();
+    }
     else if (mode === "pnote") openKb("pnote", {pg:g.pg, x:g.start[0], y:g.start[1]});
   }
 }
@@ -1068,18 +1244,25 @@ function closeKb(){ $("#kbModal").hidden = true; kb.kind = null; }
 function commitKb(){
   if (kb.kind === "pnote") {
     const v = $("#kbIn").value.trim().slice(0, 60), at = kb.at, m = at.id && markById(at.id);
-    if (m) { if (v !== m.t) { before(); if (v) m.t = v; else S.pmarks = S.pmarks.filter(x => x !== m); } }
-    else if (v) { before(); S.pmarks.push({id:uid(), pg:at.pg, k:"note", x:at.x, y:at.y, t:v, size:Math.round(44 * sizeK())}); }
+    if (m) {
+      if (v !== m.t) {
+        before();
+        if (v) { logA(noteGoal(v), "rewrite", m.t, v, {pg:m.pg + 1}); m.t = v; }
+        else { logA(noteGoal(m.t), "erase", null, m.t, {pg:m.pg + 1}); S.pmarks = S.pmarks.filter(x => x !== m); }
+      }
+    }
+    else if (v) { before(); S.pmarks.push({id:uid(), pg:at.pg, k:"note", x:at.x, y:at.y, t:v, size:Math.round(44 * sizeK())}); logA(noteGoal(v), "write", null, v, {pg:at.pg + 1}); }
     closeKb(); changed(); return;
   }
   const words = $("#kbIn").value.trim().split(/\s+/).filter(Boolean);
   const at = kb.at;
   if (kb.kind === "fix") {
-    const t = S.tokens[at];
-    if (!words.length) { before(); t.del = true; }
+    const t = S.tokens[at], from = t.t, h = t.hint ? {h:t.hint.type} : null;
+    if (!words.length) { before(); t.del = true; logA(punctOnly(from) ? "P" : "U", "take out", from, null, h); }
     else if (words.length === 1 && words[0] === t.t) { closeKb(); return; }
     else {
       before();
+      fixGoals(from, words.join(" ")).forEach(g => logA(g, "fix", from, words.join(" "), h));
       t.t = words[0]; t.del = false;
       const extra = words.slice(1).map(w => ({t:w, o:null, del:false, ins:true, tag:t.tag, p:false, op:false, hint:null}));
       S.tokens.splice(at + 1, 0, ...extra);
@@ -1087,6 +1270,7 @@ function commitKb(){
   } else if (kb.kind === "add") {
     if (!words.length) { closeKb(); return; }
     before();
+    logA(words.every(punctOnly) ? "P" : "U", "add", null, words.join(" "));
     const nextTok = S.tokens[at];
     const startsPara = nextTok && nextTok.p;
     const extra = words.map((w, j) => ({t:w, o:null, del:false, ins:true, tag:null, p:false, op:false, hint:null}));
@@ -1132,9 +1316,10 @@ function renderSide(){
                    : '<div class="empty">Not found yet. Find it and label it!</div>') + "</div>";
     }).join("");
   } else if (sideTab === "cups") {
-    const done = Object.values(S.checks).every(Boolean);
-    p.innerHTML = "<h3>Did I check my…</h3>" + Object.keys(HINT).map(k =>
-      '<button class="check" role="checkbox" aria-checked="' + !!S.checks[k] + '" data-check="' + k + '" style="--hc:' + HINT[k][1] + '"><span class="letter">' + k + '</span><span><b>' + HINT[k][0] + '</b><span class="d">' + HINT[k][2] + '</span></span><span class="box" style="margin-left:auto"></span></button>'
+    const goals = Object.keys(GOALS).filter(k => S.goals.includes(k));
+    const done = goals.length && goals.every(k => S.checks[k]);
+    p.innerHTML = "<h3>Did I check my…</h3>" + goals.map(k =>
+      '<button class="check" role="checkbox" aria-checked="' + !!S.checks[k] + '" data-check="' + k + '" style="--hc:' + GOALS[k][1] + '"><span class="letter">' + GOALS[k][3] + '</span><span><b>' + GOALS[k][0] + '</b><span class="d">' + GOALS[k][2] + '</span></span><span class="box" style="margin-left:auto"></span></button>'
     ).join("") + (done ? '<div class="cheer">You checked it all! Great editing.</div>' : "");
   }
 }
@@ -1164,7 +1349,7 @@ $("#panel").addEventListener("click", e => {
     return;
   }
   const c = e.target.closest("[data-check]");
-  if (c) { S.checks[c.dataset.check] = !S.checks[c.dataset.check]; save(); renderSide(); }
+  if (c) { const k = c.dataset.check; S.checks[k] = !S.checks[k]; logA(k, S.checks[k] ? "checked off" : "unchecked"); save(); renderSide(); }
 });
 $$("[data-side]").forEach(b => b.onclick = () => openSide(b.dataset.side));
 $$("#side [data-tab]").forEach(b => b.onclick = () => { sideTab = b.dataset.tab; renderSide(); markSideBtns(); });
@@ -1228,23 +1413,42 @@ let sample = null, sampleImages = null, readCtl = null;
 function showScreen(which){
   $("#editScreen").hidden = which !== "edit";
   $("#setupScreen").hidden = which !== "setup";
+  $("#dataScreen").hidden = which !== "data";
   if (which === "setup") fillSetup();
-  else { buildKb(); render(); }
+  else if (which === "data") renderData();
+  else { buildKb(); render(); setCurrent(); }
 }
-$("#teacherBtn").onclick = () => showScreen("setup");
+$("#teacherBtn").onclick = () => {
+  // the built-in example is only for trying the tools: setup starts a real lesson
+  if (S.example) useWork(newWork("", {labels:S.labels.map(l => ({...l})), set:S.set, goals:S.goals.slice()}));
+  showScreen("setup");
+};
 
 function fillSetup(){
   $("#titleIn").value = S.title; $("#studentIn").value = S.student;
   $("#textIn").value = S.source; $("#setSel").value = S.set in SETS ? S.set : "five";
   $("#optKb").checked = opts.kb; $("#optIndent").checked = opts.indent;
   $("#resetConfirm").hidden = true;
-  renderThumbs(); renderLabels(); updateReadBtns(); renderInbox();
+  renderThumbs(); renderLabels(); updateReadBtns(); renderInbox(); renderGoalPick();
+  $("#devName").value = DEVICE.name;
+  $("#saveNote").textContent = cloud.db ? "Work saves to your claude.ai account, so you can switch devices in the middle of a lesson." : "Work saves on this computer, in this browser only.";
   $("#printBtn").hidden = inViewer;
 }
 $("#titleIn").oninput = e => { S.title = e.target.value.slice(0, 80); S.example = false; save(); };
 $("#studentIn").oninput = e => { S.student = e.target.value.slice(0, 30); S.example = false; save(); };
 $("#optKb").onchange = e => { opts.kb = e.target.checked; saveOpts(); };
 $("#optIndent").onchange = e => { opts.indent = e.target.checked; saveOpts(); };
+$("#devName").oninput = e => { DEVICE.name = e.target.value.trim().slice(0, 30) || guessDevice(); store.set("wfb.device", DEVICE); };
+function renderGoalPick(){
+  $("#goalPick").innerHTML = Object.keys(GOALS).map(k => '<button class="gp" style="--hc:' + GOALS[k][1] + '" data-goal="' + k + '" aria-pressed="' + S.goals.includes(k) + '">' + GOALS[k][3] + " · " + GOALS[k][0] + "</button>").join("");
+}
+$("#goalPick").addEventListener("click", e => {
+  const b = e.target.closest("[data-goal]"); if (!b) return;
+  const k = b.dataset.goal, on = new Set(S.goals);
+  on.has(k) ? on.delete(k) : on.add(k);
+  S.goals = Object.keys(GOALS).filter(x => on.has(x)); S.example = false;
+  renderGoalPick(); save();
+});
 
 function hasEdits(){ return countFixes() > 0 || S.tokens.some(t => t.tag) || S.strokes.length || S.pmarks.length; }
 function start(){
@@ -1268,13 +1472,12 @@ function start(){
 }
 function applySource(text){
   S.source = text; S.tokens = parse(text); S.strokes = []; S.example = false;
-  S.checks = {C:false,U:false,P:false,S:false};
+  S.checks = {};
   undoStack = []; redoStack = []; save();
 }
 $("#startBtn").onclick = start;
 $("#newWork").onclick = () => {
-  S = newWork("", {labels:S.labels.map(l => ({...l})), set:S.set});
-  undoStack = []; redoStack = [];
+  useWork(newWork("", {labels:S.labels.map(l => ({...l})), set:S.set, goals:S.goals.slice()}));
   fillSetup(); setStatus("New writing started. Add a photo or type the writing.", "");
 };
 
@@ -1293,30 +1496,21 @@ function updateCam(){
   $("#camLabel").textContent = S.images.length ? "Take another page" : "Take a picture";
 }
 function updateSend(){
-  const ok = !!(cloud.db && cloud.assets);
-  $("#sendBox").hidden = !ok || !S.images.length;
+  $("#sendBox").hidden = !cloud.db || !S.images.length;
 }
 $("#sendBtn").onclick = async () => {
-  if (!cloud.db || !cloud.assets || !S.images.length) return;
+  if (!cloud.db) return;
   const btn = $("#sendBtn"), note = $("#sendNote");
-  btn.disabled = true;
-  const ids = [];
+  btn.disabled = true; note.textContent = "Sending…";
+  S.example = false; clearTimeout(saveTimer); saveLocal();
   try {
-    for (let i = 0; i < S.images.length; i++) {
-      note.textContent = "Sending page " + (i + 1) + " of " + S.images.length + "…";
-      const r = await cloud.assets.upload(b64Blob(S.images[i]), {type:"image/jpeg"});
-      ids.push(r.id);
-    }
-    await picsCol().doc("pics-" + uid()).set({kind:"pics", title:S.title || "", student:S.student || "", pages:ids, created:Date.now(), used:false});
-    note.textContent = "Sent " + ids.length + (ids.length > 1 ? " pages" : " page") + ". On the smartboard, open this page and tap From iPad.";
+    const ok = await cloudSave();
+    if (!ok) throw new Error("save");
+    await setCurrent({sent:true});
+    note.textContent = "Sent. On the smartboard, open this page and tap Open here.";
     $("#nextStudent").hidden = false;
-  } catch (err) {
-    for (const id of ids) { try { await cloud.assets.delete(id); } catch {} }
-    const c = err && err.code;
-    note.textContent = c === "quota_or_state" || c === "quota_exceeded" ? "Storage is full. Delete old pictures from the list on the board, then try again."
-      : c === "rate_limited" || c === "resource_exhausted" ? "Too many sends at once. Wait a minute and try again."
-      : c === "upstream_auth" ? "Sign in to claude.ai again, then try again."
-      : "Couldn't send the pages. Check the internet connection and try again.";
+  } catch {
+    note.textContent = "Couldn't send the pages. Check the internet connection and try again.";
   } finally { btn.disabled = false; }
 };
 $("#nextStudent").onclick = () => {
@@ -1355,8 +1549,8 @@ $("#inboxList").addEventListener("click", async e => {
     try {
       const imgs = [];
       for (const id of x.pages || []) imgs.push(await assetDataURL(id));
-      S = newWork("", {title:x.title || "", student:x.student || "", images:imgs, labels:S.labels.map(l => ({...l})), set:S.set});
-      undoStack = []; redoStack = []; save();
+      useWork(newWork("", {title:x.title || "", student:x.student || "", images:imgs, labels:S.labels.map(l => ({...l})), set:S.set, goals:S.goals.slice()}));
+      save();
       fillSetup();
       setStatus("Pictures from your iPad are ready. Read the handwriting, or press Start editing to mark up the photos.", "ok");
       try { await picsCol().doc(x.id).update({used:true}); } catch {}
@@ -1384,6 +1578,9 @@ function startCloud(){
     let id = null; try { id = await u.id(); } catch {}
     if (!id) return;
     cloud = {db:d, assets:a, me:id};
+    subscribeWorks(); subscribeCurrent(); subscribeOpen();
+    if (!S.example) cloudSave(); else setSync("local");
+    if (!$("#setupScreen").hidden) fillSetup();
     let loaded = false;
     const timer = setTimeout(() => { if (!loaded) { inboxErr = "Can't reach saved pictures right now. Check the internet connection."; renderInbox(); } }, 10000);
     picsCol().where("kind", "==", "pics").onSnapshot(snap => {
@@ -1405,6 +1602,7 @@ $("#thumbs").addEventListener("click", async e => {
   const r = e.target.closest("[data-rot]"), x = e.target.closest("[data-rm]");
   if (r) {
     const i = +r.dataset.rot, im = await loadImg(S.images[i]);
+    if (isCloud(S.images[i])) S.trash = (S.trash || []).concat(S.images[i].slice(7));
     const H = 1000 * im.naturalHeight / im.naturalWidth, k = 1000 / H, rd = v => Math.round(v * 10) / 10;
     const f = ([x, y]) => [rd((H - y) * k), rd(x * k)];   // turn marks with the page (clockwise)
     S.pmarks.forEach(m => {
@@ -1417,12 +1615,19 @@ $("#thumbs").addEventListener("click", async e => {
   }
   if (x) {
     const i = +x.dataset.rm;
+    if (isCloud(S.images[i])) S.trash = (S.trash || []).concat(S.images[i].slice(7));
     S.images.splice(i, 1);
     S.pmarks = S.pmarks.filter(m => m.pg !== i); S.pmarks.forEach(m => { if (m.pg > i) m.pg--; });
     renderThumbs(); save();
   }
 });
 function loadImg(src){ return new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = src; }); }
+async function srcBlob(src){
+  if (src.startsWith("data:")) return b64Blob(src);
+  const im = await loadImg(src), c = document.createElement("canvas");
+  c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0);
+  return await new Promise(ok => c.toBlob(ok, "image/jpeg", .88));
+}
 async function shrink(file){
   const url = URL.createObjectURL(file);
   try {
@@ -1532,7 +1737,8 @@ $("#readClaude").onclick = async () => {
   setStatus("Claude is reading the handwriting. This can take up to a minute…", "");
   const max = (sampleImages && sampleImages.maxCount) || 5;
   try {
-    const {text} = await sample(READ_PROMPT, {images:S.images.slice(0, max).map(b64Blob), signal:readCtl.signal,
+    const blobs = await Promise.all(S.images.slice(0, max).map(srcBlob));
+    const {text} = await sample(READ_PROMPT, {images:blobs, signal:readCtl.signal,
       onText:({text}) => { $("#textIn").value = text; }});
     let t = text.trim();
     const m = t.match(/^TITLE:\s*(.+)\n+/);
@@ -1634,32 +1840,468 @@ $("#copyClean").onclick = () => {
 };
 $("#printBtn").onclick = () => { showScreen("edit"); setView("clean"); setTimeout(() => window.print(), 200); };
 
-/* saved work */
+/* saved work: the lessons in your account (or on this device when offline) */
+function libItems(){
+  if (WORKS) return WORKS;
+  return store.get("wfb.list", []);
+}
 function renderLib(){
-  const list = store.get("wfb.list", []);
+  const list = libItems();
+  $("#libTitle").textContent = WORKS ? "Saved work (all devices)" : "Saved work (this device)";
   $("#workList").innerHTML = list.length ? list.map(w =>
-    '<div class="workrow"><div class="t"><b>' + esc(w.title || "Untitled") + (w.example ? " (example)" : "") + "</b><span>" + esc(w.student || "No name") + " · " + new Date(w.updated).toLocaleDateString() + '</span></div>' +
-    '<button class="btn small primary" data-open="' + w.id + '">Open</button><button class="btn small warn" data-delw="' + w.id + '">Delete</button></div>'
+    '<div class="workrow"><div class="t"><b>' + esc(w.title || "Untitled") + (w.example ? " (example)" : "") + "</b><span>" + esc(w.student || "No name") + " · " + new Date(w.updated || Date.now()).toLocaleDateString() +
+      (w.byName ? " · last used on " + esc(w.byName) : "") + (w.fixes != null ? " · " + w.fixes + " fixes" : "") + '</span></div>' +
+    '<button class="btn small primary" data-open="' + esc(w.id) + '">Open</button><button class="btn small warn" data-delw="' + esc(w.id) + '">Delete</button></div>'
   ).join("") : '<p class="note">Nothing saved yet.</p>';
 }
 $("#libBtn").onclick = () => { renderLib(); $("#libModal").hidden = false; };
 $("#libClose").onclick = () => $("#libModal").hidden = true;
-$("#workList").addEventListener("click", e => {
+$("#workList").addEventListener("click", async e => {
   const o = e.target.closest("[data-open]"), d = e.target.closest("[data-delw]");
-  if (o) { const w = loadWork(o.dataset.open); if (w) { S = w; undoStack = []; redoStack = []; store.set("wfb.cur", S.id); } $("#libModal").hidden = true; showScreen("edit"); }
+  if (o) {
+    const id = o.dataset.open;
+    if (WORKS && cloud.db) {
+      o.disabled = true; o.textContent = "Opening…";
+      try { await openCloud(id); $("#libModal").hidden = true; }
+      catch { o.disabled = false; o.textContent = "Open"; toast("Couldn't open that lesson. Check the internet connection."); }
+      return;
+    }
+    const w = loadWork(id); if (w) useWork(w, loadLog(id));
+    $("#libModal").hidden = true; showScreen("edit");
+  }
   if (d) {
     if (d.dataset.armed !== "1") { d.dataset.armed = "1"; d.textContent = "Tap again to delete"; return; }
     const id = d.dataset.delw;
-    store.del("wfb.w." + id); store.del("wfb.i." + id);
-    store.set("wfb.list", store.get("wfb.list", []).filter(w => w.id !== id));
-    if (S.id === id) { S = newWork(EXAMPLE, {title:"The Lost Dog", student:"Example", example:true}); }
+    d.disabled = true;
+    if (WORKS && cloud.db) {
+      try {
+        const col = userCol(), w = await col.doc("w-" + id).get();
+        await Promise.all(["w-", "m-", "l-"].map(pfx => col.doc(pfx + id).delete()));
+        if (w.exists && cloud.assets) for (const a of (w.data().images || [])) { try { await cloud.assets.delete(a); } catch {} }
+      } catch { d.disabled = false; d.textContent = "Delete"; toast("Couldn't delete that lesson. Try again."); return; }
+    }
+    dropLocal(id);
+    if (S.id === id) useWork(newWork(EXAMPLE, {title:"The Lost Dog", student:"Example", example:true}));
     renderLib();
   }
 });
 
+/* ===================== CLOUD: every device saves to the teacher's account ===================== */
+const isCloud = src => typeof src === "string" && src.startsWith("/_blob/");
+const userCol = () => cloud.db.collection("data/users/" + cloud.me);   // private to the signed-in teacher
+const clone = o => JSON.parse(JSON.stringify(o));
+const stable = o => Array.isArray(o) ? "[" + o.map(stable).join(",") + "]"
+  : o && typeof o === "object" ? "{" + Object.keys(o).sort().map(k => JSON.stringify(k) + ":" + stable(o[k])).join(",") + "}" : JSON.stringify(o === undefined ? null : o);
+const sig = o => { const {updated, by, byName, ...rest} = o || {}; return stable(rest); };
+let WORKS = null;   // lessons in the account; null until loaded
+const CS = {sent:{}, unsubs:[], timer:null, chain:Promise.resolve(true), pending:{}, current:null, lastCur:{id:null, t:0}};
+function setSync(state, msg){
+  const txt = msg || {local:"Saved on this device", saving:"Saving…", saved:"Saved to your account ✓", error:"Not saved to your account yet. Check the internet."}[state] || "";
+  $$(".sync").forEach(el => { el.textContent = txt; el.className = "sync" + (state === "saved" ? " ok" : state === "error" ? " err" : ""); });
+}
+let toastTimer = null;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 3500); }
+const wBody = (W, L) => ({kind:"work", title:W.title || "", student:W.student || "", source:W.source || "", tokens:W.tokens, labels:W.labels, set:W.set,
+  checks:W.checks || {}, goals:W.goals, images:W.images.filter(isCloud).map(x => x.slice(7)), created:W.created || Date.now(),
+  fixes:countFixesOf(W), summary:summarize(W, L)});
+const mBody = W => ({kind:"marks", strokes:W.strokes, pmarks:W.pmarks});
+const lBody = L => ({kind:"log", attempts:L.attempts, check:L.check || null});
+function scheduleCloud(){
+  if (!cloud.db || !S || S.example) { if (!cloud.db) setSync("local"); return; }
+  clearTimeout(CS.timer); CS.timer = setTimeout(() => { CS.timer = null; cloudSave(); }, 900);
+}
+async function ensureUploaded(W){
+  if (!cloud.assets) return 0;
+  let n = 0;
+  for (let i = 0; i < W.images.length; i++) {
+    const src = W.images[i];
+    if (!src.startsWith("data:")) continue;
+    const r = await cloud.assets.upload(b64Blob(src), {type:"image/jpeg"});
+    if (W.images[i] === src) { W.images[i] = "/_blob/" + r.id; n++; } else W.trash = (W.trash || []).concat(r.id);
+  }
+  return n;
+}
+async function writeWork(W, L, force){
+  const col = userCol(), now = Date.now(), me = {by:DEVICE.id, byName:DEVICE.name};
+  const up = await ensureUploaded(W);
+  const sent = CS.sent[W.id] || (CS.sent[W.id] = {});
+  const w = wBody(W, L), m = mBody(W), l = lBody(L);
+  if (force || sig(w) !== sent.w) { await col.doc("w-" + W.id).set({...w, updated:now, ...me}); sent.w = sig(w); W.uW = now; }
+  if (force || sig(m) !== sent.m) { await col.doc("m-" + W.id).set({...m, updated:now, ...me}); sent.m = sig(m); W.uM = now; }
+  if (force || sig(l) !== sent.l) { await col.doc("l-" + W.id).set({...l, updated:now, ...me}); sent.l = sig(l); L.u = now; }
+  if (W.trash && W.trash.length && cloud.assets) { const t = W.trash; W.trash = []; for (const id of t) { try { await cloud.assets.delete(id); } catch {} } }
+  return up;
+}
+async function doCloudSave(W, L){
+  W = W || S; L = L || LOG;
+  if (!cloud.db || !W || W.example || isEmptyWork(W)) return true;
+  setSync("saving");
+  try {
+    const up = await writeWork(W, L);
+    store.set("wfb.sync." + W.id, 1);
+    if (up) { saveLocalOf(W, L, W === S); if (W === S && !$("#setupScreen").hidden) renderThumbs(); }
+    setSync("saved");
+    return true;
+  } catch (e) {
+    const c = e && e.code;
+    setSync("error", c === "quota_exceeded" || c === "quota_or_state" ? "Your account's storage for this app is full. Delete old lessons in Saved work."
+      : c === "invalid_argument" ? "This lesson is too big to save to your account. Erase some drawing." : null);
+    return false;
+  }
+}
+function cloudSave(W, L){ const go = () => doCloudSave(W, L); CS.chain = CS.chain.then(go, go); return CS.chain; }
+
+/* live updates for the open lesson, so a second device stays in step */
+function subscribeOpen(){
+  CS.unsubs.forEach(u => { try { u(); } catch {} }); CS.unsubs = [];
+  if (!cloud.db || !S || S.example) return;
+  const id = S.id, col = userCol();
+  const on = (pfx, kind) => CS.unsubs.push(col.doc(pfx + id).onSnapshot(snap => {
+    if (!snap.exists || snap.metadata.hasPendingWrites || !S || S.id !== id) return;
+    remote(kind, clone(snap.data()));
+  }, () => {}));
+  on("w-", "w"); on("m-", "m"); on("l-", "l");
+}
+const busyNow = () => !$("#kbModal").hidden || !!drag || !!G || !!stroke;
+function flushPending(){
+  if (busyNow()) { setTimeout(flushPending, 800); return; }
+  const p = CS.pending; CS.pending = {};
+  Object.keys(p).forEach(k => remote(k, p[k]));
+}
+function remote(kind, d){
+  if (busyNow()) { CS.pending[kind] = d; setTimeout(flushPending, 800); return; }
+  const sent = CS.sent[S.id] || (CS.sent[S.id] = {});
+  if (kind === "l") {
+    const have = new Set(LOG.attempts.map(a => a.id)), add = (d.attempts || []).filter(a => !have.has(a.id));
+    const newerCheck = d.check && (!LOG.check || (d.check.at || 0) > (LOG.check.at || 0));
+    if (add.length || newerCheck) {
+      LOG.attempts = LOG.attempts.concat(add).sort((a, b) => a.t - b.t);
+      if (newerCheck) LOG.check = d.check;
+      saveLocal();
+      if (!$("#dataScreen").hidden) renderData();
+    }
+    if (LOG.attempts.length === (d.attempts || []).length && stable(LOG.check || null) === stable(d.check || null)) sent.l = sig(lBody(LOG));
+    return;
+  }
+  if (d.by === DEVICE.id) return;
+  if ((d.updated || 0) <= (kind === "w" ? S.uW || 0 : S.uM || 0)) return;
+  if (kind === "w") {
+    const local = S.images.filter(x => x.startsWith("data:"));
+    Object.assign(S, {title:d.title || "", student:d.student || "", source:d.source || "", tokens:d.tokens || [], labels:d.labels || S.labels,
+      set:d.set || S.set, checks:d.checks || {}, goals:d.goals || DEFAULT_GOALS.slice(), example:false});
+    S.images = (d.images || []).map(x => "/_blob/" + x).concat(local);
+    S.uW = d.updated; sent.w = sig(d);
+  } else {
+    S.strokes = d.strokes || []; S.pmarks = d.pmarks || []; S.uM = d.updated; sent.m = sig(d);
+  }
+  undoStack = []; redoStack = [];
+  saveLocal();
+  if (!$("#editScreen").hidden) render();
+  else if (!$("#setupScreen").hidden && !document.activeElement.closest(".setup")) fillSetup();
+  else if (!$("#dataScreen").hidden) renderData();
+  toast("Updated from " + (d.byName || "another device"));
+}
+function subscribeWorks(){
+  let loaded = false;
+  const timer = setTimeout(() => { if (!loaded) setSync("error", "Can't reach your saved lessons right now."); }, 10000);
+  userCol().where("kind", "==", "work").onSnapshot(snap => {
+    WORKS = snap.docs.map(x => { const v = x.data(); return {id:x.id.slice(2), title:v.title, student:v.student, updated:v.updated, created:v.created,
+      byName:v.byName, summary:v.summary, goals:v.goals, fixes:v.fixes, hasText:!!(v.tokens && v.tokens.length)}; })
+      .sort((a, b) => (b.updated || 0) - (a.updated || 0));
+    if (!snap.metadata.fromCache) {
+      if (!loaded) { loaded = true; clearTimeout(timer); migrate(); }
+      // a lesson deleted on another device: forget this device's copy too
+      store.get("wfb.list", []).forEach(w => { if (store.get("wfb.sync." + w.id, 0) && w.id !== S.id && !WORKS.some(x => x.id === w.id)) dropLocal(w.id); });
+    }
+    if (!$("#libModal").hidden) renderLib();
+    if (!$("#dataScreen").hidden) renderData();
+  }, () => { loaded = true; clearTimeout(timer); });
+}
+/* lessons saved on this device before it was connected: copy them into the account once */
+async function migrate(){
+  const have = new Set(WORKS.map(w => w.id));
+  for (const it of store.get("wfb.list", [])) {
+    if (it.example || have.has(it.id) || store.get("wfb.sync." + it.id, 0)) continue;
+    const W = S && it.id === S.id ? S : loadWork(it.id);
+    if (!W || W.example || isEmptyWork(W)) continue;
+    const L = W === S ? LOG : loadLog(it.id);
+    try { await writeWork(W, L, true); store.set("wfb.sync." + W.id, 1); saveLocalOf(W, L, W === S); } catch {}
+  }
+}
+async function openCloud(id, screen){
+  const col = userCol();
+  const [w, m, l] = await Promise.all(["w-", "m-", "l-"].map(pfx => col.doc(pfx + id).get()));
+  if (!w.exists) throw new Error("missing");
+  const dw = clone(w.data()), dm = m.exists ? clone(m.data()) : {}, dl = l.exists ? clone(l.data()) : {};
+  const W = fixWork({id, title:dw.title, student:dw.student, source:dw.source, tokens:dw.tokens, labels:dw.labels, set:dw.set, checks:dw.checks, goals:dw.goals,
+    images:(dw.images || []).map(x => "/_blob/" + x), strokes:dm.strokes, pmarks:dm.pmarks, example:false, created:dw.created, updated:dw.updated,
+    uW:dw.updated || 0, uM:dm.updated || 0});
+  const L = {attempts:dl.attempts || [], check:dl.check || null, u:dl.updated || 0};
+  if (S && S.id === id) { const seen = new Set(L.attempts.map(a => a.id)); L.attempts = L.attempts.concat(LOG.attempts.filter(a => !seen.has(a.id))).sort((a, b) => a.t - b.t); }
+  CS.sent[id] = {w:sig(dw), m:m.exists ? sig(dm) : "", l:l.exists ? sig(dl) : ""};
+  store.set("wfb.sync." + id, 1);
+  useWork(W, L);
+  showScreen(screen || "edit");
+  if (screen !== "setup" && !W.tokens.length && W.images.length) setView("photo");
+  scheduleCloud();
+}
+function useWork(W, L){
+  // finish saving the lesson we're leaving before switching
+  if (S && S !== W) {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; saveLocal(); }
+    if (CS.timer) { clearTimeout(CS.timer); CS.timer = null; cloudSave(S, LOG); }
+  }
+  S = W; LOG = L || loadLog(W.id); undoStack = []; redoStack = [];
+  saveLocal(); subscribeOpen(); showHandoff();
+}
+
+/* which lesson is open, so another device can pick it up */
+async function setCurrent(extra){
+  if (!cloud.db || !S || S.example || isEmptyWork(S)) return;
+  const now = Date.now();
+  if (!extra && CS.lastCur.id === S.id && now - CS.lastCur.t < 60000) return;
+  CS.lastCur = {id:S.id, t:now};
+  clearTimeout(CS.timer);
+  await cloudSave();
+  try { await userCol().doc("current").set(Object.assign({kind:"current", work:S.id, title:S.title || "", student:S.student || "", by:DEVICE.id, byName:DEVICE.name, at:now, sent:false}, extra || {})); } catch {}
+}
+function subscribeCurrent(){
+  userCol().doc("current").onSnapshot(snap => { CS.current = snap.exists ? snap.data() : null; showHandoff(); }, () => {});
+}
+function showHandoff(){
+  const d = CS.current, el = $("#handoff");
+  if (!d || d.by === DEVICE.id || (S && d.work === S.id) || (d.at || 0) <= store.get("wfb.seenCur", 0)) { el.hidden = true; return; }
+  $("#handoffText").textContent = (d.sent ? "New pages from " : "A lesson is open on ") + (d.byName || "another device") + ": " + (d.student || "No name") + (d.title ? " · " + d.title : "");
+  $("#handoffGo").textContent = d.sent ? "Open here" : "Continue here";
+  el.hidden = false;
+}
+$("#handoffGo").onclick = async () => {
+  const d = CS.current; if (!d) return;
+  store.set("wfb.seenCur", d.at || Date.now()); $("#handoff").hidden = true;
+  try { await openCloud(d.work, d.sent ? "setup" : "edit"); }
+  catch { toast("Couldn't open that lesson yet. Try again in a moment."); store.set("wfb.seenCur", 0); showHandoff(); }
+};
+$("#handoffNo").onclick = () => { store.set("wfb.seenCur", (CS.current && CS.current.at) || Date.now()); $("#handoff").hidden = true; };
+
+/* ===================== STUDENT DATA ===================== */
+let dataSel = null, dataStudent = "";
+const pct = (a, b) => b ? Math.round(a / b * 100) : null;
+const dayText = t => { try { return new Date(t).toLocaleDateString([], {month:"short", day:"numeric"}); } catch { return ""; } };
+const timeText = t => { try { return new Date(t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); } catch { return ""; } };
+function dataRows(){
+  let rows;
+  if (WORKS) rows = WORKS.filter(w => w.summary);
+  else rows = store.get("wfb.list", []).filter(x => !x.example).map(x => {
+    const W = S && x.id === S.id ? S : loadWork(x.id); if (!W) return null;
+    const L = W === S ? LOG : loadLog(x.id);
+    return {id:x.id, title:W.title, student:W.student, updated:W.updated, created:W.created, summary:summarize(W, L), goals:W.goals, fixes:countFixesOf(W), hasText:!!W.tokens.length};
+  }).filter(Boolean);
+  if (S && !S.example && !isEmptyWork(S)) {
+    const live = {id:S.id, title:S.title, student:S.student, updated:Date.now(), created:S.created, summary:summarize(S, LOG), goals:S.goals, fixes:countFixes(), hasText:!!S.tokens.length};
+    rows = [live].concat(rows.filter(r => r.id !== S.id));
+  }
+  return rows;
+}
+function goalAgg(rows){
+  const out = {};
+  Object.keys(GOALS).forEach(k => {
+    const a = {a:0, ok:0, tot:0, missed:0, mset:false, flag:0, fixed:0, lessons:0};
+    rows.forEach(r => { const g = r.summary && r.summary.g && r.summary.g[k]; if (!g) return;
+      a.a += g.a; a.ok += g.ok; a.tot += g.tot; a.flag += g.flag; a.fixed += g.fixed;
+      if (g.missed != null) { a.missed += g.missed; a.mset = true; }
+      if ((r.goals || []).includes(k)) a.lessons++; });
+    out[k] = a;
+  });
+  return out;
+}
+function renderData(){
+  const all = dataRows();
+  const names = [...new Set(all.map(r => r.student || "No name"))].sort();
+  if (dataStudent && !names.includes(dataStudent)) dataStudent = "";
+  $("#dataStudent").innerHTML = '<option value="">All students</option>' + names.map(n => '<option' + (n === dataStudent ? " selected" : "") + ">" + esc(n) + "</option>").join("");
+  const rows = all.filter(r => !dataStudent || (r.student || "No name") === dataStudent);
+  $("#dataNote").textContent = (cloud.db ? "Saved to your claude.ai account from every device. " : "This copy saves on this device only. Open the app on claude.ai to collect data from every device. ") +
+    rows.length + (rows.length === 1 ? " lesson" : " lessons") + (dataStudent ? " for " + dataStudent : "") + ".";
+  const agg = goalAgg(rows);
+  $("#goalCards").innerHTML = Object.keys(GOALS).map(k => {
+    const a = agg[k], acc = pct(a.ok, a.tot), c = GOALS[k][1];
+    return '<div class="gcard' + (a.lessons ? " focus" : "") + '" style="--hc:' + c + '"><div class="gt"><span class="gl" style="--hc:' + c + '">' + GOALS[k][3] + "</span>" + GOALS[k][0] + "</div>" +
+      '<div class="big">' + a.a + "<small>attempts</small></div>" +
+      '<div class="meter" title="Fixes Claude marked right"><i style="width:' + (acc || 0) + '%"></i></div>' +
+      '<div class="d">' + (a.tot ? a.ok + " of " + a.tot + " checked fixes right (" + acc + "%)" : "No fixes checked yet") + "</div>" +
+      (a.flag ? '<div class="d">Hint spots fixed: ' + a.fixed + " of " + a.flag + "</div>" : "") +
+      (a.mset ? '<div class="d">Mistakes still left: ' + a.missed + "</div>" : "") +
+      '<div class="d">A goal in ' + a.lessons + (a.lessons === 1 ? " lesson" : " lessons") + "</div></div>";
+  }).join("");
+  if (!rows.length) { $("#lessonTable").innerHTML = '<div class="emptyd">No lessons yet. Data appears here as soon as a student starts editing.</div>'; $("#detail").hidden = true; return; }
+  const gk = Object.keys(GOALS);
+  $("#lessonTable").innerHTML = '<div class="tablewrap"><table class="dtable"><thead><tr><th>Date</th><th>Student</th><th>Writing</th><th>Goals</th><th>Attempts</th>' +
+    gk.map(k => '<th title="' + GOALS[k][0] + '">' + GOALS[k][3] + "</th>").join("") + "<th>Devices</th><th>Checked</th></tr></thead><tbody>" +
+    rows.map(r => { const sm = r.summary || {g:{}};
+      return '<tr data-row="' + esc(r.id) + '"' + (r.id === dataSel ? ' class="sel"' : "") + "><td>" + esc(dayText(sm.first || r.created || r.updated)) + "</td><td>" + esc(r.student || "No name") + "</td><td>" + esc(r.title || "Untitled") +
+        "</td><td>" + (r.goals || []).map(k => GOALS[k] ? '<span class="gl" style="--hc:' + GOALS[k][1] + '">' + GOALS[k][3] + "</span>" : "").join("") + "</td><td>" + (sm.n || 0) + "</td>" +
+        gk.map(k => { const g = sm.g[k]; if (!g || (!g.a && !g.tot)) return "<td>–</td>"; const acc = pct(g.ok, g.tot); return "<td>" + g.a + (acc != null ? " · " + acc + "%" : "") + "</td>"; }).join("") +
+        "<td>" + esc((sm.devices || []).join(", ") || "–") + "</td><td>" + (sm.checked ? '<span class="okm">✓</span>' : "–") + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+  renderDetail();
+}
+$("#lessonTable").addEventListener("click", e => {
+  const tr = e.target.closest("[data-row]"); if (!tr) return;
+  dataSel = dataSel === tr.dataset.row ? null : tr.dataset.row;
+  $$("#lessonTable tr[data-row]").forEach(x => x.classList.toggle("sel", x.dataset.row === dataSel));
+  renderDetail();
+  if (dataSel) setTimeout(() => $("#detail").scrollIntoView({block:"start", behavior:"smooth"}), 50);
+});
+$("#dataStudent").onchange = e => { dataStudent = e.target.value; dataSel = null; renderData(); };
+async function getLesson(id){
+  if (S && id === S.id) return {W:S, L:LOG};
+  if (cloud.db) {
+    const col = userCol(), [w, l] = await Promise.all([col.doc("w-" + id).get(), col.doc("l-" + id).get()]);
+    if (!w.exists) return {};
+    const dw = clone(w.data()), dl = l.exists ? clone(l.data()) : {};
+    return {W:fixWork({...dw, id, images:(dw.images || []).map(x => "/_blob/" + x)}), L:{attempts:dl.attempts || [], check:dl.check || null, u:dl.updated || 0}, remote:true};
+  }
+  const W = loadWork(id); return W ? {W, L:loadLog(id)} : {};
+}
+function describe(x){
+  const q = v => "“" + (v || "") + "”";
+  switch (x.a) {
+    case "fix": case "capital": return q(x.f) + " → " + q(x.to);
+    case "add": return "added " + q(x.to);
+    case "take out": return "took out " + q(x.f);
+    case "took out added": return "took out added word " + q(x.f);
+    case "put back": return "put back " + q(x.f);
+    case "new paragraph": return "started a new paragraph at " + q(x.to);
+    case "join paragraphs": return "joined paragraphs at " + q(x.to);
+    case "label": return "labeled " + q(x.f) + " as " + x.to;
+    case "remove label": return "removed the label from " + q(x.f);
+    case "mark": return "put a " + x.to + " mark on page " + x.pg;
+    case "write": return "wrote " + q(x.to) + " on page " + x.pg;
+    case "rewrite": return "changed " + q(x.f) + " to " + q(x.to) + " on page " + x.pg;
+    case "box": return "boxed the " + x.to + " on page " + x.pg;
+    case "erase": return "erased " + (x.to || "a mark") + (x.pg ? " on page " + x.pg : "");
+    case "checked off": return "checked off " + (GOALS[x.g] ? GOALS[x.g][0] : "");
+    case "unchecked": return "unchecked " + (GOALS[x.g] ? GOALS[x.g][0] : "");
+    default: return x.a;
+  }
+}
+function changeList(W){
+  const out = []; let last = -2;
+  W.tokens.forEach((t, i) => {
+    if (t.ins && !t.del) {
+      const prev = out[out.length - 1];
+      if (prev && prev.kind === "added" && last === i - 1) prev.to += " " + t.t; else out.push({i, kind:"added", from:"", to:t.t, goal:punctOnly(t.t) ? "P" : "U"});
+      last = i; return;
+    }
+    if (!t.ins && t.del) out.push({i, kind:"took out", from:t.o, to:"", goal:punctOnly(t.o) ? "P" : "U"});
+    else if (!t.ins && t.t !== t.o) out.push({i, kind:"changed", from:t.o, to:t.t, goal:fixGoals(t.o, t.t)[0] || "U"});
+    if (!t.ins && t.p !== t.op) out.push({i, kind:t.p ? "new paragraph" : "joined paragraphs", from:"", to:t.t, goal:"R"});
+  });
+  return out;
+}
+async function renderDetail(){
+  const box = $("#detail");
+  if (!dataSel) { box.hidden = true; return; }
+  const id = dataSel;
+  box.hidden = false; box.innerHTML = '<p class="note">Loading…</p>';
+  let res; try { res = await getLesson(id); } catch { res = {}; }
+  if (id !== dataSel) return;
+  const {W, L} = res;
+  if (!W) { box.innerHTML = '<p class="status err">That lesson isn\'t available right now.</p>'; return; }
+  const sm = summarize(W, L), ck = L.check;
+  box.innerHTML = '<h2>' + esc(W.student || "No name") + (W.title ? " · " + esc(W.title) : "") + "</h2>" +
+    '<p class="note">' + (sm.first ? esc(new Date(sm.first).toLocaleString([], {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"})) + " · " +
+      Math.max(1, Math.round((sm.last - sm.first) / 60000)) + " min · " : "") + sm.n + " attempts, " + sm.undos + " undos · " + esc(sm.devices.join(", ") || "no device yet") + "</p>" +
+    '<div class="bar"><button class="btn small primary" data-act="open">Open this lesson</button>' +
+      (sample && W.tokens.length ? '<button class="btn small go" data-act="check">' + (ck ? "Check the fixes again with Claude" : "Check the fixes with Claude") + "</button>" : "") +
+      '<button class="btn small" data-act="csv">Copy attempts as CSV</button></div>' +
+      '<p class="note" id="checkNote">' + (W.tokens.length ? "Claude compares the student's fixes with the original writing and marks each one right or not yet." : "This lesson has no typed words, so only the attempts are shown. Add the words in Teacher setup to use the Claude check.") + "</p>" +
+    (ck ? "<h3>Claude's check · " + esc(dayText(ck.at)) + "</h3>" + (ck.summary ? "<p>" + esc(ck.summary) + "</p>" : "") +
+      '<div class="tablewrap"><table class="dtable"><thead><tr><th></th><th>Goal</th><th>Fix</th><th>Why</th></tr></thead><tbody>' +
+      (ck.changes || []).map(c => "<tr><td>" + (c.ok ? '<span class="okm">✓ Right</span>' : '<span class="nom">✗ Not yet</span>') + "</td><td>" + (GOALS[c.goal] ? '<span class="gl" style="--hc:' + GOALS[c.goal][1] + '">' + GOALS[c.goal][3] + "</span>" + GOALS[c.goal][0] : "") +
+        '</td><td class="wrap">' + esc(c.kind) + ": " + esc(c.from ? "“" + c.from + "”" : "") + (c.from && c.to ? " → " : "") + esc(c.to ? "“" + c.to + "”" : "") + '</td><td class="wrap">' + esc(c.why || "") + "</td></tr>").join("") +
+      "</tbody></table></div>" +
+      '<p class="note">Mistakes still left: ' + ["C","U","P","S"].map(k => GOALS[k][0] + " " + ((ck.missed || {})[k] ?? "–")).join(" · ") + "</p>" : "") +
+    "<h3>Every attempt</h3>" + (L.attempts.length ? '<div class="tablewrap"><table class="dtable"><thead><tr><th>Time</th><th>Device</th><th>Goal</th><th>What the student did</th><th>Hint spot</th></tr></thead><tbody>' +
+      L.attempts.map(x => "<tr><td>" + esc(timeText(x.t)) + "</td><td>" + esc(x.d || "") + "</td><td>" + (GOALS[x.g] ? '<span class="gl" style="--hc:' + GOALS[x.g][1] + '">' + GOALS[x.g][3] + "</span>" + GOALS[x.g][0] : "–") +
+        '</td><td class="wrap">' + esc(describe(x)) + "</td><td>" + (x.h ? (x.h === x.g ? '<span class="okm">on target</span>' : "flagged " + esc(GOALS[x.h] ? GOALS[x.h][0] : x.h)) : "") + "</td></tr>").join("") +
+      "</tbody></table></div>" : '<p class="note">No attempts yet.</p>');
+}
+$("#detail").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b || !dataSel) return;
+  const id = dataSel, act = b.dataset.act;
+  if (act === "open") {
+    if (S && S.id === id) { showScreen("edit"); return; }
+    if (cloud.db) { try { await openCloud(id); } catch { toast("Couldn't open that lesson. Check the internet connection."); } }
+    else { const w = loadWork(id); if (w) { useWork(w, loadLog(id)); showScreen("edit"); } }
+  }
+  if (act === "csv") {
+    const {L} = await getLesson(id); if (!L) return;
+    copyText([["Time","Device","Goal","Action","From","To","Hint spot"]].concat(L.attempts.map(x => [new Date(x.t).toLocaleString(), x.d || "", GOALS[x.g] ? GOALS[x.g][0] : "", x.a, x.f || "", x.to || "", x.h ? (GOALS[x.h] || [x.h])[0] : ""])));
+  }
+  if (act === "check") {
+    b.disabled = true; $("#checkNote").textContent = "Claude is checking the fixes. This can take up to a minute…";
+    try { await checkLesson(id); renderData(); }
+    catch (err) { $("#checkNote").textContent = ERR[err && err.code] || "Couldn't check the fixes this time. Try again later."; b.disabled = false; }
+  }
+});
+async function checkLesson(id){
+  const {W, L, remote: isRemote} = await getLesson(id);
+  if (!W || !W.tokens.length) throw new Error("no text");
+  const ch = changeList(W);
+  const prompt = `A teacher is scoring a student's editing lesson. The student edited their own writing to fix mistakes.
+
+ORIGINAL (what the student first wrote):
+${W.source}
+
+AFTER EDITING:
+${cleanTextOf(W)}
+
+Numbered list of the edits the student made:
+${ch.map((c, n) => (n + 1) + ". " + c.kind + ": " + JSON.stringify(c.from) + " -> " + JSON.stringify(c.to)).join("\n") || "(no edits)"}
+
+For each numbered edit decide whether it made the writing more correct ("ok": true) or not ("ok": false), and which goal it belongs to: "C" capitals, "U" usage (grammar, word choice, missing or extra words), "P" punctuation, "S" spelling, "R" paragraphs. Give a short reason a teacher can read, under 12 words.
+Then count the mistakes still left in the edited writing for each of C, U, P and S.
+Return JSON only: {"changes":[{"n":1,"ok":true,"goal":"S","why":"..."}],"missed":{"C":0,"U":0,"P":0,"S":0},"summary":"one or two sentences for the teacher"}`;
+  const res = await sample.json(prompt, {modelTier:"default"}) || {};
+  const changes = ch.map((c, n) => { const r = (res.changes || []).find(x => +x.n === n + 1) || {};
+    return {kind:c.kind, from:c.from, to:c.to, ok:!!r.ok, goal:GOALS[r.goal] ? r.goal : c.goal, why:String(r.why || "").slice(0, 120)}; });
+  const missed = {}; ["C","U","P","S"].forEach(k => missed[k] = Math.max(0, Math.round(+((res.missed || {})[k]) || 0)));
+  const check = {at:Date.now(), by:DEVICE.name, changes, missed, summary:String(res.summary || "").slice(0, 300)};
+  L.check = check;
+  if (S && S.id === id) { save(); return; }
+  if (isRemote) {
+    const col = userCol(), me = {by:DEVICE.id, byName:DEVICE.name};
+    await col.doc("l-" + id).set({...lBody(L), updated:Date.now(), ...me});
+    try { await col.doc("w-" + id).update({summary:summarize(W, L)}); } catch {}
+  } else store.set("wfb.l." + id, L);
+}
+function csvCell(v){ v = String(v ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function copyText(rows){
+  const text = rows.map(r => r.map(csvCell).join(",")).join("\n");
+  const out = $("#csvOut");
+  const fallback = () => { out.hidden = false; out.value = text; out.focus(); out.select(); toast("Select all and copy the text in the box."); };
+  try { navigator.clipboard.writeText(text).then(() => { out.hidden = true; toast("Copied. Paste it into Google Sheets or Excel."); }, fallback); } catch { fallback(); }
+}
+$("#dataCsv").onclick = () => {
+  const rows = dataRows().filter(r => !dataStudent || (r.student || "No name") === dataStudent), gk = Object.keys(GOALS);
+  const head = ["Date","Student","Writing","Goals","Devices","Minutes","Attempts","Undos"];
+  gk.forEach(k => { const n = GOALS[k][0]; head.push(n + " attempts", n + " fixes right", n + " fixes checked", n + " mistakes left", n + " hint spots fixed", n + " hint spots"); });
+  copyText([head].concat(rows.map(r => { const sm = r.summary || {g:{}};
+    const row = [new Date(sm.first || r.created || r.updated).toLocaleDateString(), r.student || "", r.title || "", (r.goals || []).map(k => GOALS[k] ? GOALS[k][0] : k).join(" "),
+      (sm.devices || []).join(" "), sm.first ? Math.max(1, Math.round((sm.last - sm.first) / 60000)) : "", sm.n || 0, sm.undos || 0];
+    gk.forEach(k => { const g = sm.g[k] || {}; row.push(g.a || 0, g.tot ? g.ok : "", g.tot || "", g.missed ?? "", g.flag ? g.fixed : "", g.flag || ""); });
+    return row; })));
+};
+$("#dataBtn").onclick = () => showScreen("data");
+$("#dataBack").onclick = () => showScreen("setup");
+$("#dataLesson").onclick = () => showScreen("edit");
+
 /* ---------- boot ---------- */
 const cur = store.get("wfb.cur", null);
 S = (cur && loadWork(cur)) || newWork(EXAMPLE, {title:"The Lost Dog", student:"Example", example:true});
+LOG = loadLog(S.id);
+setSync("local");
 buildKb(); setMode("fix"); setView("marks");
 
 if (window.claude && claude.use) {

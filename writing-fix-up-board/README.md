@@ -17,15 +17,36 @@ Open `index.html` in any browser (Chrome or Edge works best on a smartboard) and
 
 Tip: cover the student's name before taking the photo.
 
-## Taking pictures on an iPad and opening them on the smartboard
-This works in the claude.ai version. Sign in to the same claude.ai account on both devices.
-1. On the iPad, open the app, tap **Teacher**, then **Take a picture**. The camera opens. Take one picture per page. Tap **Take another page** for each extra page. Use **Turn ↻** if a page is sideways.
+## One lesson, any device
+In the claude.ai version, everything is saved to a private area of your claude.ai account as it happens: the writing, the photos, every edit, labels, drawings, the checklist and the attempts log. Sign in to the same claude.ai account on each device. Only you can see this data, even if you share the app with someone.
+
+**Switching devices in the middle of a lesson (for example, iPad to smartboard):** open the app on the new device. A green bar at the bottom says *A lesson is open on iPad: J.R.* Tap **Continue here** and the student picks up exactly where they left off. If both devices stay open, changes made on one appear on the other within a few seconds.
+
+**Taking pictures on the iPad for the board:**
+1. On the iPad, tap **Teacher**, then **Take a picture**. Take one picture per page, tapping **Take another page** for each extra page. Use **Turn ↻** if a page is sideways.
 2. Type the student's initials (and a title if you like), then tap **Send to the board**.
 3. Tap **Next student** and repeat for the next paper.
-4. On the smartboard, open the same app. A green **From iPad (number)** button appears at the top. Tap it (or open **Teacher**) to see **Pictures from your iPad**, then tap **Open for the lesson**.
-5. When you're done with a paper, tap **Delete** in that list to remove the pictures from your account.
+4. On the smartboard, the green bar says *New pages from iPad*. Tap **Open here**.
 
-Pictures are kept in your claude.ai account in a private area only you can see, even if you share the app with someone. They stay there until you delete them.
+Every lesson from every device is listed in **Saved work**. The status next to the fix counter shows *Saved to your account ✓*. If the internet drops, work keeps saving on that device and catches up when the connection comes back. Lessons saved on a device before this update are copied into your account the first time you open the app there.
+
+## Goals and attempts (**Student data**)
+In **Teacher setup**, step 3, choose the goals for the lesson: **C**apitals, **U**sage, **P**unctuation, **S**pelling, **¶** Paragraphs and **L**abeling. The student's **Checklist** shows the same goals.
+
+Every edit is saved as an attempt toward a goal, with the time and the device it was made on:
+- Fixing a word is sorted automatically: a case change counts as Capitals, an added or changed mark as Punctuation, a close respelling as Spelling, and other changes as Usage. A fix that changes both letters and punctuation counts toward both.
+- Adding or taking out words counts as Usage (or Punctuation for marks). New paragraphs count as Paragraphs. Labels and label boxes count as Labeling.
+- Proofreading marks and written words on the photo count toward their goal (≡ and / are Capitals, ⊙ is Punctuation, (sp) is Spelling, and so on).
+- Undo and checklist ticks are recorded but not counted as attempts.
+- If you used **Mark spots to check with Claude**, each attempt on a flagged word shows whether it was *on target*.
+
+Open **Teacher → Student data** to see:
+- A card for each goal: attempts, how many checked fixes were right, hint spots fixed, and mistakes still left.
+- A table of lessons, filterable by student, with attempts and accuracy per goal and the devices used.
+- Tap a lesson to see every attempt in order. **Check the fixes with Claude** marks each fix *right* or *not yet*, sorts it by goal, and counts mistakes still left. This feeds the accuracy numbers.
+- **Copy as CSV** and **Copy attempts as CSV** to paste into Google Sheets or Excel.
+
+Each device gets a name in the data (iPad, Smartboard…). Change it under **Teacher setup → Options → This device's name**.
 
 ## Student tools (big buttons on the left)
 | Tool | What the student does | Mark shown |
@@ -64,6 +85,7 @@ Along the top:
 - The yellow counter shows how many fixes the student has made.
 
 ## Saving
-- Work saves automatically in this browser on this computer. Open older pieces from **Saved work**.
+- In the claude.ai version, work saves to your claude.ai account (see *One lesson, any device*). The downloaded `index.html` saves only in that browser on that computer.
 - **Copy the clean copy** puts the finished writing on the clipboard so you can paste it into a document. The downloaded `index.html` also has **Print**.
-- Nothing is sent anywhere except the photos and text you choose to send to Claude with the Claude buttons.
+- Delete a lesson from **Saved work** to remove it, with its photos and data, from every device.
+- Photos and words go to Claude only when you press one of the Claude buttons.
