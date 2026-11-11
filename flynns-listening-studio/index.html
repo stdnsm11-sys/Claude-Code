@@ -294,6 +294,12 @@ body.board .turnbar .who{flex:1 1 520px}
 .opanel .ocap{font-family:var(--display);font-weight:700;font-size:.8em;padding:4px 10px;border-bottom:3px solid var(--ink);background-color:var(--lav);background-image:radial-gradient(rgba(255,255,255,.55) 1.6px,transparent 2px);background-size:9px 9px}
 .opanel .opic{background:var(--sky);border-bottom:3px solid var(--ink);aspect-ratio:4/3;max-width:100%;display:grid;place-items:center}
 .opanel .opic svg{width:100%;height:100%;display:block}
+.opanel .opic img{width:100%;height:100%;object-fit:cover;display:block}
+.picrow{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:6px 8px}
+.picrow img{width:56px;height:42px;object-fit:cover;border-radius:6px;border:2px solid var(--ink)}
+.picrow select{width:auto;max-width:100%;min-height:40px;flex:1 1 140px}
+.picup{display:inline-flex;align-items:center;cursor:pointer}
+#pic-msg:not(:empty){background:var(--gold-s);border:2px solid var(--gold);border-radius:10px;padding:6px 10px;color:var(--ink);font-weight:700}
 .opanel .opic svg.flynn,.opanel .opic>svg:not([viewBox="0 0 240 180"]){width:58%;height:auto}
 .opanel .obig{font-family:var(--display);font-weight:600;font-size:1.05em;line-height:1.2;padding:8px 10px 4px}
 .opanel .owords{display:flex;flex-wrap:wrap;gap:6px;padding:4px 10px 10px}
@@ -395,7 +401,21 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
         </details>
         <div class="field" id="org-ctl" hidden><span class="label">Comic panels beside the passage</span>
           <p class="mini" id="org-msg" aria-live="polite"></p>
-          <div class="row"><button class="sbtn" id="org-draw" type="button">Draw comic panels</button><button class="sbtn" id="org-stop" type="button" hidden>Stop</button></div></div>
+          <div class="row"><button class="sbtn" id="org-draw" type="button">Draw comic panels</button><button class="sbtn" id="org-stop" type="button" hidden>Stop</button></div>
+          <details id="pic-wrap" open><summary class="label" style="cursor:pointer;padding:6px 0">Pictures for the panels</summary>
+            <div class="stack" style="gap:10px;padding-top:4px">
+              <div class="field"><span class="mini"><b>1. Make them in Canva.</b> Copy this request, paste it into a new Claude chat with Canva connected, then in Canva choose Share → Download → PNG → All pages.</span>
+                <div class="row"><button class="sbtn" id="canva-copy" type="button">Copy Canva request</button></div>
+                <textarea id="canva-text" hidden readonly aria-label="Canva request"></textarea></div>
+              <div class="field"><span class="mini"><b>2. Add them here.</b> Upload the pictures from this device (they go into Panel 1, 2, 3… in filename order), or choose them from a Google Drive folder.</span>
+                <div class="row"><label class="sbtn picup">Upload pictures<input type="file" id="pic-files" accept="image/*" multiple hidden></label></div>
+                <div id="drv-row" class="stack" style="gap:6px" hidden>
+                  <input type="text" id="drv-folder" placeholder="Google Drive folder link or name" autocomplete="off" aria-label="Google Drive folder link or name">
+                  <div class="row"><button class="sbtn" id="drv-load" type="button">Show pictures in folder</button><button class="sbtn" id="drv-match" type="button" hidden>Match by name</button><button class="sbtn" id="drv-order" type="button" hidden>Use in order</button></div></div>
+                <p class="mini" id="drv-none">Google Drive folders work on the hosted claude.ai link with Google Drive connected.</p></div>
+              <div id="pic-rows" class="stack" style="gap:6px"></div>
+              <p class="mini" id="pic-msg" aria-live="polite"></p>
+            </div></details></div>
         <div class="row"><button class="btn pink" id="l-new">New passage</button><button class="btn blue" id="l-present">Present in student mode</button></div>
         <p class="mini" id="l-example"></p>
 
@@ -1438,7 +1458,9 @@ async function genTopic(g,user){
   }
   try{const c=await fetchLevel(g,cached?null:({text})=>{gotText=true;if(T.grade===g)tStatus(`Writing a ${gLong(g)} text… ${text.split(/\s+/).length} words so far`,true)});
     clearTimeout(waitT);if(T.grade!==g)return;
-    L.item=buildTopic(c);resetTrial();saveTopicLesson();tStatus('');renderListen();
+    const prev=L.item;L.item=buildTopic(c);
+    if(!L.item.panels&&prev&&prev.panels&&prev.topic&&prev.topic.topic===L.item.topic.topic&&prev.paras.length===L.item.paras.length&&prev.panels.some(x=>x.img)){ensurePanels(L.item);L.item.panels.forEach((x,i)=>x.img=prev.panels[i]&&prev.panels[i].img||null);c.panels=L.item.panels}
+    resetTrial();saveTopicLesson();tStatus('');renderListen();
     toast(`Grade ${gName(g)} text ready.`);PANEL.msg='';makePanels(false);
     if(user)prefetchAround(g);
   }catch(e){clearTimeout(waitT);if(T.grade!==g)return;
@@ -1478,7 +1500,7 @@ function fallbackPanel(it,pi){
 }
 function panelHTML(it,pi,blur){
   const P=(it.panels&&it.panels[pi])||fallbackPanel(it,pi);
-  const pic=cleanSVG(P.svg)||(it.theme==='flynn'?flynnSVG(''):(I[THEME_ICON[it.theme]]||I.book).replace('class="ic" ',''));
+  const pic=(P.img&&IMG_OK.test(P.img.src||''))?`<img src="${esc(P.img.src)}" alt="${esc(P.img.alt||('Picture for paragraph '+(pi+1)))}">`:cleanSVG(P.svg)||(it.theme==='flynn'?flynnSVG(''):(I[THEME_ICON[it.theme]]||I.book).replace('class="ic" ',''));
   return `<aside class="opanel${blur?' blurT':''}" aria-label="Comic panel for paragraph ${pi+1}"><div class="ocap">Panel ${pi+1}</div><div class="opic">${pic}</div>
     <div class="obig">${esc(P.caption||'')}</div>${P.words&&P.words.length?`<div class="owords">${P.words.slice(0,3).map(w=>`<span>${esc(w)}</span>`).join('')}</div>`:''}</aside>`;
 }
@@ -1495,29 +1517,156 @@ ${it.paras.map((ps,i)=>`Paragraph ${i+1}: ${ps.map(j=>it.plain[j]).join(' ')}`).
 
 Reply with only JSON: {"panels":[{"caption":"...","words":["...","..."],"svg":"<svg viewBox=\\"0 0 240 180\\">...</svg>"}]}`;
 }
-function orgStatus(){const el=$('#org-ctl');if(!el)return;
+function orgStatus(){const el=$('#org-ctl');if(!el)return;picRows();
   if(!orgOn()||!L.item||L.item.placeholder){el.hidden=true;return}el.hidden=false;
-  const drawn=!!(L.item.panels&&L.item.panels.length);
+  const drawn=!!(L.item.panels&&L.item.panels.length&&L.item.panels.some(x=>x.drawn));
   $('#org-msg').textContent=PANEL.busy?'Drawing a comic panel for each paragraph… (up to a minute)':PANEL.msg||(drawn?'Comic panels drawn by Claude. Look them over before showing her.':SAMPLE?'Showing simple panels made from the passage. Press Draw comic panels to have Claude draw a picture for each paragraph.':'Showing simple panels made from the passage. Pictures drawn by Claude need the hosted claude.ai link.');
   $('#org-draw').textContent=drawn?'Redraw comic panels':'Draw comic panels';$('#org-draw').disabled=!!PANEL.busy;$('#org-stop').hidden=!PANEL.busy;
 }
 async function makePanels(force){
   const it=L.item;if(!it||it.placeholder||!orgOn())return;
   if(!SAMPLE){PANEL.msg=SAMPLE_STATE==='pending'?'Still connecting to Claude. Try again in a few seconds.':'';orgStatus();return}
-  if(PANEL.busy||(!force&&it.panels&&it.panels.length===it.paras.length))return;
+  if(PANEL.busy||(!force&&it.panels&&it.panels.length===it.paras.length&&it.panels.every(x=>x.drawn)))return;
   PANEL.msg='';const ctl=new AbortController();PANEL.ctl=ctl;PANEL.busy=it;orgStatus();
   try{
     const r=await SAMPLE.json(panelPrompt(it),{modelTier:'default',signal:ctl.signal});
     const arr=(r&&Array.isArray(r.panels))?r.panels:[];
-    const panels=it.paras.map((_,i)=>{const x=arr[i]||{};return {caption:String(x.caption||fallbackPanel(it,i).caption).slice(0,80),words:(Array.isArray(x.words)?x.words:[]).slice(0,3).map(w=>String(w).slice(0,40)),svg:cleanSVG(x.svg)}});
+    const panels=it.paras.map((_,i)=>{const x=arr[i]||{};return {caption:String(x.caption||fallbackPanel(it,i).caption).slice(0,80),words:(Array.isArray(x.words)?x.words:[]).slice(0,3).map(w=>String(w).slice(0,40)),svg:cleanSVG(x.svg),drawn:true,img:(it.panels&&it.panels[i]&&it.panels[i].img)||null}});
     if(!arr.length)throw {code:'invalid_json'};
     it.panels=panels;
-    if(it.kind==='topic'&&it.topic){const c=T.cache[tKey(it.topic.grade)];if(c&&c.title===it.title)c.panels=panels}
-    if(L.item===it){if(it.kind==='topic')saveTopicLesson();else if(S.lesson&&S.lesson.item===it)saveSettings();else{S.lesson={cfg:cfgObj(),item:it};saveSettings()}}
+    persistPanels(it);
     PANEL.msg=panels.some(x=>!x.svg)?'Some pictures couldn\'t be drawn, so those panels show a simple picture.':'';
   }catch(e){PANEL.msg=e&&e.code==='cancelled'?'Stopped.':(SAMPLE_ERR[e&&e.code]||'The comic panels couldn\'t be drawn. Press Draw comic panels to try again.')}
   finally{PANEL.busy=null;PANEL.ctl=null;if(L.item===it&&L.phase==='listen')renderStage();orgStatus()}
 }
+
+/* ================= pictures for the comic panels: Canva request, uploads, Google Drive folder ================= */
+let ASSETS=null,MCP=null;
+const DRV={folder:'',files:[],busy:false};
+const IMG_OK=/^(\/_blob\/[0-9a-f]{32}|data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+\/=]+)$/;
+function ensurePanels(it){
+  if(!it.panels||it.panels.length!==it.paras.length){const old=it.panels||[];
+    it.panels=it.paras.map((_,i)=>Object.assign(fallbackPanel(it,i),old[i]?{svg:old[i].svg||'',drawn:!!old[i].drawn,img:old[i].img||null}:{}))}
+  return it.panels}
+function persistPanels(it){
+  if(it.kind==='topic'&&it.topic){const c=T.cache[tKey(it.topic.grade)];if(c&&c.title===it.title)c.panels=it.panels}
+  if(L.item===it){if(it.kind==='topic')saveTopicLesson();else if(S.lesson&&S.lesson.item===it)saveSettings();else{S.lesson={cfg:cfgObj(),item:it};saveSettings()}}
+}
+function picMsg(t){$('#pic-msg').textContent=t||''}
+async function shrink(blob,max,q){try{const bmp=await createImageBitmap(blob);const sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(bmp.width*sc));c.height=Math.max(1,Math.round(bmp.height*sc));
+  const x=c.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);
+  return await new Promise(r=>c.toBlob(b=>r(b||blob),'image/jpeg',q))}catch(e){return blob}}
+const blobToDataURL=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)});
+async function storeImage(blob,name){
+  if(ASSETS){const small=await shrink(blob,1400,.86);const r=await ASSETS.upload(small);return {src:'/_blob/'+r.id,id:r.id,alt:String(name||'')}}
+  const small=await shrink(blob,800,.8);return {src:await blobToDataURL(small),alt:String(name||'')};
+}
+function setPanelImg(pi,img){const it=L.item;if(!it||it.placeholder)return;ensurePanels(it);it.panels[pi].img=img;persistPanels(it);if(L.phase==='listen')renderStage();picRows()}
+const byName=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'});
+async function uploadFiles(files,startAt){
+  const it=L.item;if(!it||it.placeholder){picMsg('Make or choose a passage first.');return}
+  const list=[...files].filter(f=>/^image\//.test(f.type)).sort((a,b)=>byName(a.name,b.name));
+  if(!list.length){picMsg('Choose image files (PNG, JPG, GIF or WebP).');return}
+  for(let k=0;k<list.length&&startAt+k<it.paras.length;k++){
+    picMsg(`Adding picture ${k+1} of ${Math.min(list.length,it.paras.length-startAt)}…`);
+    try{setPanelImg(startAt+k,await storeImage(list[k],list[k].name.replace(/\.[^.]+$/,'')))}
+    catch(e){picMsg(e&&e.code==='quota_exceeded'?'The picture storage for this app is full. Remove some pictures and try again.':`That picture couldn't be added${e&&e.code?' ('+e.code+')':''}.`);return}
+  }
+  picMsg(list.length>it.paras.length-startAt?`Added ${it.paras.length-startAt} pictures. There were more pictures than panels, so the extra ones weren't used.`:'Pictures added.');
+}
+/* ---- Google Drive (the viewer's own connector) ---- */
+const DRIVE='Google Drive';
+const DRIVE_ERR={needs_reauth:'Google Drive needs to be reconnected. Go to claude.ai Settings → Connectors and reconnect Google Drive.',
+  server_not_connected:'Google Drive isn\'t connected to your claude.ai account. Add it in claude.ai Settings → Connectors.',
+  selection_required:'claude.ai needs you to choose which Google Drive account to use. Reload the page and choose one when asked.',
+  not_in_manifest:'This page isn\'t allowed to use Google Drive yet. Choose Allow when claude.ai asks, or turn it on in the page\'s Permissions menu.',
+  approval_required:'This page needs your approval to use Google Drive. Press the button again and choose Allow.',
+  blocked_by_policy:'Your organization doesn\'t allow this page to use Google Drive.',
+  server_unavailable:'Google Drive didn\'t answer. Wait a moment and try again.',consent_required:'Allow this page to use Google Drive, then try again.'};
+const driveErr=e=>DRIVE_ERR[e&&e.code]||(e&&e.code==='tool_error'?'Google Drive said: '+String(e.message||'').slice(0,160):`Google Drive had a problem${e&&e.code?' ('+e.code+')':''}. Try again.`);
+const folderId=v=>{v=String(v||'').trim();const m=v.match(/folders\/([\w-]{10,})/)||v.match(/[?&]id=([\w-]{10,})/);return m?m[1]:(/^[\w-]{25,}$/.test(v)?v:null)};
+const q=v=>String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+async function drvLoad(){
+  if(!MCP){picMsg('Google Drive pictures work on the hosted claude.ai link, with Google Drive connected to your account.');return}
+  const v=$('#drv-folder').value.trim();if(!v){picMsg('Paste the link to a Google Drive folder, or type its name.');return}
+  DRV.busy=true;picRows();picMsg('Looking in the folder…');
+  try{
+    let id=folderId(v);
+    if(!id){const r=await MCP.callTool(DRIVE,'search_files',{query:`mimeType = 'application/vnd.google-apps.folder' and title contains '${q(v)}' and trashed = false`,pageSize:5,excludeContentSnippets:true});
+      const f=((r.payload&&r.payload.files)||[])[0];if(!f){picMsg(`No Google Drive folder named "${v}" was found.`);return}id=String(f.id)}
+    const r=await MCP.callTool(DRIVE,'search_files',{query:`parentId = '${q(id)}' and mimeType contains 'image/' and trashed = false`,pageSize:100,excludeContentSnippets:true});
+    DRV.files=((r.payload&&Array.isArray(r.payload.files))?r.payload.files:[]).map(f=>({id:String(f.id||''),title:String(f.title||f.name||'picture'),mime:String(f.mimeType||'')}))
+      .filter(f=>f.id&&/^image\//.test(f.mime)).sort((a,b)=>byName(a.title,b.title));
+    DRV.folder=id;S.drvFolder=v;saveSettings();
+    picMsg(DRV.files.length?`Found ${DRV.files.length} picture${DRV.files.length>1?'s':''}. Choose one for each panel, or use Match by name or Use in order.`:'That folder has no pictures in it.');
+  }catch(e){picMsg(driveErr(e))}finally{DRV.busy=false;picRows()}
+}
+function findB64(r){
+  for(const b of (r&&r.content)||[]){if(b&&b.type==='image'&&b.data)return b.data;if(b&&b.type==='resource'&&b.resource&&b.resource.blob)return b.resource.blob}
+  let best='';const walk=(o,d)=>{if(o==null||d>6)return;if(typeof o==='string'){const t=o.replace(/^data:[^,]*,/,'').replace(/\s+/g,'');if(t.length>best.length&&t.length>=80&&/^[A-Za-z0-9+/=_-]+$/.test(t))best=t;return}
+    if(typeof o==='object')Object.values(o).forEach(v=>walk(v,d+1))};
+  walk(r&&r.payload,0);if(!best)((r&&r.content)||[]).forEach(b=>b&&typeof b.text==='string'&&walk(b.text,0));
+  return best.replace(/-/g,'+').replace(/_/g,'/');
+}
+async function drvToPanel(pi,f){
+  const r=await MCP.callTool(DRIVE,'download_file_content',{fileId:f.id});
+  const b64=findB64(r);if(!b64)throw {code:'no_image'};
+  const bin=atob(b64);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  setPanelImg(pi,await storeImage(new Blob([bytes],{type:f.mime||'image/png'}),f.title.replace(/\.[^.]+$/,'')));
+}
+async function drvAssign(plan){
+  const todo=plan.map((f,pi)=>[pi,f]).filter(x=>x[1]);if(!todo.length){picMsg('No pictures in the folder matched these panels. Choose them yourself from the lists.');return}
+  DRV.busy=true;picRows();
+  try{for(let k=0;k<todo.length;k++){picMsg(`Adding picture ${k+1} of ${todo.length}…`);await drvToPanel(todo[k][0],todo[k][1])}
+    picMsg(`Added ${todo.length} picture${todo.length>1?'s':''} from Google Drive.`)}
+  catch(e){picMsg(e&&e.code==='no_image'?'Google Drive sent that file back in a form the app can\'t read. Download it to this device and use Upload instead.':driveErr(e))}
+  finally{DRV.busy=false;picRows()}
+}
+const STOPW=new Set('the and for with that this from into they them their there what when where which while have has had was were are its it\'s you your our out how why who png jpg jpeg gif webp image picture panel page copy'.split(' '));
+const wordSet=t=>new Set(String(t).toLowerCase().replace(/\.[a-z0-9]+$/,'').split(/[^a-z0-9]+/).filter(w=>w.length>2&&!STOPW.has(w)).map(w=>w.replace(/s$/,'')));
+function matchByName(){const it=L.item;ensurePanels(it);const used=new Set();
+  return it.paras.map((ps,pi)=>{const pw=wordSet(ps.map(j=>it.plain[j]).join(' ')+' '+(it.panels[pi].caption||'')+' '+(it.panels[pi].words||[]).join(' '));
+    let best=null,bs=0;DRV.files.forEach(f=>{if(used.has(f.id))return;let sc=0;wordSet(f.title).forEach(w=>{if(pw.has(w))sc++});if(sc>bs){bs=sc;best=f}});
+    if(best)used.add(best.id);return best})}
+function canvaRequest(){const it=L.item;
+  return `Please use Canva to make a comic strip for my 3rd-grade student who is Deaf/Hard of Hearing and loves graphic novels.
+
+- Make one page for each panel below, landscape 4:3 (1200 × 900 px), so each panel can be exported as its own image.
+- Each page should clearly show what happens in that part of the passage, using realistic, school-appropriate photos or illustrations from Canva's library. Use a soft pastel blue and pink style with a comic-panel border.
+- Keep words off the pictures, except an optional short caption at the bottom.
+- Keep the pages in order: Panel 1, Panel 2, and so on.
+- When you're done, give me the link to the design.
+
+Title: ${it.title}
+
+${it.paras.map((ps,i)=>`Panel ${i+1}: ${ps.map(j=>it.plain[j]).join(' ')}`).join('\n\n')}`}
+function picRows(){
+  const box=$('#pic-rows');if(!box)return;const it=L.item;
+  if(!it||it.placeholder||!orgOn()){box.innerHTML='';return}
+  const panels=it.panels||[];
+  $('#drv-row').hidden=!MCP;$('#drv-none').hidden=!!MCP;
+  ['drv-load','drv-match','drv-order'].forEach(id=>$('#'+id).disabled=DRV.busy);$('#drv-match').hidden=$('#drv-order').hidden=!DRV.files.length;
+  box.innerHTML=it.paras.map((_,pi)=>{const P=panels[pi]||{};const has=P.img&&IMG_OK.test(P.img.src||'');
+    return `<div class="picrow"><b>Panel ${pi+1}</b>${has?`<img src="${esc(P.img.src)}" alt="">`:'<span class="mini">no picture</span>'}
+      ${DRV.files.length?`<select data-pi="${pi}" aria-label="Picture from Google Drive for panel ${pi+1}" ${DRV.busy?'disabled':''}><option value="">From Drive…</option>${DRV.files.map(f=>`<option value="${esc(f.id)}">${esc(f.title)}</option>`).join('')}</select>`:''}
+      <label class="sbtn picup">Upload<input type="file" accept="image/*" data-pi="${pi}" hidden></label>
+      ${has?`<button class="sbtn danger" type="button" data-rm="${pi}">Remove</button>`:''}</div>`}).join('');
+  $$('select[data-pi]',box).forEach(sel=>sel.onchange=()=>{const f=DRV.files.find(x=>x.id===sel.value);if(f)drvAssign(L.item.paras.map((_,i)=>i===+sel.dataset.pi?f:null))});
+  $$('input[type=file][data-pi]',box).forEach(inp=>inp.onchange=()=>{uploadFiles(inp.files,+inp.dataset.pi);inp.value=''});
+  $$('[data-rm]',box).forEach(b=>b.onclick=()=>{setPanelImg(+b.dataset.rm,null);picMsg('Picture removed.')});
+}
+if(window.claude&&window.claude.use){
+  window.claude.use('assets').then(a=>{ASSETS=a||null}).catch(()=>{});
+  window.claude.use('mcp').then(m=>{MCP=m||null;picRows()}).catch(()=>{});
+}
+$('#drv-load').onclick=drvLoad;
+$('#drv-folder').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drvLoad()}});
+$('#drv-match').onclick=()=>drvAssign(matchByName());
+$('#drv-order').onclick=()=>drvAssign(L.item.paras.map((_,i)=>DRV.files[i]||null));
+$('#pic-files').onchange=e=>{uploadFiles(e.target.files,0);e.target.value=''};
+$('#canva-copy').onclick=()=>{if(!L.item||L.item.placeholder){picMsg('Make or choose a passage first.');return}copyText(canvaRequest(),$('#canva-text'),'Canva request copied. Paste it into a new Claude chat.')};
+
 $('#org-draw').onclick=()=>makePanels(true);
 $('#org-stop').onclick=()=>{if(PANEL.ctl)PANEL.ctl.abort()};
 
@@ -1848,7 +1997,7 @@ $('#bk-restore').onclick=e=>{
   if(data.settings){store.settings=Object.assign(S,data.settings);saveSettings()}
   e.target.textContent='Restore from pasted backup';toast(`Restored ${added} records.`);renderAll();
 };
-function fillSettings(){$('#set-student').value=S.student;$('#set-dog').value=S.dog;$('#set-ald').value=S.ald;$('#set-hear').value=S.hear;$('#set-steps').value=S.steps.join('\n');$('#set-voice').checked=!!S.voice;$('#set-prompted').checked=!!S.prompted}
+function fillSettings(){if($('#drv-folder')&&S.drvFolder&&!$('#drv-folder').value)$('#drv-folder').value=S.drvFolder;$('#set-student').value=S.student;$('#set-dog').value=S.dog;$('#set-ald').value=S.ald;$('#set-hear').value=S.hear;$('#set-steps').value=S.steps.join('\n');$('#set-voice').checked=!!S.voice;$('#set-prompted').checked=!!S.prompted}
 $('#set-save').onclick=()=>{
   S.student=$('#set-student').value.trim()||'I.S.';S.dog=$('#set-dog').value.trim()||'Flynn';S.ald=$('#set-ald').value.trim()||'listening device';S.hear=$('#set-hear').value.trim()||'hearing devices';
   const st=$('#set-steps').value.split('\n').map(s=>s.trim()).filter(Boolean);if(st.length>=3)S.steps=st;
