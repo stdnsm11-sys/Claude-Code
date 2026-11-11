@@ -12,7 +12,7 @@
   --pink:#ffc9de; --pink-2:#ff9ec4; --pink-d:#cf4f86; --pink-s:#fff0f6;
   --lav:#e6defd; --lav-d:#7b62c9;
   --ink:#2b2f55; --muted:#5d6390; --line:#c5d2ee; --paper:#ffffff; --quiet:#f5f8fe;
-  --good:#23945e; --good-s:#dbf5e8; --try:#e0782f; --try-s:#ffecdc; --gold:#f5c542; --gold-s:#fff6d6;
+  --good:#1b7a4c; --good-s:#dbf5e8; --try:#e0782f; --try-s:#ffecdc; --gold:#f5c542; --gold-s:#fff6d6;
   --display:"Fredoka","Baloo 2","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Century Gothic","Segoe UI",system-ui,sans-serif;
   --r:16px;
@@ -35,6 +35,7 @@ button{cursor:pointer}
   display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
 .brand{display:flex;align-items:center;gap:10px;margin-right:auto;font-family:var(--display);font-weight:700;font-size:1.5em;line-height:1.05}
 .brand svg{width:54px;height:54px;flex:none}
+.brand-h{margin:0;font:inherit;line-height:inherit}
 .brand small{display:block;font-family:var(--body);font-weight:400;font-size:.5em;color:var(--muted)}
 .tabs{display:flex;flex-wrap:wrap;gap:8px}
 .tab{display:flex;align-items:center;gap:8px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:6px 16px 6px 8px;min-height:54px;
@@ -70,8 +71,8 @@ p{margin:0}
 
 /* teacher margin notes */
 .teacher{background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:12px;min-width:0;font-size:.92em}
-.teacher h3{font-family:var(--body);font-size:1em;font-weight:700;display:flex;align-items:center;gap:8px}
-.teacher h3::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.teacher h3,.teacher h2.t-h{font-family:var(--body);font-size:1em;font-weight:700;display:flex;align-items:center;gap:8px}
+.teacher h3::before,.teacher h2.t-h::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--muted)}
 .field{display:grid;gap:6px}
 
 /* controls */
@@ -84,7 +85,7 @@ p{margin:0}
 .btn svg{width:26px;height:26px}
 .sbtn{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:6px 12px;min-height:44px;font-weight:700;color:var(--ink)}
 .sbtn:hover{border-color:var(--muted)}
-.sbtn.danger{color:var(--pink-d)}
+.sbtn.danger{color:#a3285f}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;min-height:44px;font-weight:700}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -143,9 +144,9 @@ textarea{min-height:90px;resize:vertical}
 .dlist{display:grid;gap:8px}
 .dchip{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:8px 12px;min-height:50px;text-align:left;font-weight:700}
 .dchip .box{width:28px;height:28px;border-radius:8px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-weight:800}
-.dchip[aria-pressed="true"]{border-color:var(--good);background:var(--good-s)}
-.dchip[aria-pressed="true"] .box{background:var(--good);border-color:var(--good);color:#fff}
-.dchip[aria-pressed="true"] .box::after{content:"✓"}
+.dchip[aria-pressed="true"],.dchip.got{border-color:var(--good);background:var(--good-s)}
+.dchip[aria-pressed="true"] .box,.dchip.got .box{background:var(--good);border-color:var(--good);color:#fff}
+.dchip[aria-pressed="true"] .box::after,.dchip.got .box::after{content:"✓"}
 .dchip .cueword{font-weight:400;color:var(--muted);font-size:.85em}
 
 /* ALD lesson */
@@ -263,7 +264,7 @@ body.board .turnbar .who{flex:1 1 520px}
 .preview-tag{margin-left:auto;font-family:var(--body);font-size:.75em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:2px 10px}
 .tdrawer{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:15;display:grid;justify-items:end;gap:10px}
 .td-sheet{width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(43,47,85,.25);font-size:.92em}
-.example{font-size:.8em;font-weight:700;color:var(--pink-d)}
+.example{font-size:.8em;font-weight:700;color:#a3285f}
 #t-status:not(:empty){background:var(--gold-s);border:2px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:.95em;color:var(--ink);font-weight:700}
 .gseg button{min-width:3.2em;position:relative}
 .gseg .gbtn.ready::after{content:"";position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--good)}
@@ -288,6 +289,7 @@ body.board .turnbar .who{flex:1 1 520px}
 .opanel .opic svg{width:100%;height:100%;display:block}
 .opanel .opic img{width:100%;height:100%;object-fit:cover;display:block}
 .opanel .opic{position:relative}
+.nopic{position:relative}.nopic img{visibility:hidden}.nopic::before{content:"Picture unavailable";position:absolute;inset:0;display:grid;place-items:center;font-size:.8em;color:var(--muted);text-align:center;padding:4px}
 .pk-open{position:absolute;right:8px;bottom:8px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:4px 12px;font-family:var(--display);font-weight:600;font-size:.85em;box-shadow:2px 2px 0 var(--ink);cursor:pointer}
 .pk-open:hover{background:var(--pink)}
 /* picture picker: a side panel modeled on Canva's photo search (search box, suggestion chips, tabs, filters, 2-column results) */
@@ -350,7 +352,8 @@ body.board .opanel{border-width:4px}
 .sent.now-s{background:var(--pink);box-shadow:0 0 0 3px var(--pink)}
 .sent.now-t{background:var(--blue);box-shadow:0 0 0 3px var(--blue)}
 .blurT{filter:blur(6px);-webkit-user-select:none;user-select:none}
-.gpara.dim{opacity:.55}
+.gpara.dim{background:var(--quiet);color:var(--muted)}
+.gpara.dim .tag{color:var(--ink)}
 .turnbar{position:sticky;bottom:12px;z-index:4;width:100%;max-width:980px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;border:3px solid var(--ink);border-radius:18px;padding:10px 14px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);text-align:left}
 body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58px)}
 .turnbar.s{background:var(--pink-s)} .turnbar.t{background:var(--blue-s)}
@@ -391,7 +394,7 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
   <section class="view" id="view-listen">
     <div class="split">
       <aside class="teacher" aria-label="Teacher controls">
-        <h3>Teacher: set up the listening task</h3>
+        <h2 class="t-h">Teacher: set up the listening task</h2>
         <div class="field"><span class="label">IEP goal</span>
           <div class="seg" id="l-goal">
             <button data-v="1" aria-pressed="true">Goal 1 · Recall details</button>
@@ -483,10 +486,10 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
   <section class="view" id="view-ald" hidden>
     <div class="split">
       <aside class="teacher" aria-label="Teacher controls">
-        <h3>Teacher: ALD instruction &amp; practice</h3>
+        <h2 class="t-h">Teacher: ALD instruction &amp; practice</h2>
         <p class="mini">Goal 3: she identifies when and how to use her ALD and shows appropriate use (80% across 3 consecutive data opportunities).</p>
         <div class="field"><span class="label">Accommodations used</span><div id="a-acc" class="stack" style="gap:2px"></div></div>
-        <div class="field"><span class="label">Support given</span><select id="a-support"></select></div>
+        <div class="field"><span class="label">Support given</span><select id="a-support" aria-label="Support given"></select></div>
         <div class="field"><span class="label">Notes</span><textarea id="a-notes" placeholder="What did you notice?"></textarea></div>
         <label class="check"><input type="checkbox" id="a-counts" checked> <span>Count as a data collection opportunity</span></label>
         <p class="mini">Step names come from <b>Teacher data → Settings</b>, so they can match her actual device.</p>
@@ -512,10 +515,10 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
   <section class="view" id="view-speak" hidden>
     <div class="split">
       <aside class="teacher" aria-label="Teacher controls">
-        <h3>Teacher: real classroom opportunities</h3>
+        <h2 class="t-h">Teacher: real classroom opportunities</h2>
         <p class="mini">Goal 4 data. Log each real moment when the ALD would improve her access. A period meets the goal at 4 of 5 (80%) with at least 5 opportunities.</p>
         <div id="s-period"></div>
-        <div class="field"><span class="label">Setting</span><select id="s-ctx"></select></div>
+        <div class="field"><span class="label">Setting</span><select id="s-ctx" aria-label="Setting"></select></div>
         <div class="field"><span class="label">Did she recognize the need?</span>
           <div class="seg" id="s-rec"><button data-v="ind">On her own</button><button data-v="pr">With a prompt</button><button data-v="no">Not yet</button></div></div>
         <div class="field"><span class="label">Did she communicate it appropriately?</span>
@@ -524,9 +527,9 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
         <button class="btn good" id="s-log">Log this opportunity</button>
         <button class="sbtn" id="s-newperiod">Start a new data period</button>
         <hr style="border:0;border-top:2px dashed var(--line);width:100%">
-        <h3>Teacher: practice scenarios</h3>
+        <h2 class="t-h">Teacher: practice scenarios</h2>
         <div class="field"><span class="label">Accommodations used</span><div id="sp-acc" class="stack" style="gap:2px"></div></div>
-        <div class="field"><span class="label">Support given</span><select id="sp-support"></select></div>
+        <div class="field"><span class="label">Support given</span><select id="sp-support" aria-label="Support given for practice"></select></div>
         <label class="check"><input type="checkbox" id="sp-counts" checked> <span>Save practice score to data</span></label>
       </aside>
       <section class="panel">
@@ -559,13 +562,13 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
       <div class="panel-head blue"><h3>Settings</h3></div>
       <div class="stack" style="max-width:820px">
         <div class="row" style="align-items:stretch">
-          <div class="field" style="flex:1 1 180px"><span class="label">Student initials</span><input type="text" id="set-student"></div>
-          <div class="field" style="flex:1 1 180px"><span class="label">Dog's name</span><input type="text" id="set-dog"></div>
-          <div class="field" style="flex:1 1 220px"><span class="label">What she calls her ALD</span><input type="text" id="set-ald" placeholder="e.g. Roger, my FM, my mic"></div>
-          <div class="field" style="flex:1 1 220px"><span class="label">Her hearing devices</span><input type="text" id="set-hear" placeholder="e.g. hearing aids, cochlear implants"></div>
+          <div class="field" style="flex:1 1 180px"><span class="label">Student initials</span><input type="text" id="set-student" aria-label="Student initials"></div>
+          <div class="field" style="flex:1 1 180px"><span class="label">Dog's name</span><input type="text" id="set-dog" aria-label="Dog's name"></div>
+          <div class="field" style="flex:1 1 220px"><span class="label">What she calls her ALD</span><input type="text" id="set-ald" aria-label="What she calls her ALD" placeholder="e.g. Roger, my FM, my mic"></div>
+          <div class="field" style="flex:1 1 220px"><span class="label">Her hearing devices</span><input type="text" id="set-hear" aria-label="Her hearing devices" placeholder="e.g. hearing aids, cochlear implants"></div>
         </div>
         <div class="field"><span class="label">ALD steps, in order (one per line). These drive the lesson, the song panel cards, the sequencing practice and the "Show me" checklist.</span>
-          <textarea id="set-steps" style="min-height:200px"></textarea></div>
+          <textarea id="set-steps" aria-label="ALD steps, one per line" style="min-height:200px"></textarea></div>
         <div class="row">
           <label class="check"><input type="checkbox" id="set-voice"> <span>Allow computer voice (teacher's live voice is best for the goal)</span></label>
           <label class="check"><input type="checkbox" id="set-prompted"> <span>Goal 4: count "with a prompt" as a success</span></label>
@@ -882,7 +885,10 @@ const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e
 function remote(fn){if(!col)return;try{Promise.resolve(fn()).catch(()=>toast('Could not save to your account. Saved on this device.'))}catch(e){}}
 function putDoc(prefix,obj){saveLocal();remote(()=>col.doc(prefix+obj.id).set(JSON.parse(JSON.stringify(obj))))}
 function delDoc(prefix,id){saveLocal();remote(()=>col.doc(prefix+id).delete())}
-function saveSettings(){saveLocal();remote(()=>col.doc('settings').set(JSON.parse(JSON.stringify(store.settings))))}
+let settingsT=null;
+function flushSettings(){if(!settingsT)return;clearTimeout(settingsT);settingsT=null;remote(()=>col.doc('settings').set(JSON.parse(JSON.stringify(store.settings))))}
+function saveSettings(){saveLocal();if(!col)return;clearTimeout(settingsT);settingsT=setTimeout(()=>{settingsT=-1;flushSettings()},800)}
+addEventListener('pagehide',flushSettings);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSettings()});
 async function connect(){
   try{
     if(!window.claude||!window.claude.use)return;
@@ -942,7 +948,7 @@ function speak(lines,opts={}){
 }
 
 function renderHeader(){
-  $('#brand').innerHTML=`${flynnSVG('',true)}<span>${esc(S.dog||'Flynn')}'s Listening Studio<small>for ${esc(S.student||'I.S.')} · listen, remember, speak up</small></span>`;
+  $('#brand').innerHTML=`${flynnSVG('',true)}<h1 class="brand-h">${esc(S.dog||'Flynn')}'s Listening Studio<small>for ${esc(S.student||'I.S.')} · listen, remember, speak up</small></h1>`;
   $('#tab-listen').innerHTML=`${tabIcon.listen}Listen &amp; Remember`;
   $('#tab-ald').innerHTML=`${tabIcon.ald}My Listening Device`;
   $('#tab-speak').innerHTML=`${tabIcon.speak}Speak Up!`;
@@ -1055,10 +1061,13 @@ function generate(example){
   delete item.render;delete item.sentences;item.example=!!example;item.made=today();
   if(!item.paras)item.paras=[item.plain.map((_,i)=>i)];
   L.item=item;resetTrial();
-  if(!example){S.lesson={cfg:cfgObj(),item};saveSettings();PANEL.msg='';setTimeout(()=>makePanels(false))}
+  if(!example){S.lesson={cfg:cfgObj(),item};saveSettings();PANEL.msg='';schedulePanels(item)}
   renderListen();
 }
-function resetTrial(){faStop();paceStop();FA.item=null;if(typeof PK!=='undefined'&&PK.open){PK.results={};PK.q={};closePicker()}L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
+let panelsT=null;
+function schedulePanels(item){clearTimeout(panelsT);if(!orgOn())return;panelsT=setTimeout(()=>{if(L.item===item)makePanels(false)},1500)}
+function pkClearResults(){Object.values(PK.results).flat().forEach(r=>{if(r&&r.url)URL.revokeObjectURL(r.url)});Object.values(PK.thumbs).forEach(t=>{if(t&&t.url)URL.revokeObjectURL(t.url)});PK.results={};PK.thumbs={};PK.local={};PK.q={}}
+function resetTrial(){faStop();paceStop();FA.item=null;if(typeof PK!=='undefined'&&PK.open){pkClearResults();closePicker()}L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
 function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,follow:L.follow,hl:L.hl,wpm:L.wpm,theme:L.theme,keys:L.keys,mode:L.mode,tgrade:T.grade}}
 function saveLessonCfg(){if(S.lesson){S.lesson.cfg=cfgObj();saveSettings()}}
 const EXAMPLE_P={day:'Saturday',time:'morning',kid:'Maya',color:'blue',toy:'squeaky ball',snack:'apple slices',song:'a song about friendship'};
@@ -1172,7 +1181,7 @@ function renderStage(){
   } else if(L.phase==='recall'&&L.mode==='tap'){
     const qs=questions();
     if(L.qi>=qs.length){finishTap();return}
-    const q=qs[L.qi]; const fewer=false;
+    const q=qs[L.qi];
     st.innerHTML=`<div class="progress">${qs.map((_,i)=>`<i class="${i<L.qi?'done':i===L.qi?'on':''}"></i>`).join('')}</div>
       <div class="qcard"><div class="qtext">${esc(q.q)}</div>
       <div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div></div>${lookbackHTML()}`;
@@ -1273,11 +1282,11 @@ function renderScorePanel(){
     h+=`<div class="field"><span class="label">Key details she recalled (tap)</span><div class="dlist">${it.keys.map(d=>`<button class="dchip" data-id="${esc(d.id)}" aria-pressed="${L.marked.has(d.id)}"><span class="box"></span><span>${esc(d.a)} <span class="cueword">${esc(d.cue)}</span></span></button>`).join('')}</div></div>`;
     if(L.goal===2)h+=`<div class="field"><span class="label">Main idea: "${esc(it.main)}"</span><div class="seg" id="l-main"><button data-v="yes">Got it</button><button data-v="no">Not yet</button></div></div>`;
   } else if(L.phase==='review'&&L.mode==='tap'){
-    h+=`<div class="dlist">${L.answers.map(a=>`<div class="dchip" aria-pressed="${a.right}"><span class="box"></span><span>${esc(a.isMain?'Main idea':a.q)}<br><span class="cueword">${a.right?'':'Chose: '+esc(a.pick)+' · '}Answer: ${esc(a.a)}</span></span></div>`).join('')}</div>`;
+    h+=`<div class="dlist">${L.answers.map(a=>`<div class="dchip${a.right?' got':''}"><span class="box"></span><span>${esc(a.isMain?'Main idea':a.q)}<br><span class="cueword">${a.right?'':'Chose: '+esc(a.pick)+' · '}Answer: ${esc(a.a)}</span></span></div>`).join('')}</div>`;
   }
   const sc=score();
   h+=`<div class="${sc.meets?'ok':'warn'}"><b>${sc.correct} of ${sc.total} key details${L.goal===2?` · main idea ${sc.mainOk?'✓':'✗'}`:''} · ${sc.pct}%</b><br>${sc.meets?'Meets criterion (4+ details, 80%, ≤1 repetition).':'Does not meet criterion yet'+(sc.correct<4?' (needs 4+ details)':'')+(L.reps>1?' (more than 1 repetition)':'')+'.'}</div>
-    <div class="field"><span class="label">Support given</span><select id="l-support">${SUPPORTS.map(s=>`<option ${s===L.support?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+    <div class="field"><span class="label">Support given</span><select id="l-support" aria-label="Support given">${SUPPORTS.map(s=>`<option ${s===L.support?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
     <div class="field"><span class="label">Notes</span><textarea id="l-notes" placeholder="Details she added, how she answered…">${esc(L.notes)}</textarea></div>
     <label class="check"><input type="checkbox" id="l-counts" ${L.counts?'checked':''}> <span>Count as a data collection opportunity</span></label>
     <div class="row">${L.mode==='open'&&L.phase==='recall'&&accOn('listen','visual')?`<button class="sbtn" id="l-show">Show her the comic recap</button>`:''}<button class="btn good" id="l-save">${L.savedId?'Update saved trial':'Save trial'}</button></div>${L.savedId?'<p class="mini">Saved ✓ Change support or notes, then update. Press <b>New passage</b> for the next trial.</p>':''}`;
@@ -1314,7 +1323,6 @@ function wMatch(a,b){if(!a||!b)return false;if(a===b)return true;
   if(b.length>=4&&a.startsWith(b))return true;return false}
 function faWords(){const out=[];L.item.plain.forEach((s,si)=>s.split(/\s+/).filter(Boolean).forEach(t=>out.push({s:si,t,n:normW(t)})));return out}
 const APP_URL='https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ';
-const followOn=()=>voiceOn();
 let DICT_READY=!(window.claude&&window.claude.use);
 /* A lesson set to Her voice on the SMART Board uses Her finger on a device that can't do voice (like the iPad). */
 const effHL=()=>(L.hl==='voice'&&DICT_READY&&!DICT)?'finger':L.hl;
@@ -1357,7 +1365,7 @@ function faStart(){ // must run inside the click handler, before any await
 }
 function faStop(){try{if(DICT&&DICT.active())DICT.stop()}catch(e){}}
 function faUpdate(){
-  if(L.phase!=='listen'||!followOn())return;
+  if(L.phase!=='listen'||!voiceOn())return;
   const pF=faAlign(FA.finals), pA=faAlign(FA.finals+' '+FA.partial);
   FA.pos=Math.max(FA.pos,pF,pA);
   // move the pink highlight along with her reading
@@ -1399,7 +1407,7 @@ function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-s
 ['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;if(L.type==='topic'&&(T.topic||$('#t-topic').value).trim())genTopic(T.grade,true);else generate()})});
 /* ================= MY TOPIC: leveled informational text written by Claude (sample capability) ================= */
 let SAMPLE=null,SAMPLE_STATE=(window.claude&&window.claude.use)?'pending':'none';
-const T={grade:3,topic:'',source:'',cache:{},busy:{},ctls:[],info:null};
+const T={grade:3,topic:'',source:'',cache:{},busy:{},ctls:[]};
 const GRADES=[0,1,2,3,4,5,6,7,8];
 const gName=g=>g===0?'K':String(g);
 const gLong=g=>g===0?'kindergarten':'grade '+g;
@@ -1496,7 +1504,7 @@ async function genTopic(g,user){
   try{const c=await fetchLevel(g,cached?null:({text})=>{gotText=true;if(T.grade===g)tStatus(`Writing a ${gLong(g)} text… ${text.split(/\s+/).length} words so far`,true)});
     clearTimeout(waitT);if(T.grade!==g)return;
     const prev=L.item;L.item=buildTopic(c);
-    if(!L.item.panels&&prev&&prev.panels&&prev.topic&&prev.topic.topic===L.item.topic.topic&&prev.paras.length===L.item.paras.length&&prev.panels.some(x=>x.img)){ensurePanels(L.item);L.item.panels.forEach((x,i)=>{x.img=prev.panels[i]&&prev.panels[i].img||null;x.options=prev.panels[i]&&prev.panels[i].options||[]});c.panels=L.item.panels}
+    if(!L.item.panels&&prev&&prev.panels&&prev.topic&&prev.topic.topic===L.item.topic.topic&&prev.paras.length===L.item.paras.length){ensurePanels(L.item);L.item.panels.forEach((x,i)=>{const o=prev.panels[i]||{};x.img=o.img||null;x.options=o.options||[];x.image_prompt=o.image_prompt||'';if(o.drawn){x.drawn=true;x.caption=o.caption||x.caption;x.svg=o.svg||''}});c.panels=L.item.panels}
     resetTrial();saveTopicLesson();tStatus('');renderListen();
     toast(`Grade ${gName(g)} text ready.`);PANEL.msg='';makePanels(false);
     if(user)prefetchAround(g);
@@ -1810,16 +1818,16 @@ function openPicker(pi){const it=L.item;if(!it||it.placeholder)return;ensurePane
   PK.open=true;PK.pi=Math.max(0,Math.min(pi,it.paras.length-1));
   if(!(PK.pi in PK.q))PK.q[PK.pi]=pkDefaultQuery(it,PK.pi);
   if(!MCP||!CANVA_OK)PK.tab=(MCP&&DRV.files.length)?'drive':(PK.tab==='canva'?'upload':PK.tab);
-  PK.msg='';$('#picker').hidden=false;document.body.classList.add('pk-on');renderPicker();setTimeout(()=>{const q=$('#pk-q');if(q)q.focus()},50)}
+  PK.msg='';$('#picker').hidden=false;document.body.classList.add('pk-on');renderPicker();setTimeout(()=>{const q=$('#pk-q');if(q){q.focus();const e=q.value.length;try{q.setSelectionRange(e,e)}catch(x){}}},50)}
 function closePicker(){PK.open=false;$('#picker').hidden=true;document.body.classList.remove('pk-on')}
 function pkTile(inner,attrs,on,label){return `<button type="button" class="pk-tile${on?' on':''}" ${attrs} aria-pressed="${!!on}" aria-label="${esc(label)}">${inner}${on?'<span class="pk-check" aria-hidden="true">✓</span>':''}</button>`}
 function renderPicker(){
-  if(!PK.open)return;const it=L.item;if(!it||it.placeholder){closePicker();return}
+  if(!PK.open)return;const pkEl=$('#picker'),keepScroll=pkEl.scrollTop,ae=document.activeElement,keepQ=ae&&ae.id==='pk-q'?[ae.selectionStart,ae.selectionEnd]:null;const it=L.item;if(!it||it.placeholder){closePicker();return}
   const pi=PK.pi,P=ensurePanels(it)[pi],n=it.paras.length,cur=P.img&&P.img.src;
   const head=`<div class="pk-head"><button type="button" class="pk-nav" id="pk-prev" ${pi===0?'disabled':''} aria-label="Previous panel">‹</button>
     <div class="pk-title"><b>Panel ${pi+1} of ${n}</b><span>${esc((P.caption||'').slice(0,60))}</span></div>
     <button type="button" class="pk-nav" id="pk-next" ${pi>=n-1?'disabled':''} aria-label="Next panel">›</button><button type="button" class="pk-x" id="pk-close" aria-label="Close">✕</button></div>
-    <p class="pk-para">${esc(it.paras[pi].map(j=>it.plain[j]).join(' '))}</p>`;
+    <p class="pk-para" tabindex="0">${esc(it.paras[pi].map(j=>it.plain[j]).join(' '))}</p>`;
   const tabs=[['canva','Canva AI'],['drive','Drive folder'],['upload','Upload']];
   const search=PK.tab==='upload'?'':`<form class="pk-search" id="pk-form"><span class="pk-mag" aria-hidden="true">⌕</span><input type="search" id="pk-q" value="${esc(PK.q[pi]||'')}" placeholder="${PK.tab==='canva'?'Describe the picture you want':'Search picture names'}" aria-label="Search"><button type="button" class="pk-filt${PK.filters?' on':''}" id="pk-filt" aria-label="Filters" aria-pressed="${PK.filters}">☰</button><button type="submit" class="btn pink pk-go">Search</button></form>
     <div class="pk-chips">${pkChips(it,pi).map(c=>`<button type="button" class="pk-chip" data-chip="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
@@ -1851,7 +1859,8 @@ function renderPicker(){
   $('#picker').innerHTML=`${head}<div class="pk-tabs" role="tablist">${tabs.map(([v,l])=>`<button type="button" role="tab" aria-selected="${PK.tab===v}" data-tab="${v}">${l}</button>`).join('')}</div>${search}${filt}
     ${PK.msg?`<p class="pk-msg">${esc(PK.msg)}</p>`:''}<div class="pk-body">${grid}</div>${foot}
     <div class="pk-foot"><span class="mini">${cur?'This panel has a picture. Tap another to swap it.':'Tap a picture to put it in this panel.'}</span>${cur?`<button type="button" class="sbtn danger" id="pk-rm">Remove picture</button>`:''}${pi<n-1?`<button type="button" class="btn blue" id="pk-next2">Next panel ›</button>`:`<button type="button" class="btn good" id="pk-done">Done</button>`}</div>`;
-  const go=d=>{PK.pi=Math.max(0,Math.min(n-1,PK.pi+d));if(!(PK.pi in PK.q))PK.q[PK.pi]=pkDefaultQuery(it,PK.pi);PK.msg='';renderPicker()};
+  pkEl.scrollTop=keepScroll;if(keepQ&&$('#pk-q')){const q=$('#pk-q');q.focus({preventScroll:true});try{q.setSelectionRange(keepQ[0],keepQ[1])}catch(e){}}
+  const go=d=>{PK.pi=Math.max(0,Math.min(n-1,PK.pi+d));pkEl.scrollTop=0;if(!(PK.pi in PK.q))PK.q[PK.pi]=pkDefaultQuery(it,PK.pi);PK.msg='';renderPicker()};
   $('#pk-prev').onclick=()=>go(-1);$('#pk-next').onclick=()=>go(1);if($('#pk-next2'))$('#pk-next2').onclick=()=>go(1);
   $('#pk-close').onclick=closePicker;if($('#pk-done'))$('#pk-done').onclick=closePicker;
   $$('[data-tab]',$('#picker')).forEach(b=>b.onclick=()=>{PK.tab=b.dataset.tab;PK.msg='';renderPicker()});
@@ -1905,6 +1914,7 @@ async function pkLoadThumbs(files){if(pkThumbBusy||!MCP)return;pkThumbBusy=true;
   finally{pkThumbBusy=false}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pk]');if(b&&!document.body.classList.contains('student')){e.preventDefault();openPicker(+b.dataset.pk)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&PK.open)closePicker()});
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.parentElement&&t.closest('.opic,.pk-tile,.picrow'))t.parentElement.classList.add('nopic')},true);
 
 $('#drv-load').onclick=drvLoad;
 $('#drv-folder').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drvLoad()}});
@@ -2203,7 +2213,7 @@ function renderData(){
     }
     const st=streak>=3?['met','Criterion met: 3 in a row']:streak>0?['close',`${streak} of 3 in a row`]:['build','Building'];
     return `<section class="panel gcard"><div class="panel-head ${['','','blue','lav'][G.n-1]}"><h3>Goal ${G.n} · ${esc(G.name)}</h3></div>
-      <div class="row" style="justify-content:space-between"><span class="pill ${st[0]}">${st[1]}</span><div class="streak" aria-label="${Math.min(streak,3)} of 3 consecutive">${[0,1,2].map(i=>`<i class="${i<Math.min(streak,3)?'on':''}"></i>`).join('')}</div></div>
+      <div class="row" style="justify-content:space-between"><span class="pill ${st[0]}">${st[1]}</span><div class="streak" role="img" aria-label="${Math.min(streak,3)} of 3 consecutive">${[0,1,2].map(i=>`<i class="${i<Math.min(streak,3)?'on':''}"></i>`).join('')}</div></div>
       <p class="mini">${summary}</p>
       ${chartVals.length?chartSVG(chartVals):`<div class="empty">No ${G.n<4?'data opportunities':'data periods'} yet. ${G.n<3?'Run a trial on <b>Listen &amp; Remember</b> and press <b>Save trial</b>.':G.n===3?'Use the practice activities on <b>My Listening Device</b>.':'Log real classroom moments on <b>Speak Up!</b>'}</div>`}
       <details><summary class="label" style="cursor:pointer">Goal wording</summary><p class="gtext" style="margin-top:6px">${esc(G.text.replace(/I\.S\./g,S.student||'I.S.'))}</p></details></section>`;
@@ -2213,7 +2223,7 @@ function renderData(){
   if(!rows.length){$('#d-table').innerHTML=`<div class="empty">Trials appear here as soon as you save one. Each row keeps the score, repetitions, support and accommodations used.</div>`;return}
   const pmap=Object.fromEntries(store.periods.map(p=>[p.id,p.n]));
   const lvl={ind:'on her own',pr:'prompted',no:'not yet'};
-  $('#d-table').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Goal</th><th>Activity</th><th>Score</th><th>Reps</th><th>Support &amp; accommodations</th><th>Data?</th><th>Met?</th><th>Details &amp; notes</th><th></th></tr></thead><tbody>${rows.map(r=>r._t==='trial'?
+  $('#d-table').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Goal</th><th>Activity</th><th>Score</th><th>Reps</th><th>Support &amp; accommodations</th><th>Data?</th><th>Met?</th><th>Details &amp; notes</th><th>Delete</th></tr></thead><tbody>${rows.map(r=>r._t==='trial'?
     `<tr><td class="num">${fmtDate(r.date)}</td><td>${r.goal}</td><td>${esc(r.activity)}${r.title&&r.title!==r.activity?`<br><span class="mini">${esc(r.title)}</span>`:''}${r.present?`<br><span class="mini">${esc(r.present)}</span>`:''}</td><td class="num">${r.correct}/${r.total} · ${r.pct}%${r.main!==null&&r.main!==undefined?`<br><span class="mini">main idea ${r.main?'✓':'✗'}</span>`:''}</td><td class="num">${r.reps??'–'}</td><td>${esc(r.support)}${r.acc&&r.acc.length?`<br><span class="mini">${esc(r.acc.join('; '))}</span>`:''}</td><td>${r.counts?'<span class="yes">Yes</span>':'<span class="no">Practice</span>'}</td><td>${r.meets?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc((r.items||[]).join(' · '))}${r.notes?'<br><b>Note:</b> '+esc(r.notes):''}</span></td><td><button class="sbtn danger" data-del="t_${r.id}">Delete</button></td></tr>`:
     `<tr><td class="num">${fmtDate(r.date)}</td><td>4</td><td>Classroom opportunity<br><span class="mini">${esc(r.ctx)} · period ${pmap[r.period]||'?'}</span></td><td>${oppSuccess(r)?'<span class="yes">Success</span>':'Not yet'}</td><td class="num">–</td><td><span class="mini">Recognized: ${lvl[r.rec]}<br>Communicated: ${lvl[r.com]}</span></td><td><span class="yes">Yes</span></td><td>${oppSuccess(r)?'<span class="yes">Yes</span>':'<span class="no">No</span>'}</td><td><span class="mini">${esc(r.said||'')}</span></td><td><button class="sbtn danger" data-del="o_${r.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
   $$('[data-del]').forEach(b=>{let armed=0;b.onclick=()=>{
