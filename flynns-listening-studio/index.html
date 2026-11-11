@@ -297,6 +297,10 @@ body.board .turnbar .who{flex:1 1 520px}
 .opanel .opic img{width:100%;height:100%;object-fit:cover;display:block}
 .picrow{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:6px 8px}
 .picrow img{width:56px;height:42px;object-fit:cover;border-radius:6px;border:2px solid var(--ink)}
+.opts{display:inline-flex;gap:4px}
+.optb{border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
+.optb img{border-color:var(--line)!important}
+.optb.on img{border-color:var(--pink-d)!important;box-shadow:0 0 0 2px var(--pink-d)}
 .picrow select{width:auto;max-width:100%;min-height:40px;flex:1 1 140px}
 .picup{display:inline-flex;align-items:center;cursor:pointer}
 #pic-msg:not(:empty){background:var(--gold-s);border:2px solid var(--gold);border-radius:10px;padding:6px 10px;color:var(--ink);font-weight:700}
@@ -404,6 +408,7 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
           <div class="row"><button class="sbtn" id="org-draw" type="button">Draw comic panels</button><button class="sbtn" id="org-stop" type="button" hidden>Stop</button></div>
           <details id="pic-wrap" open><summary class="label" style="cursor:pointer;padding:6px 0">Pictures for the panels</summary>
             <div class="stack" style="gap:10px;padding-top:4px">
+              <p class="ok" id="canva-auto" hidden style="font-size:.85em"><b>Canva is connected.</b> The app asks Canva for a picture for each panel automatically. Pictures show in the panels as small previews; use <b>Open in Canva</b> to download a full-size copy and upload it here for the SMART Board. Each picture is saved in your Canva account and uses your Canva AI allowance.</p>
               <div class="field"><span class="mini"><b>1. Make them in Canva.</b> Copy this request, paste it into a new Claude chat with Canva connected, then in Canva choose Share → Download → PNG → All pages.</span>
                 <div class="row"><button class="sbtn" id="canva-copy" type="button">Copy Canva request</button></div>
                 <textarea id="canva-text" hidden readonly aria-label="Canva request"></textarea></div>
@@ -1459,7 +1464,7 @@ async function genTopic(g,user){
   try{const c=await fetchLevel(g,cached?null:({text})=>{gotText=true;if(T.grade===g)tStatus(`Writing a ${gLong(g)} text… ${text.split(/\s+/).length} words so far`,true)});
     clearTimeout(waitT);if(T.grade!==g)return;
     const prev=L.item;L.item=buildTopic(c);
-    if(!L.item.panels&&prev&&prev.panels&&prev.topic&&prev.topic.topic===L.item.topic.topic&&prev.paras.length===L.item.paras.length&&prev.panels.some(x=>x.img)){ensurePanels(L.item);L.item.panels.forEach((x,i)=>x.img=prev.panels[i]&&prev.panels[i].img||null);c.panels=L.item.panels}
+    if(!L.item.panels&&prev&&prev.panels&&prev.topic&&prev.topic.topic===L.item.topic.topic&&prev.paras.length===L.item.paras.length&&prev.panels.some(x=>x.img)){ensurePanels(L.item);L.item.panels.forEach((x,i)=>{x.img=prev.panels[i]&&prev.panels[i].img||null;x.options=prev.panels[i]&&prev.panels[i].options||[]});c.panels=L.item.panels}
     resetTrial();saveTopicLesson();tStatus('');renderListen();
     toast(`Grade ${gName(g)} text ready.`);PANEL.msg='';makePanels(false);
     if(user)prefetchAround(g);
@@ -1506,38 +1511,40 @@ function panelHTML(it,pi,blur){
 }
 const orgOn=()=>accOn('listen','organizer');
 function panelPrompt(it){
+  const svgLine=CANVA_OK?'':`- "svg": a simple, friendly picture of what happens in that paragraph, as one complete <svg> element with viewBox="0 0 240 180". Style: flat cartoon with rounded shapes, pastel colors (light blue #cfe5ff, pink #ffc9de, lavender #e6defd, soft yellow #fff6d6, plus natural greens and browns), dark navy outlines (#2b2f55, stroke-width 3), and a simple background such as sky and ground. Use ONLY these elements: svg, g, rect, circle, ellipse, line, polyline, polygon, path, text. No images, style, script, links, gradients, filters or masks. At most one short word inside the picture. Keep it gentle and school-appropriate; draw animals, places and objects rather than detailed human faces. Keep each svg under 3000 characters.\n`;
   return `You are illustrating a children's graphic-novel version of a reading passage for a 3rd-grade classroom. For EACH paragraph below, make one comic panel.
 For each panel give:
 - "caption": the paragraph's big idea in 4 to 9 simple words.
 - "words": 2 or 3 key words or short phrases copied exactly from that paragraph (names, places, things, numbers).
-- "svg": a simple, friendly picture of what happens in that paragraph, as one complete <svg> element with viewBox="0 0 240 180". Style: flat cartoon with rounded shapes, pastel colors (light blue #cfe5ff, pink #ffc9de, lavender #e6defd, soft yellow #fff6d6, plus natural greens and browns), dark navy outlines (#2b2f55, stroke-width 3), and a simple background such as sky and ground. Use ONLY these elements: svg, g, rect, circle, ellipse, line, polyline, polygon, path, text. No images, style, script, links, gradients, filters or masks. At most one short word inside the picture. Keep it gentle and school-appropriate; draw animals, places and objects rather than detailed human faces. Keep each svg under 3000 characters.
-There are ${it.paras.length} paragraph(s); return exactly ${it.paras.length} panel(s) in the same order.
+- "image_prompt": one sentence (under 40 words) telling an illustrator exactly what to draw for this paragraph: the main subject, what it is doing, and the setting. Concrete and visual, school-appropriate, no words or letters in the picture, no real people's names.
+${svgLine}There are ${it.paras.length} paragraph(s); return exactly ${it.paras.length} panel(s) in the same order.
 
 ${it.paras.map((ps,i)=>`Paragraph ${i+1}: ${ps.map(j=>it.plain[j]).join(' ')}`).join('\n\n')}
 
-Reply with only JSON: {"panels":[{"caption":"...","words":["...","..."],"svg":"<svg viewBox=\\"0 0 240 180\\">...</svg>"}]}`;
+Reply with only JSON: {"panels":[{"caption":"...","words":["...","..."],"image_prompt":"..."${CANVA_OK?'':',"svg":"<svg viewBox=\\"0 0 240 180\\">...</svg>"'}}]}`;
 }
 function orgStatus(){const el=$('#org-ctl');if(!el)return;picRows();
   if(!orgOn()||!L.item||L.item.placeholder){el.hidden=true;return}el.hidden=false;
   const drawn=!!(L.item.panels&&L.item.panels.length&&L.item.panels.some(x=>x.drawn));
-  $('#org-msg').textContent=PANEL.busy?'Drawing a comic panel for each paragraph… (up to a minute)':PANEL.msg||(drawn?'Comic panels drawn by Claude. Look them over before showing her.':SAMPLE?'Showing simple panels made from the passage. Press Draw comic panels to have Claude draw a picture for each paragraph.':'Showing simple panels made from the passage. Pictures drawn by Claude need the hosted claude.ai link.');
-  $('#org-draw').textContent=drawn?'Redraw comic panels':'Draw comic panels';$('#org-draw').disabled=!!PANEL.busy;$('#org-stop').hidden=!PANEL.busy;
+  $('#org-msg').textContent=(CV.busy||CV.msg)&&!PANEL.busy?CV.msg:PANEL.busy?(CANVA_OK?'Writing captions and picture ideas for each paragraph… then Canva will make the pictures.':'Drawing a comic panel for each paragraph… (up to a minute)'):PANEL.msg||(drawn?'Comic panels drawn by Claude. Look them over before showing her.':SAMPLE?'Showing simple panels made from the passage. Press Draw comic panels to have Claude draw a picture for each paragraph.':'Showing simple panels made from the passage. Pictures drawn by Claude need the hosted claude.ai link.');
+  $('#org-draw').textContent=CANVA_OK?(drawn?'Redo captions':'Make captions and pictures'):(drawn?'Redraw comic panels':'Draw comic panels');$('#org-draw').disabled=!!PANEL.busy||CV.busy;$('#org-stop').hidden=!PANEL.busy&&!CV.busy;$('#canva-auto').hidden=!CANVA_OK;
 }
 async function makePanels(force){
   const it=L.item;if(!it||it.placeholder||!orgOn())return;
-  if(!SAMPLE){PANEL.msg=SAMPLE_STATE==='pending'?'Still connecting to Claude. Try again in a few seconds.':'';orgStatus();return}
-  if(PANEL.busy||(!force&&it.panels&&it.panels.length===it.paras.length&&it.panels.every(x=>x.drawn)))return;
+  if(!SAMPLE){PANEL.msg=SAMPLE_STATE==='pending'?'Still connecting to Claude. Try again in a few seconds.':'';orgStatus();canvaPictures();return}
+  if(PANEL.busy)return;
+  if(!force&&it.panels&&it.panels.length===it.paras.length&&it.panels.every(x=>x.drawn)){canvaPictures();return}
   PANEL.msg='';const ctl=new AbortController();PANEL.ctl=ctl;PANEL.busy=it;orgStatus();
   try{
     const r=await SAMPLE.json(panelPrompt(it),{modelTier:'default',signal:ctl.signal});
     const arr=(r&&Array.isArray(r.panels))?r.panels:[];
-    const panels=it.paras.map((_,i)=>{const x=arr[i]||{};return {caption:String(x.caption||fallbackPanel(it,i).caption).slice(0,80),words:(Array.isArray(x.words)?x.words:[]).slice(0,3).map(w=>String(w).slice(0,40)),svg:cleanSVG(x.svg),drawn:true,img:(it.panels&&it.panels[i]&&it.panels[i].img)||null}});
+    const panels=it.paras.map((_,i)=>{const x=arr[i]||{};return {caption:String(x.caption||fallbackPanel(it,i).caption).slice(0,80),words:(Array.isArray(x.words)?x.words:[]).slice(0,3).map(w=>String(w).slice(0,40)),svg:CANVA_OK?'':cleanSVG(x.svg),image_prompt:String(x.image_prompt||'').slice(0,400),drawn:true,img:(it.panels&&it.panels[i]&&it.panels[i].img)||null,options:(it.panels&&it.panels[i]&&it.panels[i].options)||[]}});
     if(!arr.length)throw {code:'invalid_json'};
     it.panels=panels;
     persistPanels(it);
-    PANEL.msg=panels.some(x=>!x.svg)?'Some pictures couldn\'t be drawn, so those panels show a simple picture.':'';
+    PANEL.msg=CANVA_OK?'':panels.some(x=>!x.svg)?'Some pictures couldn\'t be drawn, so those panels show a simple picture.':'';
   }catch(e){PANEL.msg=e&&e.code==='cancelled'?'Stopped.':(SAMPLE_ERR[e&&e.code]||'The comic panels couldn\'t be drawn. Press Draw comic panels to try again.')}
-  finally{PANEL.busy=null;PANEL.ctl=null;if(L.item===it&&L.phase==='listen')renderStage();orgStatus()}
+  finally{PANEL.busy=null;PANEL.ctl=null;if(L.item===it&&L.phase==='listen')renderStage();orgStatus();if(L.item===it)canvaPictures()}
 }
 
 /* ================= pictures for the comic panels: Canva request, uploads, Google Drive folder ================= */
@@ -1546,7 +1553,7 @@ const DRV={folder:'',files:[],busy:false};
 const IMG_OK=/^(\/_blob\/[0-9a-f]{32}|data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+\/=]+)$/;
 function ensurePanels(it){
   if(!it.panels||it.panels.length!==it.paras.length){const old=it.panels||[];
-    it.panels=it.paras.map((_,i)=>Object.assign(fallbackPanel(it,i),old[i]?{svg:old[i].svg||'',drawn:!!old[i].drawn,img:old[i].img||null}:{}))}
+    it.panels=it.paras.map((_,i)=>Object.assign(fallbackPanel(it,i),old[i]?{svg:old[i].svg||'',drawn:!!old[i].drawn,img:old[i].img||null,options:old[i].options||[],image_prompt:old[i].image_prompt||''}:{}))}
   return it.panels}
 function persistPanels(it){
   if(it.kind==='topic'&&it.topic){const c=T.cache[tKey(it.topic.grade)];if(c&&c.title===it.title)c.panels=it.panels}
@@ -1649,17 +1656,92 @@ function picRows(){
   ['drv-load','drv-match','drv-order'].forEach(id=>$('#'+id).disabled=DRV.busy);$('#drv-match').hidden=$('#drv-order').hidden=!DRV.files.length;
   box.innerHTML=it.paras.map((_,pi)=>{const P=panels[pi]||{};const has=P.img&&IMG_OK.test(P.img.src||'');
     return `<div class="picrow"><b>Panel ${pi+1}</b>${has?`<img src="${esc(P.img.src)}" alt="">`:'<span class="mini">no picture</span>'}
+      ${(P.options||[]).length>1?`<span class="opts">${P.options.map((o,k)=>o&&IMG_OK.test(o.src||'')?`<button type="button" class="optb${P.img&&P.img.src===o.src?' on':''}" data-pi="${pi}" data-opt="${k}" aria-label="Use picture option ${k+1} for panel ${pi+1}" aria-pressed="${!!(P.img&&P.img.src===o.src)}"><img src="${esc(o.src)}" alt=""></button>`:'').join('')}</span>`:''}
+      ${MCP&&CANVA_OK?`<button class="sbtn" type="button" data-more="${pi}" ${CV.busy?'disabled':''}>More options</button>`:''}
+      ${P.img&&P.img.canva?`<a class="sbtn" href="https://www.canva.com/M/${esc(P.img.canva)}" target="_blank" rel="noopener">Open in Canva</a>`:''}
       ${DRV.files.length?`<select data-pi="${pi}" aria-label="Picture from Google Drive for panel ${pi+1}" ${DRV.busy?'disabled':''}><option value="">From Drive…</option>${DRV.files.map(f=>`<option value="${esc(f.id)}">${esc(f.title)}</option>`).join('')}</select>`:''}
       <label class="sbtn picup">Upload<input type="file" accept="image/*" data-pi="${pi}" hidden></label>
       ${has?`<button class="sbtn danger" type="button" data-rm="${pi}">Remove</button>`:''}</div>`}).join('');
   $$('select[data-pi]',box).forEach(sel=>sel.onchange=()=>{const f=DRV.files.find(x=>x.id===sel.value);if(f)drvAssign(L.item.paras.map((_,i)=>i===+sel.dataset.pi?f:null))});
   $$('input[type=file][data-pi]',box).forEach(inp=>inp.onchange=()=>{uploadFiles(inp.files,+inp.dataset.pi);inp.value=''});
   $$('[data-rm]',box).forEach(b=>b.onclick=()=>{setPanelImg(+b.dataset.rm,null);picMsg('Picture removed.')});
+  $$('.optb',box).forEach(b=>b.onclick=()=>{const P=L.item.panels[+b.dataset.pi];const o=P&&P.options&&P.options[+b.dataset.opt];if(o)setPanelImg(+b.dataset.pi,o)});
+  $$('[data-more]',box).forEach(b=>b.onclick=()=>canvaPictures({panel:+b.dataset.more}));
 }
 if(window.claude&&window.claude.use){
   window.claude.use('assets').then(a=>{ASSETS=a||null}).catch(()=>{});
-  window.claude.use('mcp').then(m=>{MCP=m||null;picRows()}).catch(()=>{});
+  window.claude.use('mcp').then(m=>{MCP=m||null;picRows();if(MCP)MCP.listTools().then(r=>{CANVA_OK=((r&&r.servers)||[]).some(x=>x.server===CANVA&&x.authStatus!=='needs_reauth'&&(x.tools||[]).length);orgStatus()}).catch(()=>{})}).catch(()=>{});
 }
+
+/* ---- Canva: make a picture for each panel automatically (the viewer's own Canva connector) ---- */
+const CANVA='Canva';let CANVA_OK=false;
+const CV={busy:false,stop:false,msg:''};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function findField(r,key){
+  const look=(o,d)=>{if(o==null||d>6)return undefined;if(typeof o==='object'){if(Object.prototype.hasOwnProperty.call(o,key)&&typeof o[key]!=='object')return o[key];for(const v of Object.values(o)){const f=look(v,d+1);if(f!==undefined)return f}}return undefined};
+  let f=look(r&&r.payload,0);if(f!==undefined)return f;
+  for(const b of (r&&r.content)||[]){if(b&&b.type==='text'&&typeof b.text==='string'){try{f=look(JSON.parse(b.text),0);if(f!==undefined)return f}catch(e){}}}
+  return undefined;
+}
+function findMediaId(r){
+  const ok=x=>typeof x==='string'&&/^M[A-Za-z0-9_-]{6,24}$/.test(x)?x:'';
+  for(const b of (r&&r.content)||[]){if(!b)continue;
+    if(b.type==='resource_link'&&b.uri){const m=String(b.uri).match(/canva\.com\/M\/([A-Za-z0-9_-]+)/);if(m&&ok(m[1]))return m[1]}
+    if(b.type==='text'&&typeof b.text==='string'){const m=b.text.match(/media id is (M[A-Za-z0-9_-]+)/)||b.text.match(/canva\.com\/M\/(M[A-Za-z0-9_-]+)/);if(m&&ok(m[1]))return m[1]}}
+  const id=findField(r,'id');return ok(id);
+}
+const STYLE=" Bright, friendly children's book illustration in soft pastel colors, gentle and school-appropriate, no words or letters in the picture.";
+function imagePrompt(it,pi){const P=(it.panels&&it.panels[pi])||{};
+  const base=(P.image_prompt&&String(P.image_prompt).trim())||('A picture of this part of a story: '+it.paras[pi].slice(0,2).map(j=>it.plain[j]).join(' '));
+  return (base.replace(/\s+$/,'').replace(/[^.!?]$/,'$&.')+STYLE).slice(0,900)}
+const CANVA_ERR={needs_reauth:'Canva needs to be reconnected. Go to claude.ai Settings → Connectors and reconnect Canva.',
+  server_not_connected:'Canva isn\'t connected to your claude.ai account. Connect it in claude.ai Settings → Connectors.',
+  selection_required:'claude.ai needs you to choose which Canva account to use. Reload the page and choose one when asked.',
+  not_in_manifest:'This page isn\'t allowed to use Canva yet. Choose Allow when claude.ai asks, or turn it on in the page\'s Permissions menu.',
+  approval_required:'This page needs your approval to use Canva. Press More options and choose Allow.',
+  blocked_by_policy:'Your organization doesn\'t allow this page to use Canva.',server_unavailable:'Canva didn\'t answer. Wait a moment and press More options to try again.',
+  consent_required:'Allow this page to use Canva, then try again.',cancelled:'Stopped.',timeout:'Canva took too long to make a picture. Press More options to try again.',
+  no_job:'Canva didn\'t start the picture. Press More options to try again.',no_image:'Canva made the picture but didn\'t send it back. Use Open in Canva, download it, and upload it here.'};
+const canvaErr=e=>CANVA_ERR[e&&e.code]||(e&&e.code==='canva_failed'?'Canva couldn\'t make that picture'+(e.message?': '+String(e.message).slice(0,140):'.')+' Press More options to try a new one.':e&&e.code==='tool_error'?'Canva said: '+String(e.message||'').slice(0,160):`Canva had a problem${e&&e.code?' ('+e.code+')':''}. Press More options to try again.`);
+async function canvaOne(it,pi){
+  const r=await MCP.callTool(CANVA,'generate-image',{prompt:imagePrompt(it,pi),aspectRatio:'LANDSCAPE_4_3',user_intent:'Make a picture for one comic panel in a classroom reading app for a 3rd grader'});
+  const jobId=findField(r,'jobId');if(!jobId)throw {code:'no_job'};
+  const t0=Date.now();
+  for(;;){
+    if(CV.stop)throw {code:'cancelled'};
+    await wait(Date.now()-t0<12000?3000:4500);
+    if(CV.stop)throw {code:'cancelled'};
+    const j=await MCP.callTool(CANVA,'get-generate-image-job',{jobId:String(jobId),user_intent:'Get the finished picture for a comic panel'},{cache:false});
+    const st=String(findField(j,'status')||'').toUpperCase();
+    if(st==='FAILURE')throw {code:'canva_failed',message:findField(j,'failureMessage')||''};
+    if(st==='SUCCESS'){
+      const block=((j&&j.content)||[]).find(b=>b&&b.type==='image'&&b.data);
+      if(block){const bin=atob(String(block.data));const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+        const img=await storeImage(new Blob([bytes],{type:block.mimeType||'image/png'}),(it.panels[pi]&&it.panels[pi].caption)||('Picture for paragraph '+(pi+1)));
+        img.canva=findMediaId(j);return img}
+    }
+    if(Date.now()-t0>150000)throw {code:st==='SUCCESS'?'no_image':'timeout'};
+  }
+}
+async function canvaPictures(opts={}){
+  const it=L.item;if(!it||it.placeholder||!orgOn()||!MCP||!CANVA_OK||CV.busy)return;
+  ensurePanels(it);
+  const targets=opts.panel!=null?[opts.panel]:it.paras.map((_,i)=>i).filter(i=>!(it.panels[i].options&&it.panels[i].options.length)&&!it.panels[i].img);
+  if(!targets.length)return;
+  CV.busy=true;CV.stop=false;CV.msg='';orgStatus();
+  try{
+    for(let k=0;k<targets.length;k++){
+      if(CV.stop){CV.msg='Stopped.';break}
+      const pi=targets[k];CV.msg=targets.length>1?`Canva is making picture ${k+1} of ${targets.length} (about 20 seconds each)…`:`Canva is making another picture for panel ${pi+1}…`;orgStatus();
+      const img=await canvaOne(it,pi);
+      const P=it.panels[pi];P.options=[...(P.options||[]),img].slice(-4);if(!P.img||opts.panel!=null)P.img=img;
+      persistPanels(it);if(L.item===it&&L.phase==='listen')renderStage();picRows();
+    }
+    if(!CV.stop)CV.msg='Canva pictures are ready. Pick a different one for any panel below, or press More options. Look them over before showing her.';
+  }catch(e){CV.msg=canvaErr(e)}
+  finally{CV.busy=false;orgStatus()}
+}
+
 $('#drv-load').onclick=drvLoad;
 $('#drv-folder').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drvLoad()}});
 $('#drv-match').onclick=()=>drvAssign(matchByName());
@@ -1668,7 +1750,7 @@ $('#pic-files').onchange=e=>{uploadFiles(e.target.files,0);e.target.value=''};
 $('#canva-copy').onclick=()=>{if(!L.item||L.item.placeholder){picMsg('Make or choose a passage first.');return}copyText(canvaRequest(),$('#canva-text'),'Canva request copied. Paste it into a new Claude chat.')};
 
 $('#org-draw').onclick=()=>makePanels(true);
-$('#org-stop').onclick=()=>{if(PANEL.ctl)PANEL.ctl.abort()};
+$('#org-stop').onclick=()=>{if(PANEL.ctl)PANEL.ctl.abort();CV.stop=true};
 
 $('#t-go').onclick=()=>genTopic(T.grade,true);
 $('#t-stop').onclick=()=>{T.ctls.forEach(c=>c.abort());tStatus('Stopped.')};
