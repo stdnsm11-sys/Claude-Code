@@ -26,6 +26,20 @@ Other options: set Chrome as the device's default browser, or bookmark the link 
 - She can reach the **Next** and answer buttons, which sit low on the screen. The tabs at the top may be out of her reach, so switch activities for her.
 - On a shared classroom computer, sign out of claude.ai at the end of the day so student data stays private.
 
+## Devices: SMART Board, iPad 10, Windows laptop
+The app adjusts itself to each screen; every feature is available on all three unless noted.
+- **SMART Board (Windows PC):** use Chrome or Edge and set **This screen → Smartboard** in teacher mode for large text and buttons. **Full screen** hides the browser bars. Her voice highlighting works here with a microphone near her.
+- **iPad 10 (landscape or portrait):** everything works by touch, including press-and-hold for teacher mode and Teacher tools. In teacher mode on iPad landscape, comic panels drop below their paragraphs in the preview, so the text has room. **Her voice** highlighting isn't available on any iPad browser; use **Her finger** or **Pacer**. A lesson set to Her voice uses Her finger automatically on the iPad.
+- **Windows laptop (including 125% and 150% display scaling):** on short screens the header scrolls away and the reading page gets more room. Her voice highlighting works in Chrome or Edge.
+- **Keyboard and presentation clickers (laptop and board):** on the reading page, **→**, **Space**, **Enter** or **Page Down** goes to the next turn, and **←** or **Page Up** goes back. During questions, **1–4** picks an answer. **Esc** closes a Speak-Up card or the picture picker.
+
+## Sharing a lesson
+In teacher mode, press **Share lesson** (next to *Present in student mode*), then **Copy link**. The whole lesson travels inside the link: the passage, how it's presented (taking turns, she reads it herself, highlighting), the student-facing accommodations, the comic-panel captions and pictures, and the questions.
+- Whoever opens the link sees **only that lesson in student view**: no teacher mode, no data, no settings, and nothing is saved on their device. Your student's name and data are never included.
+- **To make it public:** on claude.ai, open this app's **Share** menu and set access to **Anyone with the link**. Until then, only people you've shared the app with can open it.
+- Comic-panel pictures show for people in your school's claude.ai organization; other viewers see each panel's caption and key words. A lesson set to *Her voice* is shared with *Her finger* highlighting, and questions you score by listening are shared as tap-the-answer questions.
+- Each link is a snapshot. If you change the lesson, press **Share lesson** again for a new link. **Open the full studio** (top of a shared lesson) takes you back to your own studio.
+
 ## Two modes
 - **Student mode** opens first, every time. She sees only her comic panels, the activity tabs and her stickers. It opens on the most recent lesson you made, or on an example lesson (a two-paragraph *Flynn's Day at the Dog Park* that you take turns reading) before you've made one.
 - **Teacher mode:** press and hold **Teacher: hold** (top right) for about a second. A quick tap does nothing, so she won't wander in by accident. Here you choose the goal, passage category, theme, length, key details, how she answers and the accommodations, score trials and see **Teacher data**. The pink panels show a live **student preview**. Press **Present in student mode** or **Start student mode** to hand the screen back.
