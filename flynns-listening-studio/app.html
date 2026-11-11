@@ -814,7 +814,8 @@ async function connect(){
     const seen={t:new Set(),p:new Set(),o:new Set()};
     const merge=(arr,k,obj)=>{const i=arr.findIndex(x=>x.id===obj.id);if(i>=0)arr[i]=obj;else arr.push(obj);seen[k].add(obj.id)};
     let hadSettings=false;
-    snap.docs.forEach(doc=>{const v=doc.data();if(!v)return;
+    snap.docs.forEach(doc=>{const raw=doc.data();if(!raw)return;const v=JSON.parse(JSON.stringify(raw)); // stored data comes back frozen; work on an editable copy
+
       if(doc.id==='settings'){Object.assign(store.settings,v);hadSettings=true}
       else if(doc.id.startsWith('t_'))merge(store.trials,'t',v);
       else if(doc.id.startsWith('p_'))merge(store.periods,'p',v);
