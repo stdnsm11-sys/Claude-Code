@@ -295,6 +295,45 @@ body.board .turnbar .who{flex:1 1 520px}
 .opanel .opic{background:var(--sky);border-bottom:3px solid var(--ink);aspect-ratio:4/3;max-width:100%;display:grid;place-items:center}
 .opanel .opic svg{width:100%;height:100%;display:block}
 .opanel .opic img{width:100%;height:100%;object-fit:cover;display:block}
+.opanel .opic{position:relative}
+.pk-open{position:absolute;right:8px;bottom:8px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:4px 12px;font-family:var(--display);font-weight:600;font-size:.85em;box-shadow:2px 2px 0 var(--ink);cursor:pointer}
+.pk-open:hover{background:var(--pink)}
+/* picture picker: a side panel modeled on Canva's photo search (search box, suggestion chips, tabs, filters, 2-column results) */
+.picker{position:fixed;top:0;right:0;bottom:0;z-index:22;width:min(460px,100vw);background:var(--paper);border-left:3px solid var(--ink);box-shadow:-8px 0 30px rgba(43,47,85,.25);
+  overflow:auto;display:flex;flex-direction:column;gap:10px;padding:max(12px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) 14px;font-size:.92em}
+.pk-head{display:flex;align-items:center;gap:8px}
+.pk-title{flex:1;min-width:0;display:grid}.pk-title b{font-family:var(--display);font-size:1.2em}.pk-title span{color:var(--muted);font-size:.85em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-nav,.pk-x{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--paper);font-size:1.3em;line-height:1;cursor:pointer}
+.pk-nav[disabled]{opacity:.35;cursor:default}
+.pk-para{margin:0;font-size:.85em;color:var(--muted);max-height:5.5em;overflow:auto;border-left:4px solid var(--pink-2);padding-left:8px}
+.pk-tabs{display:flex;gap:4px;border-bottom:2px solid var(--line)}
+.pk-tabs button{border:0;background:none;padding:8px 12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
+.pk-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--pink-d)}
+.pk-search{display:flex;align-items:center;gap:6px;border:2px solid var(--ink);border-radius:12px;padding:4px 4px 4px 10px}
+.pk-search input{border:0;min-height:40px;padding:4px;flex:1;min-width:0}.pk-search input:focus{outline:none}
+.pk-search:focus-within{box-shadow:0 0 0 3px var(--gold)}
+.pk-mag{font-size:1.3em;color:var(--muted)}
+.pk-filt{width:40px;height:40px;border-radius:10px;border:2px solid var(--line);background:var(--paper);cursor:pointer}.pk-filt.on{background:var(--lav);border-color:var(--lav-d)}
+.pk-go{min-height:40px;padding:4px 14px;font-size:.95em}
+.pk-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.pk-chip{flex:none;border:2px solid var(--line);background:var(--quiet);border-radius:999px;padding:4px 12px;font-weight:700;cursor:pointer;white-space:nowrap}.pk-chip:hover{border-color:var(--ink)}
+.pk-filters{display:grid;gap:6px;background:var(--quiet);border-radius:12px;padding:10px}
+.pk-sw{display:flex;gap:8px}.pk-sw button{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer}.pk-sw button.on{box-shadow:0 0 0 3px var(--ink)}
+.pk-body{flex:1}
+.pk-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk-tile{position:relative;border:3px solid transparent;border-radius:12px;padding:0;background:var(--quiet);aspect-ratio:4/3;max-width:100%;overflow:hidden;cursor:pointer;display:block;width:100%}
+.pk-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.pk-tile:hover{border-color:var(--ink)}.pk-tile.on{border-color:var(--pink-d)}
+.pk-check{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:var(--pink-d);color:#fff;display:grid;place-items:center;font-weight:800}
+.pk-name{position:absolute;left:0;right:0;bottom:0;background:rgba(43,47,85,.75);color:#fff;font-size:.75em;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-skel{display:grid;place-items:center;text-align:center;padding:8px;color:var(--muted);font-size:.8em;cursor:default;background:linear-gradient(100deg,var(--quiet) 30%,#e8edf8 50%,var(--quiet) 70%);background-size:200% 100%;animation:pkshine 1.4s linear infinite}
+@keyframes pkshine{to{background-position:-200% 0}}
+.pk-err{display:grid;place-items:center;padding:8px;font-size:.78em;color:var(--ink);background:var(--try-s);cursor:default}
+.pk-empty{color:var(--muted);text-align:center;padding:18px 8px}
+.pk-msg{margin:0;background:var(--gold-s);border:2px solid var(--gold);border-radius:10px;padding:6px 10px;font-weight:700}
+.pk-drop{display:grid;gap:4px;place-items:center;text-align:center;border:3px dashed var(--muted);border-radius:14px;padding:30px 12px;cursor:pointer;background:var(--quiet)}
+.pk-foot{position:sticky;bottom:0;background:var(--paper);border-top:2px solid var(--line);padding-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+body.board .picker{width:min(560px,100vw)}
 .picrow{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:6px 8px}
 .picrow img{width:56px;height:42px;object-fit:cover;border-radius:6px;border:2px solid var(--ink)}
 .opts{display:inline-flex;gap:4px}
@@ -552,6 +591,7 @@ body.student .turnbar{bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 58
   </section>
 </main>
 <div class="celebrate" id="celebrate" aria-hidden="true"></div>
+<aside class="picker t-only" id="picker" hidden aria-label="Choose a picture for a comic panel"></aside>
 <div class="tdrawer s-only" id="tdrawer">
   <div class="td-sheet" id="td-sheet" hidden>
     <b>Teacher tools</b>
@@ -1026,7 +1066,7 @@ function generate(example){
   if(!example){S.lesson={cfg:cfgObj(),item};saveSettings();PANEL.msg='';setTimeout(()=>makePanels(false))}
   renderListen();
 }
-function resetTrial(){faStop();paceStop();FA.item=null;L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
+function resetTrial(){faStop();paceStop();FA.item=null;if(typeof PK!=='undefined'&&PK.open){PK.results={};PK.q={};closePicker()}L.turn=0;L.reps=0;L.phase='listen';L.qi=0;L.answers=[];L.marked=new Set();L.main=null;L.notes='';L.savedId=null}
 function cfgObj(){return {goal:L.goal,type:L.type,len:L.len,paras:L.paras,spp:L.spp,present:L.present,turnBy:L.turnBy,first:L.first,hideT:L.hideT,follow:L.follow,hl:L.hl,wpm:L.wpm,theme:L.theme,keys:L.keys,mode:L.mode,tgrade:T.grade}}
 function saveLessonCfg(){if(S.lesson){S.lesson.cfg=cfgObj();saveSettings()}}
 const EXAMPLE_P={day:'Saturday',time:'morning',kid:'Maya',color:'blue',toy:'squeaky ball',snack:'apple slices',song:'a song about friendship'};
@@ -1506,7 +1546,7 @@ function fallbackPanel(it,pi){
 function panelHTML(it,pi,blur){
   const P=(it.panels&&it.panels[pi])||fallbackPanel(it,pi);
   const pic=(P.img&&IMG_OK.test(P.img.src||''))?`<img src="${esc(P.img.src)}" alt="${esc(P.img.alt||('Picture for paragraph '+(pi+1)))}">`:cleanSVG(P.svg)||(it.theme==='flynn'?flynnSVG(''):(I[THEME_ICON[it.theme]]||I.book).replace('class="ic" ',''));
-  return `<aside class="opanel${blur?' blurT':''}" aria-label="Comic panel for paragraph ${pi+1}"><div class="ocap">Panel ${pi+1}</div><div class="opic">${pic}</div>
+  return `<aside class="opanel${blur?' blurT':''}" aria-label="Comic panel for paragraph ${pi+1}"><div class="ocap">Panel ${pi+1}</div><div class="opic">${pic}<button type="button" class="pk-open t-only" data-pk="${pi}">Choose picture</button></div>
     <div class="obig">${esc(P.caption||'')}</div>${P.words&&P.words.length?`<div class="owords">${P.words.slice(0,3).map(w=>`<span>${esc(w)}</span>`).join('')}</div>`:''}</aside>`;
 }
 const orgOn=()=>accOn('listen','organizer');
@@ -1569,7 +1609,7 @@ async function storeImage(blob,name){
   if(ASSETS){const small=await shrink(blob,1400,.86);const r=await ASSETS.upload(small);return {src:'/_blob/'+r.id,id:r.id,alt:String(name||'')}}
   const small=await shrink(blob,800,.8);return {src:await blobToDataURL(small),alt:String(name||'')};
 }
-function setPanelImg(pi,img){const it=L.item;if(!it||it.placeholder)return;ensurePanels(it);it.panels[pi].img=img;persistPanels(it);if(L.phase==='listen')renderStage();picRows()}
+function setPanelImg(pi,img){const it=L.item;if(!it||it.placeholder)return;ensurePanels(it);it.panels[pi].img=img;persistPanels(it);if(L.phase==='listen')renderStage();picRows();if(PK.open&&PK.pi===pi)renderPicker()}
 const byName=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'});
 async function uploadFiles(files,startAt){
   const it=L.item;if(!it||it.placeholder){picMsg('Make or choose a passage first.');return}
@@ -1660,6 +1700,7 @@ function picRows(){
       ${MCP&&CANVA_OK?`<button class="sbtn" type="button" data-more="${pi}" ${CV.busy?'disabled':''}>More options</button>`:''}
       ${P.img&&P.img.canva?`<a class="sbtn" href="https://www.canva.com/M/${esc(P.img.canva)}" target="_blank" rel="noopener">Open in Canva</a>`:''}
       ${DRV.files.length?`<select data-pi="${pi}" aria-label="Picture from Google Drive for panel ${pi+1}" ${DRV.busy?'disabled':''}><option value="">From Drive…</option>${DRV.files.map(f=>`<option value="${esc(f.id)}">${esc(f.title)}</option>`).join('')}</select>`:''}
+      <button class="sbtn" type="button" data-pk="${pi}">Choose picture</button>
       <label class="sbtn picup">Upload<input type="file" accept="image/*" data-pi="${pi}" hidden></label>
       ${has?`<button class="sbtn danger" type="button" data-rm="${pi}">Remove</button>`:''}</div>`}).join('');
   $$('select[data-pi]',box).forEach(sel=>sel.onchange=()=>{const f=DRV.files.find(x=>x.id===sel.value);if(f)drvAssign(L.item.paras.map((_,i)=>i===+sel.dataset.pi?f:null))});
@@ -1741,6 +1782,137 @@ async function canvaPictures(opts={}){
   }catch(e){CV.msg=canvaErr(e)}
   finally{CV.busy=false;orgStatus()}
 }
+
+
+/* ================= picture picker: Canva-style search panel for one comic panel ================= */
+const PK={local:{},open:false,pi:0,tab:'canva',q:{},filters:false,style:'cartoon',color:'pastel',orient:'h',results:{},thumbs:{},stop:false,busy:0,msg:''};
+const PK_STYLE={cartoon:"Bright, friendly children's book illustration",watercolor:'Soft watercolor illustration for a children\'s book',photo:'Realistic, natural photo-style picture'};
+const PK_COLOR={pastel:'in soft pastel colors (light blue, pink, lavender)',bright:'in bright, cheerful colors',natural:'in natural, true-to-life colors',any:''};
+const b64ToBlob=(b64,type)=>{const bin=atob(String(b64));const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new Blob([bytes],{type:type||'image/png'})};
+function pkChips(it,pi){const P=(it.panels&&it.panels[pi])||fallbackPanel(it,pi);
+  const out=[];const add=t=>{t=String(t||'').trim();if(t&&t.length<40&&!out.some(x=>x.toLowerCase()===t.toLowerCase()))out.push(t)};
+  (P.words||[]).forEach(add);add(P.caption);
+  const stop=new Set(['the','and','with','that','this','from','into','they','them','their','there','were','was','have','has','had','what','when','where','which','while','very','then','than','some','every','would','could','about','after','before','because','just','also','your','she','her','his','him','its','out','for','are','but','not','all','can','one','two','day']);
+  const counts={};it.paras[pi].forEach(j=>it.plain[j].toLowerCase().replace(/[^a-z' ]/g,' ').split(/\s+/).forEach(w=>{if(w.length>3&&!stop.has(w))counts[w]=(counts[w]||0)+1}));
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([w])=>add(w));
+  return out.slice(0,7)}
+function pkDefaultQuery(it,pi){const P=(it.panels&&it.panels[pi])||{};return String(P.image_prompt||P.caption||fallbackPanel(it,pi).caption||'').replace(/\s+/g,' ').trim().slice(0,160)}
+function pkPrompt(q){return `${q.replace(/[.\s]+$/,'')}. ${PK_STYLE[PK.style]}${PK_COLOR[PK.color]?' '+PK_COLOR[PK.color]:''}, gentle and school-appropriate, no words or letters in the picture.`.slice(0,900)}
+async function canvaGen(prompt,aspect,stopped){
+  const r=await MCP.callTool(CANVA,'generate-image',{prompt,aspectRatio:aspect||'LANDSCAPE_4_3',user_intent:'Make a picture option for a comic panel in a classroom reading app for a 3rd grader'});
+  const jobId=findField(r,'jobId');if(!jobId)throw {code:'no_job'};
+  const t0=Date.now();
+  for(;;){
+    if(stopped())throw {code:'cancelled'};
+    await wait(Date.now()-t0<12000?3000:4500);
+    if(stopped())throw {code:'cancelled'};
+    const j=await MCP.callTool(CANVA,'get-generate-image-job',{jobId:String(jobId),user_intent:'Get a finished picture option for a comic panel'},{cache:false});
+    const st=String(findField(j,'status')||'').toUpperCase();
+    if(st==='FAILURE')throw {code:'canva_failed',message:findField(j,'failureMessage')||''};
+    if(st==='SUCCESS'){const block=((j&&j.content)||[]).find(b=>b&&b.type==='image'&&b.data);
+      if(block)return {blob:b64ToBlob(block.data,block.mimeType),mediaId:findMediaId(j)}}
+    if(Date.now()-t0>150000)throw {code:st==='SUCCESS'?'no_image':'timeout'};
+  }
+}
+function openPicker(pi){const it=L.item;if(!it||it.placeholder)return;ensurePanels(it);
+  PK.open=true;PK.pi=Math.max(0,Math.min(pi,it.paras.length-1));
+  if(!(PK.pi in PK.q))PK.q[PK.pi]=pkDefaultQuery(it,PK.pi);
+  if(!MCP||!CANVA_OK)PK.tab=(MCP&&DRV.files.length)?'drive':(PK.tab==='canva'?'upload':PK.tab);
+  PK.msg='';$('#picker').hidden=false;document.body.classList.add('pk-on');renderPicker();setTimeout(()=>{const q=$('#pk-q');if(q)q.focus()},50)}
+function closePicker(){PK.open=false;$('#picker').hidden=true;document.body.classList.remove('pk-on')}
+function pkTile(inner,attrs,on,label){return `<button type="button" class="pk-tile${on?' on':''}" ${attrs} aria-pressed="${!!on}" aria-label="${esc(label)}">${inner}${on?'<span class="pk-check" aria-hidden="true">✓</span>':''}</button>`}
+function renderPicker(){
+  if(!PK.open)return;const it=L.item;if(!it||it.placeholder){closePicker();return}
+  const pi=PK.pi,P=ensurePanels(it)[pi],n=it.paras.length,cur=P.img&&P.img.src;
+  const head=`<div class="pk-head"><button type="button" class="pk-nav" id="pk-prev" ${pi===0?'disabled':''} aria-label="Previous panel">‹</button>
+    <div class="pk-title"><b>Panel ${pi+1} of ${n}</b><span>${esc((P.caption||'').slice(0,60))}</span></div>
+    <button type="button" class="pk-nav" id="pk-next" ${pi>=n-1?'disabled':''} aria-label="Next panel">›</button><button type="button" class="pk-x" id="pk-close" aria-label="Close">✕</button></div>
+    <p class="pk-para">${esc(it.paras[pi].map(j=>it.plain[j]).join(' '))}</p>`;
+  const tabs=[['canva','Canva AI'],['drive','Drive folder'],['upload','Upload']];
+  const search=PK.tab==='upload'?'':`<form class="pk-search" id="pk-form"><span class="pk-mag" aria-hidden="true">⌕</span><input type="search" id="pk-q" value="${esc(PK.q[pi]||'')}" placeholder="${PK.tab==='canva'?'Describe the picture you want':'Search picture names'}" aria-label="Search"><button type="button" class="pk-filt${PK.filters?' on':''}" id="pk-filt" aria-label="Filters" aria-pressed="${PK.filters}">☰</button><button type="submit" class="btn pink pk-go">Search</button></form>
+    <div class="pk-chips">${pkChips(it,pi).map(c=>`<button type="button" class="pk-chip" data-chip="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
+  const filt=PK.filters&&PK.tab==='canva'?`<div class="pk-filters">
+    <span class="label">Style</span><div class="seg" id="pk-style"><button data-v="cartoon">Cartoon</button><button data-v="watercolor">Watercolor</button><button data-v="photo">Photo-like</button></div>
+    <span class="label">Colour</span><div class="pk-sw" id="pk-color">${[['pastel','#ffc9de','Pastel'],['bright','#ff9f1c','Bright'],['natural','#6a994e','Natural'],['any','#ffffff','Any']].map(([v,c,l])=>`<button type="button" data-v="${v}" class="${PK.color===v?'on':''}" style="background:${c}" aria-label="${l}" aria-pressed="${PK.color===v}" title="${l}"></button>`).join('')}</div>
+    <span class="label">Orientation</span><div class="seg" id="pk-orient"><button data-v="h">Horizontal</button><button data-v="sq">Square</button></div></div>`:'';
+  let grid='',foot='';
+  if(PK.tab==='canva'){
+    if(!MCP||!CANVA_OK)grid=`<p class="pk-empty">Canva isn't connected for this page. Connect Canva in claude.ai Settings → Connectors, then reload. You can still use your Drive folder or Upload.</p>`;
+    else{const saved=(P.options||[]).filter(o=>o&&IMG_OK.test(o.src||''));const res=PK.results[pi]||[];
+      const tiles=[...saved.map((o,k)=>pkTile(`<img src="${esc(PK.local[o.src]||o.src)}" alt="">`,`data-saved="${k}"`,cur===o.src,'Saved picture '+(k+1))),
+        ...res.filter(r=>!r.stored||!saved.some(o=>o.src===r.stored.src)).map((r,k)=>r.status==='pending'?`<div class="pk-tile pk-skel" aria-label="Canva is making a picture"><span>Finding a picture…</span></div>`:r.status==='error'?`<div class="pk-tile pk-err">${esc(r.msg)}</div>`:pkTile(`<img src="${esc(r.url)}" alt="">`,`data-res="${res.indexOf(r)}"`,r.stored&&cur===r.stored.src,'New picture '+(k+1)))];
+      grid=tiles.length?`<div class="pk-grid">${tiles.join('')}</div>`:`<p class="pk-empty">Press <b>Search</b> to have Canva make 2 pictures from your words.</p>`;
+      foot=`<div class="row"><button type="button" class="sbtn" id="pk-more" ${PK.busy?'disabled':''}>More results</button>${PK.busy?`<button type="button" class="sbtn" id="pk-stop">Stop</button>`:''}<span class="mini">Each picture takes about 20 seconds and uses your Canva AI allowance.</span></div>`}
+  } else if(PK.tab==='drive'){
+    if(!MCP)grid=`<p class="pk-empty">Google Drive folders work on the hosted claude.ai link, with Google Drive connected.</p>`;
+    else if(!DRV.files.length)grid=`<div class="stack" style="gap:6px"><input type="text" id="pk-folder" placeholder="Google Drive folder link or name" value="${esc(S.drvFolder||'')}" aria-label="Google Drive folder link or name"><button type="button" class="btn blue" id="pk-load">Open folder</button></div>`;
+    else{const words=String(PK.q[pi]||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);
+      let list=DRV.files.map(f=>({f,sc:words.filter(w=>f.title.toLowerCase().includes(w.replace(/s$/,''))).length}));
+      if(words.length&&list.some(x=>x.sc))list=list.filter(x=>x.sc).sort((a,b)=>b.sc-a.sc);
+      const show=list.slice(0,12).map(x=>x.f);
+      grid=`<div class="pk-grid">${show.map(f=>{const t=PK.thumbs[f.id];return t&&t.url?pkTile(`<img src="${esc(t.url)}" alt=""><span class="pk-name">${esc(f.title)}</span>`,`data-drv="${esc(f.id)}"`,t.stored&&cur===t.stored.src,f.title):`<div class="pk-tile pk-skel"><span>${esc(f.title)}</span></div>`}).join('')}</div>`;
+      foot=`<p class="mini">Showing ${show.length} of ${DRV.files.length} pictures in the folder${words.length&&show.length<DRV.files.length?' that match your search':''}.</p>`;
+      pkLoadThumbs(show)}
+  } else {
+    grid=`<label class="pk-drop"><input type="file" accept="image/*" id="pk-file" hidden><b>Choose a picture</b><span>from this device or the iPad camera</span></label>`;
+  }
+  $('#picker').innerHTML=`${head}<div class="pk-tabs" role="tablist">${tabs.map(([v,l])=>`<button type="button" role="tab" aria-selected="${PK.tab===v}" data-tab="${v}">${l}</button>`).join('')}</div>${search}${filt}
+    ${PK.msg?`<p class="pk-msg">${esc(PK.msg)}</p>`:''}<div class="pk-body">${grid}</div>${foot}
+    <div class="pk-foot"><span class="mini">${cur?'This panel has a picture. Tap another to swap it.':'Tap a picture to put it in this panel.'}</span>${cur?`<button type="button" class="sbtn danger" id="pk-rm">Remove picture</button>`:''}${pi<n-1?`<button type="button" class="btn blue" id="pk-next2">Next panel ›</button>`:`<button type="button" class="btn good" id="pk-done">Done</button>`}</div>`;
+  const go=d=>{PK.pi=Math.max(0,Math.min(n-1,PK.pi+d));if(!(PK.pi in PK.q))PK.q[PK.pi]=pkDefaultQuery(it,PK.pi);PK.msg='';renderPicker()};
+  $('#pk-prev').onclick=()=>go(-1);$('#pk-next').onclick=()=>go(1);if($('#pk-next2'))$('#pk-next2').onclick=()=>go(1);
+  $('#pk-close').onclick=closePicker;if($('#pk-done'))$('#pk-done').onclick=closePicker;
+  $$('[data-tab]',$('#picker')).forEach(b=>b.onclick=()=>{PK.tab=b.dataset.tab;PK.msg='';renderPicker()});
+  if($('#pk-form')){$('#pk-form').onsubmit=e=>{e.preventDefault();PK.q[pi]=$('#pk-q').value.trim();pkSearch()};
+    $('#pk-q').oninput=e=>PK.q[pi]=e.target.value;
+    $('#pk-filt').onclick=()=>{PK.filters=!PK.filters;renderPicker()};
+    $$('[data-chip]',$('#picker')).forEach(b=>b.onclick=()=>{PK.q[pi]=b.dataset.chip;pkSearch()})}
+  if($('#pk-style'))seg($('#pk-style'),PK.style,v=>{PK.style=v;renderPicker()});
+  if($('#pk-orient'))seg($('#pk-orient'),PK.orient,v=>{PK.orient=v;renderPicker()});
+  $$('#pk-color button').forEach(b=>b.onclick=()=>{PK.color=b.dataset.v;renderPicker()});
+  if($('#pk-more'))$('#pk-more').onclick=()=>pkSearch();
+  if($('#pk-stop'))$('#pk-stop').onclick=()=>{PK.stop=true;PK.msg='Stopping…';renderPicker()};
+  if($('#pk-rm'))$('#pk-rm').onclick=()=>{setPanelImg(pi,null);renderPicker()};
+  if($('#pk-load'))$('#pk-load').onclick=async()=>{$('#drv-folder').value=$('#pk-folder').value;PK.msg='Opening the folder…';renderPicker();await drvLoad();PK.msg=$('#pic-msg').textContent;renderPicker()};
+  if($('#pk-file'))$('#pk-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;PK.msg='Adding the picture…';renderPicker();
+    try{const img=await storeImage(f,f.name.replace(/\.[^.]+$/,''));pkUse(pi,img);PK.msg=''}catch(err){PK.msg=`That picture couldn't be added${err&&err.code?' ('+err.code+')':''}.`}renderPicker()};
+  $$('[data-saved]',$('#picker')).forEach(b=>b.onclick=()=>{const o=P.options[+b.dataset.saved];if(o){setPanelImg(pi,o);toast(`Added to Panel ${pi+1}.`);renderPicker()}});
+  $$('[data-res]',$('#picker')).forEach(b=>b.onclick=async()=>{const r=(PK.results[pi]||[])[+b.dataset.res];if(!r||r.status!=='done')return;
+    if(r.stored){pkUse(pi,r.stored);return}
+    try{r.stored=await storeImage(r.blob,PK.q[pi]||P.caption||'');r.stored.canva=r.mediaId||'';pkUse(pi,r.stored)}catch(err){PK.msg=`That picture couldn't be saved${err&&err.code?' ('+err.code+')':''}.`;renderPicker()}});
+  $$('[data-drv]',$('#picker')).forEach(b=>b.onclick=async()=>{const t=PK.thumbs[b.dataset.drv];const f=DRV.files.find(x=>x.id===b.dataset.drv);if(!t||!t.blob||!f)return;
+    if(t.stored){pkUse(pi,t.stored);return}
+    try{t.stored=await storeImage(t.blob,f.title.replace(/\.[^.]+$/,''));pkUse(pi,t.stored)}catch(err){PK.msg=`That picture couldn't be saved${err&&err.code?' ('+err.code+')':''}.`;renderPicker()}});
+}
+function pkUse(pi,img){const it=L.item;ensurePanels(it);const P=it.panels[pi];
+  if(!(P.options||[]).some(o=>o.src===img.src))P.options=[...(P.options||[]),img].slice(-6);
+  setPanelImg(pi,img);toast(`Added to Panel ${pi+1}.`)}
+async function pkSearch(){
+  const it=L.item,pi=PK.pi;if(PK.tab!=='canva'){renderPicker();return}
+  if(!MCP||!CANVA_OK){PK.msg='Canva isn\'t connected for this page.';renderPicker();return}
+  const q=String(PK.q[pi]||'').trim()||pkDefaultQuery(it,pi);PK.q[pi]=q;
+  const list=PK.results[pi]=PK.results[pi]||[];const aspect=PK.orient==='sq'?'SQUARE_1_1':'LANDSCAPE_4_3';const prompt=pkPrompt(q);
+  PK.stop=false;PK.msg='';
+  const jobs=[0,1].map(()=>{const r={status:'pending'};list.push(r);return r});
+  PK.busy+=jobs.length;renderPicker();
+  await Promise.all(jobs.map(async(r,k)=>{
+    try{await wait(k*400);const g=await canvaGen(prompt,aspect,()=>PK.stop||!PK.open);r.blob=g.blob;r.mediaId=g.mediaId;r.url=URL.createObjectURL(g.blob);
+      try{r.stored=await storeImage(g.blob,q);r.stored.canva=g.mediaId||'';PK.local[r.stored.src]=r.url}catch(se){r.stored=null}
+      r.status='done'}
+    catch(e){if(e&&e.code==='cancelled'){list.splice(list.indexOf(r),1)}else{r.status='error';r.msg=canvaErr(e)}}
+    finally{PK.busy--;if(PK.open&&PK.pi===pi)renderPicker()}}));
+  if(PK.stop){PK.msg='Stopped.';PK.stop=false;if(PK.open)renderPicker()}
+}
+let pkThumbBusy=false;
+async function pkLoadThumbs(files){if(pkThumbBusy||!MCP)return;pkThumbBusy=true;
+  try{for(const f of files){if(!PK.open||PK.tab!=='drive')break;if(PK.thumbs[f.id])continue;PK.thumbs[f.id]={};
+    try{const r=await MCP.callTool(DRIVE,'download_file_content',{fileId:f.id});const b64=findB64(r);
+      if(b64){const blob=b64ToBlob(b64,f.mime);const t={blob,url:URL.createObjectURL(blob)};try{t.stored=await storeImage(blob,f.title.replace(/\.[^.]+$/,''));PK.local[t.stored.src]=t.url}catch(se){}PK.thumbs[f.id]=t}}
+    catch(e){PK.msg=driveErr(e);break}
+    if(PK.open&&PK.tab==='drive')renderPicker()}}
+  finally{pkThumbBusy=false}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pk]');if(b&&!document.body.classList.contains('student')){e.preventDefault();openPicker(+b.dataset.pk)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&PK.open)closePicker()});
 
 $('#drv-load').onclick=drvLoad;
 $('#drv-folder').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drvLoad()}});
