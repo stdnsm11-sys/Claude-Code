@@ -208,6 +208,18 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
 .drop{border:4px dashed var(--blue);border-radius:18px;background:var(--blue-s);padding:22px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
 .drop.over{background:var(--yellow-s);border-color:var(--yellow-d)}
 .drop b{font-family:var(--display);font-size:1.25em}
+.camrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.camrow .btn{min-height:64px;font-size:1.15em}
+.inbox{grid-column:1/-1;border-style:solid;border-color:var(--blue)}
+.ibrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:3px solid var(--line);border-radius:16px;padding:10px 12px}
+.ibrow.new{border-color:var(--good);background:var(--good-s)}
+.ibthumbs{display:flex;gap:6px}
+.ibthumbs img{width:64px;height:84px;object-fit:cover;border-radius:8px;border:2px solid var(--line);background:#fff}
+.ibtext{margin-right:auto;min-width:0}
+.ibtext b{display:block;font-size:1.1em}
+.ibtext span{color:var(--muted);font-size:.9em}
+.newchip{display:inline-block;background:var(--good);color:#fff;border-radius:999px;padding:0 .6em;font-size:.8em;font-weight:800;margin-left:6px;vertical-align:middle}
+.sendbox{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-radius:16px;background:var(--good-s);border:3px solid var(--good);padding:10px 12px}
 .pasterow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
 .pastebox{flex:1;min-width:200px;min-height:56px;border:4px dashed var(--purple);border-radius:16px;background:var(--purple-s);color:var(--purple-d);
   display:flex;align-items:center;justify-content:center;text-align:center;padding:8px 12px;font-weight:700;-webkit-user-select:text;user-select:text;cursor:text;caret-color:transparent}
@@ -288,6 +300,7 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
       <button class="btn small" data-side="chart" id="sideChart">5 W chart</button>
       <button class="btn small" data-side="cups" id="sideCups">Checklist</button>
       <button class="btn small" id="fsBtn">Full screen</button>
+      <button class="btn small on" id="inboxBtn" hidden>From iPad</button>
       <button class="btn small primary" id="teacherBtn">Teacher</button>
     </div>
   </header>
@@ -358,8 +371,18 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
   </header>
   <div class="setup">
     <div class="setin">
+      <div class="step inbox" id="inboxStep" hidden>
+        <h2>Pictures from your iPad</h2>
+        <p>Pages you sent from another device appear here. Open them to use them in the lesson.</p>
+        <div class="worklist" id="inboxList"></div>
+      </div>
       <div class="step">
         <h2><span class="n">1</span>Add the writing</h2>
+        <div class="camrow" id="camRow">
+          <button class="btn go" id="camBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="4"/></svg><span id="camLabel">Take a picture</span></button>
+          <span class="note">Uses the camera on an iPad or phone. Take one picture for each page.</span>
+        </div>
+        <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
         <label class="drop" id="drop" for="fileIn">
           <b>Choose photos of the student's paper</b>
           <span>or drag them here. Add more than one for more pages.</span>
@@ -371,13 +394,18 @@ svg.ov .mk.flash{animation:pflash .6s ease 4}
           <div class="pastebox" id="pasteBox" contenteditable="true" role="textbox" aria-label="Paste a picture here" spellcheck="false">or click here and press Ctrl+V</div>
         </div>
         <div class="thumbs" id="thumbs"></div>
+        <div class="sendbox" id="sendBox" hidden>
+          <button class="btn go" id="sendBtn">Send to the board</button>
+          <button class="btn small" id="nextStudent" hidden>Next student</button>
+          <span class="note" id="sendNote">Sends these pages to your claude.ai account so the smartboard can open them.</span>
+        </div>
         <div class="bar">
           <button class="btn primary" id="readClaude" hidden>Read handwriting with Claude</button>
           <button class="btn primary" id="readOcr" hidden>Read handwriting</button>
           <button class="btn small" id="stopRead" hidden>Stop</button>
         </div>
         <div class="status" id="readStatus">After you add a photo, the app can read the handwriting for you. You can also type the writing in step 2.</div>
-        <p class="note" id="privacyNote">Tip: fold over or cover the student's name before you take the photo.</p>
+        <p class="note" id="privacyNote">Tip: fold over or cover the student's name before you take the picture.</p>
       </div>
 
       <div class="step">
@@ -1210,7 +1238,7 @@ function fillSetup(){
   $("#textIn").value = S.source; $("#setSel").value = S.set in SETS ? S.set : "five";
   $("#optKb").checked = opts.kb; $("#optIndent").checked = opts.indent;
   $("#resetConfirm").hidden = true;
-  renderThumbs(); renderLabels(); updateReadBtns();
+  renderThumbs(); renderLabels(); updateReadBtns(); renderInbox();
   $("#printBtn").hidden = inViewer;
 }
 $("#titleIn").oninput = e => { S.title = e.target.value.slice(0, 80); S.example = false; save(); };
@@ -1252,11 +1280,126 @@ $("#newWork").onclick = () => {
 
 /* photos */
 function setStatus(msg, kind){ const s = $("#readStatus"); s.textContent = msg; s.className = "status" + (kind ? " " + kind : ""); }
+/* ---------- camera + sending pages between devices (iPad -> smartboard) ---------- */
+let cloud = {db:null, assets:null, me:null};
+let inbox = [], inboxErr = "";
+const picsCol = () => cloud.db.collection("data/users/" + cloud.me);   // private to this signed-in teacher
+$("#camBtn").onclick = () => $("#camIn").click();
+$("#camIn").onchange = async e => {
+  const f = Array.from(e.target.files || []); e.target.value = "";
+  if (f.length) await addFiles(f);
+};
+function updateCam(){
+  $("#camLabel").textContent = S.images.length ? "Take another page" : "Take a picture";
+}
+function updateSend(){
+  const ok = !!(cloud.db && cloud.assets);
+  $("#sendBox").hidden = !ok || !S.images.length;
+}
+$("#sendBtn").onclick = async () => {
+  if (!cloud.db || !cloud.assets || !S.images.length) return;
+  const btn = $("#sendBtn"), note = $("#sendNote");
+  btn.disabled = true;
+  const ids = [];
+  try {
+    for (let i = 0; i < S.images.length; i++) {
+      note.textContent = "Sending page " + (i + 1) + " of " + S.images.length + "…";
+      const r = await cloud.assets.upload(b64Blob(S.images[i]), {type:"image/jpeg"});
+      ids.push(r.id);
+    }
+    await picsCol().doc("pics-" + uid()).set({kind:"pics", title:S.title || "", student:S.student || "", pages:ids, created:Date.now(), used:false});
+    note.textContent = "Sent " + ids.length + (ids.length > 1 ? " pages" : " page") + ". On the smartboard, open this page and tap From iPad.";
+    $("#nextStudent").hidden = false;
+  } catch (err) {
+    for (const id of ids) { try { await cloud.assets.delete(id); } catch {} }
+    const c = err && err.code;
+    note.textContent = c === "quota_or_state" || c === "quota_exceeded" ? "Storage is full. Delete old pictures from the list on the board, then try again."
+      : c === "rate_limited" || c === "resource_exhausted" ? "Too many sends at once. Wait a minute and try again."
+      : c === "upstream_auth" ? "Sign in to claude.ai again, then try again."
+      : "Couldn't send the pages. Check the internet connection and try again.";
+  } finally { btn.disabled = false; }
+};
+$("#nextStudent").onclick = () => {
+  $("#newWork").click();
+  $("#nextStudent").hidden = true;
+  $("#sendNote").textContent = "Sends these pages to your claude.ai account so the smartboard can open them.";
+  window.scrollTo({top:0, behavior:"smooth"});
+};
+function whenText(t){ try { return new Date(t).toLocaleString([], {weekday:"short", hour:"numeric", minute:"2-digit"}); } catch { return ""; } }
+function renderInbox(){
+  const n = inbox.filter(x => !x.used).length;
+  $("#inboxBtn").hidden = !n;
+  $("#inboxBtn").textContent = "From iPad (" + n + ")";
+  if (!cloud.db) { $("#inboxStep").hidden = true; return; }
+  $("#inboxStep").hidden = !inbox.length && !inboxErr;
+  $("#inboxList").innerHTML = (inboxErr ? '<p class="status err">' + esc(inboxErr) + "</p>" : "") + inbox.map(x =>
+    '<div class="ibrow' + (x.used ? "" : " new") + '"><div class="ibthumbs">' +
+      (x.pages || []).slice(0, 3).map((id, i) => '<img src="/_blob/' + esc(id) + '" alt="Page ' + (i + 1) + '" loading="lazy">').join("") +
+    '</div><div class="ibtext"><b>' + esc(x.student || "No name") + (x.title ? " · " + esc(x.title) : "") + (x.used ? "" : '<span class="newchip">NEW</span>') + "</b><span>" +
+      (x.pages || []).length + ((x.pages || []).length === 1 ? " page" : " pages") + " · " + esc(whenText(x.created)) + "</span></div>" +
+    '<button class="btn small primary" data-ibopen="' + esc(x.id) + '">Open for the lesson</button>' +
+    '<button class="btn small warn" data-ibdel="' + esc(x.id) + '">Delete</button></div>'
+  ).join("");
+}
+async function assetDataURL(id){
+  const im = await loadImg("/_blob/" + id);
+  const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0);
+  return c.toDataURL("image/jpeg", .85);
+}
+$("#inboxList").addEventListener("click", async e => {
+  const o = e.target.closest("[data-ibopen]"), dl = e.target.closest("[data-ibdel]");
+  if (o) {
+    const x = inbox.find(i => i.id === o.dataset.ibopen); if (!x) return;
+    o.disabled = true; o.textContent = "Opening…";
+    try {
+      const imgs = [];
+      for (const id of x.pages || []) imgs.push(await assetDataURL(id));
+      S = newWork("", {title:x.title || "", student:x.student || "", images:imgs, labels:S.labels.map(l => ({...l})), set:S.set});
+      undoStack = []; redoStack = []; save();
+      fillSetup();
+      setStatus("Pictures from your iPad are ready. Read the handwriting, or press Start editing to mark up the photos.", "ok");
+      try { await picsCol().doc(x.id).update({used:true}); } catch {}
+      $("#drop").scrollIntoView({block:"center", behavior:"smooth"});
+    } catch {
+      o.disabled = false; o.textContent = "Open for the lesson";
+      setStatus("Couldn't open those pictures. Check the internet connection and try again.", "err");
+    }
+  }
+  if (dl) {
+    if (dl.dataset.armed !== "1") { dl.dataset.armed = "1"; dl.textContent = "Tap again to delete"; return; }
+    const x = inbox.find(i => i.id === dl.dataset.ibdel); if (!x) return;
+    dl.disabled = true;
+    try {
+      await picsCol().doc(x.id).delete();
+      if (cloud.assets) for (const id of x.pages || []) { try { await cloud.assets.delete(id); } catch {} }
+    } catch { dl.disabled = false; dl.textContent = "Delete"; }
+  }
+});
+$("#inboxBtn").onclick = () => { showScreen("setup"); setTimeout(() => $("#inboxStep").scrollIntoView({block:"start", behavior:"smooth"}), 50); };
+function startCloud(){
+  if (!(window.claude && claude.use)) return;
+  Promise.all([claude.use("db"), claude.use("assets"), claude.use("user")]).then(async ([d, a, u]) => {
+    if (!d || !u) return;
+    let id = null; try { id = await u.id(); } catch {}
+    if (!id) return;
+    cloud = {db:d, assets:a, me:id};
+    let loaded = false;
+    const timer = setTimeout(() => { if (!loaded) { inboxErr = "Can't reach saved pictures right now. Check the internet connection."; renderInbox(); } }, 10000);
+    picsCol().where("kind", "==", "pics").onSnapshot(snap => {
+      if (!snap.metadata.fromCache) { loaded = true; clearTimeout(timer); inboxErr = ""; }
+      inbox = snap.docs.map(x => ({id:x.id, ...x.data()})).sort((a, b) => (b.created || 0) - (a.created || 0));
+      renderInbox();
+    }, () => { loaded = true; clearTimeout(timer); inboxErr = "Saved pictures aren't available right now."; renderInbox(); });
+    updateSend(); renderInbox();
+  }).catch(() => {});
+}
+
 function renderThumbs(){
   $("#thumbs").innerHTML = S.images.map((src, i) =>
     '<div class="thumb"><img src="' + src + '" alt="Page ' + (i+1) + '"><div class="row"><button class="btn small" data-rot="' + i + '" aria-label="Turn page ' + (i+1) + '">Turn ↻</button><button class="btn small warn" data-rm="' + i + '" aria-label="Remove page ' + (i+1) + '">✕</button></div></div>'
   ).join("");
-  updateReadBtns();
+  updateReadBtns(); updateCam(); updateSend();
 }
 $("#thumbs").addEventListener("click", async e => {
   const r = e.target.closest("[data-rot]"), x = e.target.closest("[data-rm]");
@@ -1526,6 +1669,7 @@ if (window.claude && claude.use) {
     if (!$("#setupScreen").hidden) updateReadBtns();
   }).catch(() => {});
 }
+startCloud();
 try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
 })();
 </script>

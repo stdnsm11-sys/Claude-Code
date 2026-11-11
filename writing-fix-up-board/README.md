@@ -17,6 +17,16 @@ Open `index.html` in any browser (Chrome or Edge works best on a smartboard) and
 
 Tip: cover the student's name before taking the photo.
 
+## Taking pictures on an iPad and opening them on the smartboard
+This works in the claude.ai version. Sign in to the same claude.ai account on both devices.
+1. On the iPad, open the app, tap **Teacher**, then **Take a picture**. The camera opens. Take one picture per page. Tap **Take another page** for each extra page. Use **Turn ↻** if a page is sideways.
+2. Type the student's initials (and a title if you like), then tap **Send to the board**.
+3. Tap **Next student** and repeat for the next paper.
+4. On the smartboard, open the same app. A green **From iPad (number)** button appears at the top. Tap it (or open **Teacher**) to see **Pictures from your iPad**, then tap **Open for the lesson**.
+5. When you're done with a paper, tap **Delete** in that list to remove the pictures from your account.
+
+Pictures are kept in your claude.ai account in a private area only you can see, even if you share the app with someone. They stay there until you delete them.
+
 ## Student tools (big buttons on the left)
 | Tool | What the student does | Mark shown |
 |---|---|---|
