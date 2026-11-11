@@ -264,6 +264,7 @@ body.board .turnbar .who{flex:1 1 520px}
 .tdrawer{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:15;display:grid;justify-items:end;gap:10px}
 .td-sheet{width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:var(--quiet);border:2px dashed var(--muted);border-radius:var(--r);padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(43,47,85,.25);font-size:.92em}
 .example{font-size:.8em;font-weight:700;color:var(--pink-d)}
+#t-status:not(:empty){background:var(--gold-s);border:2px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:.95em;color:var(--ink);font-weight:700}
 .gseg button{min-width:3.2em;position:relative}
 .gseg .gbtn.ready::after{content:"";position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--good)}
 .gseg .gbtn.busy::after{content:"";position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite}
@@ -1040,7 +1041,7 @@ function renderListen(){
     if($('#l-copy-link')){$('#l-copy-link').onclick=()=>copyText(APP_URL,$('#l-app-link'),'Link copied. Paste it into Chrome or Edge.');$('#l-app-link').onclick=e=>e.target.select();}}$('#l-turn-opts').hidden=!shown();$('#l-first-row').hidden=$('#l-hidet-row').hidden=L.present==='solo';$('#l-turnby-label').textContent=L.present==='solo'?'Highlight one':'Turns by';
   $('#l-pass-field').hidden=!['passage','topic'].includes(L.type);
   $('#l-topic-field').hidden=L.type!=='topic';$('#l-theme-field').hidden=L.type==='topic';
-  if(L.type==='topic'){if($('#t-topic')!==document.activeElement)$('#t-topic').value=T.topic;if($('#t-source')!==document.activeElement)$('#t-source').value=T.source;renderGrades();$('#t-go').disabled=!SAMPLE||Object.keys(T.busy).includes(tKey(T.grade));if(!SAMPLE&&!$('#t-status').textContent)$('#t-status').textContent='Writing leveled texts uses Claude, which works on the hosted claude.ai link.'}
+  if(L.type==='topic'){if($('#t-topic')!==document.activeElement)$('#t-topic').value=T.topic;if($('#t-source')!==document.activeElement)$('#t-source').value=T.source;renderGrades();$('#t-go').disabled=Object.keys(T.busy).includes(tKey(T.grade))}
   topicInfo();
   $('#l-paras').value=L.paras;$('#l-spp').value=L.spp;updPassLabels();
   $('#l-script-txt').innerHTML=$('#td-script-txt').innerHTML=scriptHTML();
@@ -1314,7 +1315,7 @@ function updPassLabels(){$('#l-paras-v').textContent=$('#l-paras').value;$('#l-s
   const n=+$('#l-paras').value*+$('#l-spp').value;$('#l-pass-total').textContent=`About ${n} sentences in all.`}
 ['l-paras','l-spp'].forEach(id=>{$('#'+id).addEventListener('input',updPassLabels);$('#'+id).addEventListener('change',()=>{L.paras=+$('#l-paras').value;L.spp=+$('#l-spp').value;if(L.type==='topic'&&(T.topic||$('#t-topic').value).trim())genTopic(T.grade,true);else generate()})});
 /* ================= MY TOPIC: leveled informational text written by Claude (sample capability) ================= */
-let SAMPLE=null;
+let SAMPLE=null,SAMPLE_STATE=(window.claude&&window.claude.use)?'pending':'none';
 const T={grade:3,topic:'',source:'',cache:{},busy:{},ctls:[],info:null};
 const GRADES=[0,1,2,3,4,5,6,7,8];
 const gName=g=>g===0?'K':String(g);
@@ -1381,28 +1382,42 @@ function saveTopicLesson(){if(L.item.placeholder)return;
   S.lesson={cfg:cfgObj(),item:L.item,topic:{topic:T.topic,source:T.source,grade:T.grade,cache}};saveSettings()}
 const SAMPLE_ERR={not_granted:'Claude isn\'t allowed to write for this page yet. Allow it when asked, or from the page\'s Permissions menu.',rate_limited:'Too many requests right now. Wait a minute and try again.',
   refused:'Claude declined to write about this topic. Try a different topic.',invalid_json:'The text didn\'t come back complete. Press Write leveled text to try again.',empty_completion:'The text didn\'t come back complete. Try again.',
-  cancelled:'Stopped.',session_expired:'Your claude.ai sign-in expired. Reload the page and sign in again.',sampling_disabled:'Writing with Claude is turned off for this account.',prompt_too_large:'The pasted source is too long. Paste a shorter part of it.'};
-function fetchLevel(g){const key=tKey(g);
+  cancelled:'Stopped.',session_expired:'Your claude.ai sign-in expired. Reload the page and sign in again.',sampling_disabled:'Writing with Claude is turned off for this account.',prompt_too_large:'The pasted source is too long. Paste a shorter part of it.',unavailable:'Claude can\'t write from this view. Open the app from its claude.ai link while signed in.',not_declared:'This version of the page isn\'t allowed to use Claude. Reload the page.',upstream_error:'Claude had a problem. Wait a moment and try again.',queue_overflow:'Too many requests at once. Wait a moment and try again.'};
+function fetchLevel(g,onText){const key=tKey(g);
   if(T.cache[key])return Promise.resolve(T.cache[key]);
   if(T.busy[key])return T.busy[key];
   if(!SAMPLE)return Promise.reject({code:'unavailable'});
   const ctl=new AbortController();T.ctls.push(ctl);const paras=L.paras,spp=L.spp;
-  T.busy[key]=SAMPLE.json(topicPrompt(g),{modelTier:'default',signal:ctl.signal})
+  const opts={modelTier:'default',signal:ctl.signal};if(onText)opts.onText=onText;
+  T.busy[key]=SAMPLE.json(topicPrompt(g),opts)
     .then(r=>{const c=cleanTopic(r,g,paras,spp);T.cache[key]=c;return c})
     .finally(()=>{delete T.busy[key];T.ctls=T.ctls.filter(x=>x!==ctl);renderGrades()});
   renderGrades();return T.busy[key];
 }
 function tStatus(msg,busy){$('#t-status').textContent=msg||'';$('#t-stop').hidden=!busy;$('#t-go').disabled=!!busy}
 async function genTopic(g,user){
+  try{
   T.topic=$('#t-topic').value;T.source=$('#t-source').value;
   if(!T.topic.trim()){tStatus('Type a topic first.');$('#t-topic').focus();return}
+  if(!SAMPLE){tStatus(SAMPLE_STATE==='pending'?'Still connecting to Claude. Wait a few seconds, then press Write leveled text again.':
+    'Claude can\'t write from this view. Open the app from its claude.ai link (https://claude.ai/artifact/UQjJqoJ2Lgeh5DR3UkfgjZ) in a web browser while signed in to claude.ai, then try again.');return}
   T.grade=g;saveLessonCfg();renderGrades();
   const cached=T.cache[tKey(g)];
-  if(!cached)tStatus(`Writing a ${gLong(g)} text about "${T.topic.trim()}". This can take up to a minute.`,true);
-  try{const c=await fetchLevel(g);if(T.grade!==g)return;
+  let gotText=false,waitT=null;
+  if(!cached){
+    // claude.ai shows an "allow" box the first time; it can be hidden while the app is in full screen
+    try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}
+    tStatus(`Starting a ${gLong(g)} text about "${T.topic.trim()}"…`,true);
+    waitT=setTimeout(()=>{if(!gotText&&T.grade===g)tStatus('Still working. If claude.ai shows a box asking to allow this page to use Claude, choose Allow. The first text can take up to a minute.',true)},6000);
+  }
+  try{const c=await fetchLevel(g,cached?null:({text})=>{gotText=true;if(T.grade===g)tStatus(`Writing a ${gLong(g)} text… ${text.split(/\s+/).length} words so far`,true)});
+    clearTimeout(waitT);if(T.grade!==g)return;
     L.item=buildTopic(c);resetTrial();saveTopicLesson();tStatus('');renderListen();
+    toast(`Grade ${gName(g)} text ready.`);
     if(user)prefetchAround(g);
-  }catch(e){if(T.grade!==g)return;tStatus(e&&e.code==='unsafe'?e.message:(SAMPLE_ERR[e&&e.code]||'Something went wrong writing the text. Try again.'))}
+  }catch(e){clearTimeout(waitT);if(T.grade!==g)return;
+    const code=e&&e.code;tStatus(code==='unsafe'?e.message:(SAMPLE_ERR[code]||`Something went wrong writing the text${code?' ('+code+')':''}. Press Write leveled text to try again.`))}
+  }catch(err){tStatus('Something went wrong on this page ('+(err&&err.message||err)+'). Reload the page and try again.')}
 }
 async function prefetchAround(g){for(const n of [g+1,g-1]){if(n<0||n>8||T.cache[tKey(n)])continue;try{await fetchLevel(n)}catch(e){return}}}
 function renderGrades(){const el=$('#t-grade');if(!el)return;
@@ -1414,7 +1429,7 @@ function topicInfo(){const it=L.item,el=$('#t-info');if(!el)return;
   el.innerHTML=`<div class="${t.fromSource?'ok':'warn'}" style="font-size:.88em">${t.fromSource?'<b>Uses only facts from the source you pasted.</b>':'<b>Written by Claude from general knowledge, not looked up live.</b> Check the facts before teaching'+(t.check&&t.check.length?', for example with: '+esc(t.check.join(', '))+'.':'.')}
     <br>Written for ${esc(gLong(t.grade))} · ${n} paragraph${n>1?'s':''} × ${m} sentences · measured reading level about grade ${t.fk} (Flesch-Kincaid)${t.note?'<br>'+esc(t.note):''}</div>`;
 }
-if(window.claude&&window.claude.use){window.claude.use('sample').then(sm=>{SAMPLE=sm||null;if(L.type==='topic'&&L.item&&L.item.placeholder)L.item=placeholderItem();renderListen()}).catch(()=>{})}
+if(window.claude&&window.claude.use){window.claude.use('sample').then(sm=>{SAMPLE=sm||null;SAMPLE_STATE=sm?'ready':'none';if(L.type==='topic'&&L.item&&L.item.placeholder)L.item=placeholderItem();renderListen()}).catch(()=>{SAMPLE_STATE='none'})}
 $('#t-go').onclick=()=>genTopic(T.grade,true);
 $('#t-stop').onclick=()=>{T.ctls.forEach(c=>c.abort());tStatus('Stopped.')};
 $('#t-topic').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();genTopic(T.grade,true)}});
