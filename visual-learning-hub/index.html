@@ -1,0 +1,1086 @@
+<title>Visual Learning Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&display=swap">
+<style>
+/* Layout: teacher console (nav + two-column work area) and a full-bleed student board for the Smartboard. */
+:root {
+  --bg: #F1F5FB; --surface: #FFFFFF; --surface-2: #E6EDF8; --ink: #13213C; --muted: #52607A; --line: #C9D4E6;
+  --primary: #1F5FBF; --primary-ink: #FFFFFF; --primary-soft: #DCE8FB;
+  --sun: #F2B705; --sun-soft: #FFF3C7; --sun-ink: #13213C;
+  --teal: #0C7E73; --teal-soft: #D5F1EC;
+  --coral: #D24A33; --coral-soft: #FCE3DD;
+  --good: #1B7F45; --good-soft: #DAF2E3; --warn: #9A6200; --bad: #C2412D;
+  --f-display: "Lexend", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --r: 14px; --r-sm: 9px;
+  --shadow: 0 1px 2px rgb(19 33 60 / .06), 0 4px 14px rgb(19 33 60 / .06);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D1525; --surface: #152038; --surface-2: #1D2A47; --ink: #EAF0FA; --muted: #A1AEC6; --line: #2D3B5B;
+  --primary: #79A9FF; --primary-ink: #0D1525; --primary-soft: #1F3360;
+  --sun: #FFC933; --sun-soft: #3A3317; --sun-ink: #13213C;
+  --teal: #45C6B6; --teal-soft: #143C3A; --coral: #FF7D66; --coral-soft: #44221D;
+  --good: #57CF88; --good-soft: #163A27; --warn: #F0B23A; --bad: #FF7D66;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0D1525; --surface: #152038; --surface-2: #1D2A47; --ink: #EAF0FA; --muted: #A1AEC6; --line: #2D3B5B;
+  --primary: #79A9FF; --primary-ink: #0D1525; --primary-soft: #1F3360;
+  --sun: #FFC933; --sun-soft: #3A3317; --sun-ink: #13213C;
+  --teal: #45C6B6; --teal-soft: #143C3A; --coral: #FF7D66; --coral-soft: #44221D;
+  --good: #57CF88; --good-soft: #163A27; --warn: #F0B23A; --bad: #FF7D66;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25); color-scheme: dark }
+
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+* { box-sizing: border-box; }
+h1, h2, h3, h4 { font-family: var(--f-display); line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.35rem; } h3 { font-size: 1.1rem; } h4 { font-size: .95rem; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 700; font-size: 1.1rem; margin-right: auto; }
+.brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--sun); color: var(--sun-ink); display: grid; place-items: center; }
+.nav { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+.nav a { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; text-decoration: none; color: var(--muted); font-weight: 700; white-space: nowrap; }
+.nav a:hover { background: var(--surface-2); color: var(--ink); }
+.nav a[aria-current="page"] { background: var(--primary); color: var(--primary-ink); }
+.chipsel { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); }
+.chipsel select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--good); } .dot.wait { background: var(--warn); } .dot.off { background: var(--bad); }
+
+main { padding-block: 20px 60px; max-width: 1280px; margin: 0 auto; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+.panel-h { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
+.eyebrow { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.muted { color: var(--muted); } .small { font-size: .88rem; }
+.notice { padding: 12px 14px; border-radius: var(--r-sm); background: var(--sun-soft); border: 1px solid var(--sun); font-size: .92rem; }
+.notice.err { background: var(--coral-soft); border-color: var(--coral); }
+
+/* Controls */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 16px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.sun { background: var(--sun); border-color: var(--sun); color: var(--sun-ink); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.sm { min-height: 36px; padding: 6px 11px; font-size: .88rem; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.ico { display: inline-flex; width: 1.2em; height: 1.2em; flex: none; }
+.ico svg { width: 100%; height: 100%; }
+label.field { display: flex; flex-direction: column; gap: 5px; font-weight: 700; font-size: .9rem; min-width: 0; }
+input[type=text], input[type=date], input[type=number], select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-weight: 400; }
+textarea { min-height: 84px; resize: vertical; }
+.search { display: flex; gap: 8px; }
+.search input { font-size: 1.1rem; padding: 12px 14px; }
+.slider-wrap { display: grid; gap: 6px; }
+input[type=range] { width: 100%; accent-color: var(--primary); height: 32px; }
+.ticks { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.level-pill { font-family: var(--f-display); background: var(--primary-soft); color: var(--primary); padding: 3px 12px; border-radius: 999px; font-weight: 700; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: var(--surface); padding: 8px 13px; min-height: 40px; font-weight: 700; cursor: pointer; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); }
+.switch { position: relative; width: 50px; height: 30px; flex: none; }
+.switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch span { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: background .15s; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .25); transition: transform .15s; }
+.switch input:checked + span { background: var(--good); }
+.switch input:checked + span::after { transform: translateX(20px); }
+.switch input:focus-visible + span { outline: 3px solid var(--sun); outline-offset: 2px; }
+.kind { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+
+/* Passage preview */
+.sent { display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--r-sm); }
+.sent + .sent { border-top: 1px dashed var(--line); }
+.sent .pic { font-size: 2rem; text-align: center; line-height: 1; }
+.sent.on { background: var(--sun-soft); }
+.sent p { font-size: 1.12rem; }
+.keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.key { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; background: var(--surface-2); min-width: 0; }
+.key b { display: block; font-family: var(--f-display); font-size: .82rem; color: var(--primary); text-transform: uppercase; letter-spacing: .05em; }
+.vocab { display: flex; gap: 10px; flex-wrap: wrap; }
+.vocab div { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 12px; background: var(--surface); }
+.lib { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.lib button { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
+.lib button:hover { background: var(--surface-2); }
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 6px; }
+.steps button { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px 4px; cursor: pointer; font-weight: 700; font-size: .82rem; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.steps button[aria-pressed="true"] { background: var(--sun); border-color: var(--sun); color: var(--sun-ink); }
+.steps .ico { width: 1.5em; height: 1.5em; }
+.counter { display: flex; align-items: center; gap: 10px; }
+.counter output { font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; }
+.acc-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 10px 0; }
+.acc-row + .acc-row { border-top: 1px solid var(--line); }
+.acc-row p { font-size: .9rem; color: var(--muted); }
+.goal-text { font-size: .92rem; color: var(--muted); border-left: 3px solid var(--sun); padding-left: 10px; }
+
+/* Data */
+.check-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 6px 0; }
+.big-check { width: 28px; height: 28px; accent-color: var(--good); }
+.score { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; padding: 14px; border-radius: var(--r-sm); background: var(--surface-2); }
+.score .num { font-family: var(--f-display); font-size: 2.2rem; font-variant-numeric: tabular-nums; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: .82rem; }
+.badge.met { background: var(--good-soft); color: var(--good); }
+.badge.not { background: var(--coral-soft); color: var(--bad); }
+.pm { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.pm button { border: 0; min-width: 48px; min-height: 42px; background: var(--surface); font-weight: 700; cursor: pointer; font-size: 1.05rem; }
+.pm button + button { border-left: 1px solid var(--line); }
+.pm button[aria-pressed="true"].plus { background: var(--good); color: var(--surface); }
+.pm button[aria-pressed="true"].minus { background: var(--bad); color: var(--surface); }
+.pm button[aria-pressed="true"].na { background: var(--muted); color: var(--surface); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; }
+.stat b { display: block; font-family: var(--f-display); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .target { stroke: var(--sun); stroke-width: 2; stroke-dasharray: 6 5; }
+.chart .line { stroke: var(--primary); stroke-width: 2.5; fill: none; }
+.chart .area { fill: var(--primary-soft); opacity: .7; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--f-body); }
+.chart .pt-met { fill: var(--good); stroke: var(--surface); stroke-width: 2; }
+.chart .pt-not { fill: var(--coral); stroke: var(--surface); stroke-width: 2; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; }
+.detail { background: var(--surface-2); }
+.detail ul { margin: 4px 0; padding-left: 20px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 12px; font-weight: 700; z-index: 30; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
+.alert { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 31; background: var(--coral); color: #fff; border-radius: 14px; padding: 14px 16px; max-width: min(380px, calc(100% - 24px)); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+.alert .btn { min-height: 38px; }
+.empty { text-align: center; padding: 28px 16px; color: var(--muted); display: grid; gap: 10px; justify-items: center; }
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--coral-soft); padding: 8px 10px; border-radius: 10px; }
+.list-ed { display: flex; flex-direction: column; gap: 8px; }
+.acc-ed { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,.8fr) minmax(0,1.6fr) auto; gap: 8px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+@media (max-width: 700px) { .acc-ed { grid-template-columns: minmax(0,1fr); } }
+.note-out { white-space: pre-wrap; background: var(--surface-2); border-radius: 10px; padding: 12px; }
+
+/* ===== Student board ===== */
+.board { min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; font-size: clamp(18px, 1.6vw + 8px, 30px); }
+.board-top { display: flex; align-items: center; gap: 12px; padding-block: 12px; flex-wrap: wrap; }
+.board-title { font-family: var(--f-display); font-size: 1.3em; font-weight: 700; margin-right: auto; }
+.bsteps { display: flex; gap: 8px; flex-wrap: wrap; }
+.bsteps button { border: 2px solid var(--line); background: var(--surface); border-radius: 16px; padding: .35em .8em; font-family: var(--f-display); font-weight: 600; font-size: .8em; cursor: pointer; display: inline-flex; gap: .4em; align-items: center; color: var(--muted); }
+.bsteps button[aria-pressed="true"] { background: var(--sun); border-color: var(--sun); color: var(--sun-ink); }
+.board-body { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .36fr); gap: 20px; padding-block: 8px 24px; align-items: start; }
+@media (max-width: 900px) { .board-body { grid-template-columns: minmax(0,1fr); } }
+.stage { background: var(--surface); border-radius: 22px; padding: 1.1em; border: 2px solid var(--line); min-width: 0; display: flex; flex-direction: column; gap: .8em; }
+.stage h2 { font-size: 1.4em; }
+.bsent { display: grid; grid-template-columns: 2.6em minmax(0,1fr); gap: .6em; align-items: center; padding: .5em .6em; border-radius: 16px; background: var(--surface-2); }
+.bsent .pic { font-size: 2em; line-height: 1; text-align: center; }
+.bsent p { font-size: 1.15em; line-height: 1.4; }
+.bsent.new { outline: 4px solid var(--sun); }
+.bsent.hidden-text p { color: transparent; text-shadow: none; background: repeating-linear-gradient(90deg, var(--line) 0 1.2em, transparent 1.2em 1.5em); border-radius: 6px; user-select: none; }
+.borg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9em), 1fr)); gap: .6em; }
+.borg button { border: 3px dashed var(--primary); border-radius: 18px; background: var(--surface); padding: .6em; min-height: 5.2em; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2em; cursor: pointer; text-align: center; }
+.borg button b { font-family: var(--f-display); color: var(--primary); font-size: .95em; }
+.borg button .e { font-size: 1.7em; line-height: 1; }
+.borg button.shown { border-style: solid; background: var(--primary-soft); }
+.borg button span.a { font-size: .9em; }
+.frame { font-size: 1.3em; font-family: var(--f-display); background: var(--sun-soft); border: 3px solid var(--sun); border-radius: 18px; padding: .6em .8em; }
+.bigpics { display: flex; gap: .5em; flex-wrap: wrap; justify-content: center; font-size: 3em; }
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.anchor { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: .6em .7em; display: grid; grid-template-columns: 2em minmax(0,1fr); gap: .5em; align-items: center; }
+.anchor .ico { width: 2em; height: 2em; color: var(--teal); }
+.anchor b { font-family: var(--f-display); display: block; font-size: .9em; }
+.anchor span { font-size: .72em; color: var(--muted); }
+.anchor.hot { border-color: var(--teal); background: var(--teal-soft); }
+.cuecard { background: var(--primary-soft); border: 2px solid var(--primary); border-radius: 18px; padding: .6em .8em; font-size: .8em; display: flex; gap: .6em; align-items: center; }
+.cuecard .ico { width: 1.8em; height: 1.8em; color: var(--primary); }
+.cant-hear { border: 0; background: var(--coral); color: #fff; border-radius: 22px; padding: .6em .8em; font-family: var(--f-display); font-weight: 700; font-size: 1em; cursor: pointer; display: flex; align-items: center; gap: .5em; justify-content: center; box-shadow: var(--shadow); }
+.cant-hear .ico { width: 1.7em; height: 1.7em; }
+.cant-hear small { display: block; font-family: var(--f-body); font-weight: 400; font-size: .62em; opacity: .95; }
+.ticklist { display: flex; flex-direction: column; gap: .45em; }
+.ticklist button { display: grid; grid-template-columns: 1.6em minmax(0,1fr) 1.4em; gap: .5em; align-items: center; text-align: left; border: 2px solid var(--line); border-radius: 14px; padding: .45em .6em; background: var(--surface); cursor: pointer; font-size: .95em; }
+.ticklist button .e { font-size: 1.3em; }
+.ticklist button.done { background: var(--good-soft); border-color: var(--good); }
+.ticklist .tick { width: 1.3em; height: 1.3em; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+.ticklist button.done .tick { background: var(--good); border-color: var(--good); color: var(--surface); }
+.trouble { counter-reset: t; display: flex; flex-direction: column; gap: .35em; margin: 0; padding: 0; list-style: none; font-size: .85em; }
+.trouble li { display: grid; grid-template-columns: 1.6em minmax(0,1fr); gap: .4em; align-items: start; }
+.trouble li::before { counter-increment: t; content: counter(t); width: 1.5em; height: 1.5em; border-radius: 50%; background: var(--teal); color: var(--surface); display: grid; place-items: center; font-weight: 700; font-size: .85em; }
+.vocab-b { display: flex; gap: .5em; flex-wrap: wrap; }
+.vocab-b div { background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: .3em .6em; font-size: .8em; }
+.board-ctl { display: flex; gap: 10px; flex-wrap: wrap; }
+.board-ctl .btn { font-size: .7em; min-height: 2.4em; }
+.got-it { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(0 0 0 / .45); z-index: 40; }
+.got-it div { background: var(--surface); border-radius: 26px; padding: 1.2em 1.6em; font-family: var(--f-display); font-size: 1.6em; text-align: center; border: 4px solid var(--good); }
+@media (prefers-reduced-motion: no-preference) { .bsent.new { animation: pop .4s ease-out; } @keyframes pop { from { transform: scale(.97); opacity: .4 } to { transform: none; opacity: 1 } } }
+</style>
+
+<div id="app"></div>
+
+<script>
+"use strict";
+/* ---------- tiny DOM helper ---------- */
+const $ = s => document.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
+    else if (k === "style") el.style.cssText = v;
+    else if (k === "value") el.value = v;
+    else if (k === "checked") el.checked = true;
+    else if (k === "svg") el.innerHTML = v; // trusted constant markup only
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+const ICONS = {
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  blocks: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  lines: '<path d="M4 6h16M4 12h11M4 18h7"/>',
+  ear: '<path d="M6 9a6 6 0 1 1 12 0c0 3-2 4-3 5.5S14 18 12 19.5 8 20.5 8 18"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-1.5 3"/>',
+  hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4.5a1.5 1.5 0 0 1 3 0V11M14 10.5V6a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6 7s-5-2-6.5-4.5L3 12.5a1.5 1.5 0 0 1 2.5-1.5L8 13"/>',
+  battery: '<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M6 10v4M10 10v4"/>',
+  book: '<path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM8 7h8"/>',
+  chart: '<path d="M3 20h18M6 16v-5M11 16V6M16 16v-8"/>',
+  clip: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8.5 12l2 2 4-4"/>',
+  sliders: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  play: '<path d="M7 4l13 8-13 8z"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  next: '<path d="M9 5l7 7-7 7"/>', prev: '<path d="M15 5l-7 7 7 7"/>',
+  wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
+  expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+};
+const icon = (n, cls) => h("span", { class: "ico " + (cls || ""), "aria-hidden": "true", svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ""}</svg>` });
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const fmtDate = ms => new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+const fmtAgo = ms => { const s = Math.round((Date.now() - ms) / 1000); if (s < 45) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago"; if (s < 86400) return Math.round(s / 3600) + " hr ago"; return fmtDate(ms); };
+const GRADES = ["K", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
+
+/* ---------- goal + accommodation templates (for adding goals to any student) ---------- */
+const KINDS = {
+  organizer: "Graphic organizer", anchor: "Anchor charts", readaloud: "Read aloud", visualize: "Visualize strategy",
+  chunk: "Chunking strategy", summarize: "Summarize strategy", visual: "Picture supports", cue: "Cue card",
+  signal: "Hand-signal card", reminder: "Reminder limit", checklist: "BAHA checklist", troubleshoot: "Troubleshooting steps", text: "Custom support",
+};
+const ACC_DEFAULTS = {
+  organizer: { label: "Graphic organizer", support: "Fill the boxes: Who? What? Where? When? Why?" },
+  anchor: { label: "Anchor charts", support: "Look at the strategy chart to help you remember." },
+  readaloud: { label: "Short passage (1–3 sentences) read aloud", support: "Watch and listen to a short passage." },
+  visualize: { label: "Strategy: visualization", support: "Make a movie in your mind. What do you see?" },
+  chunk: { label: "Strategy: chunking", support: "Remember one small part at a time." },
+  summarize: { label: "Strategy: summarizing", support: "Say it short: Who did what?" },
+  visual: { label: "Picture and vocabulary supports", support: "Use the pictures to help you remember." },
+  cue: { label: "Cue (visual reminder)", support: "Check: Is my BAHA on? Can I hear my teacher?" },
+  signal: { label: "Communication visual support (hand signal)", support: "Can't hear? Tap your ear, then thumbs down." },
+  reminder: { label: "No more than 2 reminders", support: "Staff give up to 2 reminders before scoring." },
+  checklist: { label: "BAHA care checklist", support: "Wear it, turn on FM, check the battery." },
+  troubleshoot: { label: "Troubleshooting steps visual", support: "Follow the steps when it is not working." },
+  text: { label: "Custom support", support: "" },
+};
+const mkAcc = (kind, over) => ({ id: uid(), kind, ...ACC_DEFAULTS[kind], ...(over || {}) });
+const TEMPLATES = {
+  recall: () => ({
+    type: "recall", short: "Listening recall: 4 key elements", target: 80, minElements: 4, maxReminders: 2,
+    text: "By the end of the IEP plan year, while using graphic organizers, anchor charts, and after a short passage (1-3 sentences) is read aloud, {name} will apply auditory memory strategies (visualization, chunking, summarizing), {name} will recall at least 4 key elements with 80% accuracy, as evidenced by data collection and student work samples.",
+    items: [],
+    accommodations: ["organizer", "anchor", "readaloud", "visualize", "chunk", "summarize", "visual"].map(k => mkAcc(k)),
+  }),
+  advocacy: () => ({
+    type: "checklist", short: "Self-advocacy & BAHA care", target: 80, minElements: 0, maxReminders: 2,
+    text: "By the next ARD meeting, when provided with cues, or communication visual support, and no more than 2 reminders, {name} will demonstrate self-advocacy skills in the areas of auditory management by indicating a failure to hear through hand signals to the staffs/adults when he is unable to hear using his BAHA and self advocacy by maintaining personal care skills specific for BAHA users by consistently wearing/using BAHA and FM/ALD system, checking, changing or charging the batteries and perform basic troubleshooting techniques. Success will be measured using teacher observation at a rate of 80% accuracy.",
+    items: [
+      { id: "signal", label: "Signals \"I can't hear\" with hand signal", emoji: "✋" },
+      { id: "wear", label: "Wears BAHA", emoji: "🦻" },
+      { id: "fm", label: "Uses FM / ALD system", emoji: "📡" },
+      { id: "check", label: "Checks battery", emoji: "🔋" },
+      { id: "charge", label: "Changes or charges battery", emoji: "🔌" },
+      { id: "fix", label: "Does basic troubleshooting", emoji: "🛠️" },
+    ],
+    accommodations: ["cue", "signal", "reminder", "checklist", "troubleshoot"].map(k => mkAcc(k)),
+  }),
+  blankRecall: () => ({ type: "recall", short: "New recall goal", target: 80, minElements: 4, maxReminders: 2, text: "", items: [], accommodations: [] }),
+  blankChecklist: () => ({ type: "checklist", short: "New skills checklist goal", target: 80, minElements: 0, maxReminders: 2, text: "", items: [{ id: uid(), label: "Skill 1", emoji: "⭐" }], accommodations: [] }),
+};
+const GENERAL_SUPPORTS = () => [
+  { id: uid(), kind: "text", label: "Preferential seating (good side, facing speaker)", support: "" },
+  { id: uid(), kind: "text", label: "Gain attention before speaking", support: "Look at me first, then I will talk." },
+  { id: uid(), kind: "text", label: "Directions also shown in writing / pictures", support: "Read the directions on the board." },
+  { id: uid(), kind: "text", label: "Extra wait time", support: "Take your time to think." },
+  { id: uid(), kind: "text", label: "Check for understanding", support: "Show me thumbs up if you understand." },
+];
+const BAHA_STEPS = [
+  { id: "wear", e: "🦻", t: "Put on my BAHA" }, { id: "fm", e: "📡", t: "Turn on FM / ALD" },
+  { id: "check", e: "🔋", t: "Check the battery" }, { id: "charge", e: "🔌", t: "Change or charge if low" },
+  { id: "listen", e: "👂", t: "Listen check: can I hear?" },
+];
+const TROUBLE_STEPS = ["Is it turned on?", "Is the battery new or charged?", "Is the processor clicked on (or the softband snug)?", "Is the FM / ALD connected?", "Is the microphone clear and dry?", "Still not working? Show the hand signal to an adult."];
+const LESSON_STEPS = [
+  { id: "ready", label: "Get ready", ic: "ear" }, { id: "listen", label: "Listen", ic: "book" },
+  { id: "picture", label: "Picture it", ic: "eye" }, { id: "remember", label: "Remember", ic: "blocks" },
+  { id: "sumup", label: "Sum it up", ic: "lines" },
+];
+const PROMPTS = ["Independent", "Visual cue", "Gesture / sign cue", "Written or verbal reminder", "Modeled"];
+
+/* ---------- state ---------- */
+const S = {
+  db: null, user: null, sample: null, downloads: null, canWrite: true,
+  dbState: "connecting", loaded: { students: false, goals: false },
+  students: [], goals: [], attempts: [], texts: [],
+  sid: store.get("vlh.sid", null),
+  session: null, sessUnsub: null,
+  view: "lesson",
+  device: store.get("vlh.device", null) || guessDevice(),
+  topic: "", grade: 2, length: "short", gen: { busy: false, error: "", ctl: null },
+  manual: false, manualText: "", manualKeys: "",
+  form: null, reviewGoal: null, reviewRange: "all", openRow: null, confirmDel: null,
+  note: { busy: false, text: "", error: "" },
+  setup: { editGoal: null, confirmGoal: null, newStudent: "" },
+  speaking: -1, rate: 0.85,
+  seenSignal: store.get("vlh.seenSignal", 0), gotIt: false,
+};
+function guessDevice() {
+  const ua = navigator.userAgent || "";
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/Windows/.test(ua)) return "Windows laptop";
+  if (/Android/.test(ua)) return "Android tablet";
+  return "This device";
+}
+const student = () => S.students.find(s => s.id === S.sid) || null;
+const studentGoals = () => S.goals.filter(g => g.studentId === S.sid).sort((a, b) => (a.order || 0) - (b.order || 0));
+const sess = () => S.session || {};
+const sname = () => student()?.name || "Student";
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg) {
+  document.querySelector(".toast")?.remove();
+  const t = h("div", { class: "toast", role: "status" }, msg); document.body.append(t);
+  clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 3200);
+}
+
+/* ---------- serialized writes ---------- */
+const chains = new Map();
+function serial(path, fn) {
+  const prev = chains.get(path) || Promise.resolve();
+  const next = prev.catch(() => {}).then(fn);
+  chains.set(path, next);
+  return next;
+}
+function writeErr(e) {
+  if (e && e.code === "invalid_argument") { S.canWrite = false; toast("You can view this page but not save to it. Ask the owner for Contributor access."); render(); return; }
+  if (e && e.code === "quota_exceeded") { toast("Storage is full. Delete old attempts or texts, then try again."); return; }
+  toast("Could not save just now. Check the connection and try again.");
+}
+
+/* ---------- live lesson session (shared across devices) ---------- */
+let sessTimer = null;
+function setSession(patch) {
+  S.session = { ...sess(), ...patch, studentId: S.sid, updatedAt: Date.now(), updatedBy: S.device };
+  render();
+  if (!S.db || !S.sid) return;
+  clearTimeout(sessTimer);
+  sessTimer = setTimeout(() => {
+    const body = JSON.parse(JSON.stringify(S.session));
+    serial("sessions/" + S.sid, () => S.db.doc("sessions/" + S.sid).set(body)).catch(writeErr);
+  }, 250);
+}
+function subscribeSession() {
+  S.sessUnsub?.(); S.sessUnsub = null; S.session = null;
+  if (!S.db || !S.sid) return;
+  S.sessUnsub = S.db.doc("sessions/" + S.sid).onSnapshot(snap => {
+    if (!snap.exists) { render(); return; }
+    const d = snap.data();
+    if (!S.session || (d.updatedAt || 0) >= (S.session.updatedAt || 0)) { S.session = JSON.parse(JSON.stringify(d)); checkSignal(); render(); }
+  }, () => {});
+}
+function checkSignal() {
+  const sg = sess().signal;
+  if (!sg || sg.at <= S.seenSignal) return;
+  if (S.view === "board") { S.seenSignal = sg.at; store.set("vlh.seenSignal", sg.at); return; }
+  if (Date.now() - sg.at > 5 * 60 * 1000) { S.seenSignal = sg.at; return; }
+  showSignalAlert(sg);
+}
+function showSignalAlert(sg) {
+  document.querySelector(".alert")?.remove();
+  const dismiss = () => { S.seenSignal = sg.at; store.set("vlh.seenSignal", sg.at); a.remove(); };
+  const adv = studentGoals().find(g => g.type === "checklist");
+  const a = h("div", { class: "alert", role: "alert" },
+    h("div", { class: "row" }, icon("hand"), h("strong", null, `${sname()} signaled “I can't hear”`)),
+    h("div", { class: "small" }, `From the ${sg.device || "board"} · ${new Date(sg.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`),
+    h("div", { class: "row" },
+      adv && h("button", { class: "btn sm sun", onclick: () => { dismiss(); startForm(adv.id, { items: { signal: "+" } }); go("collect"); } }, "Record it"),
+      h("button", { class: "btn sm", onclick: dismiss }, "Dismiss")));
+  document.body.append(a);
+}
+
+/* ---------- accommodations helpers ---------- */
+function accGroups() {
+  const st = student(); const groups = studentGoals().map(g => ({ key: g.id, title: g.short, goal: g, list: g.accommodations || [] }));
+  if (st) groups.push({ key: "general", title: "General classroom supports", goal: null, list: st.supports || [] });
+  return groups;
+}
+function activeIds(key, list) { const a = sess().active?.[key]; return Array.isArray(a) ? a : list.map(x => x.id); }
+function activeAccs() { const out = []; for (const g of accGroups()) { const on = activeIds(g.key, g.list); for (const a of g.list) if (on.includes(a.id)) out.push(a); } return out; }
+function kindOn(kind) { return activeAccs().some(a => a.kind === kind); }
+function toggleAcc(key, list, id, on) {
+  const cur = new Set(activeIds(key, list)); on ? cur.add(id) : cur.delete(id);
+  setSession({ active: { ...(sess().active || {}), [key]: [...cur] } });
+}
+
+/* ---------- leveled text generation ---------- */
+function levelGuide(g) {
+  if (g <= 1) return "sentences of 4-7 words, high-frequency sight words, present tense, no clauses";
+  if (g <= 3) return "sentences of 6-10 words, common words, one idea per sentence, few clauses";
+  if (g <= 5) return "sentences of 8-14 words, some grade-level academic words, simple compound sentences";
+  return "sentences of 12-18 words, grade-level academic vocabulary, some complex sentences";
+}
+const LENGTHS = { short: { label: "1–3 sentences", rule: "1 to 3 sentences (this is listening-recall practice: pack 4 or more recallable key details into them)" }, medium: { label: "4–6 sentences", rule: "4 to 6 sentences" }, long: { label: "8–10 sentences", rule: "8 to 10 sentences" } };
+function buildPrompt(topic, grade, length, base) {
+  const gl = GRADES[grade];
+  return `You write leveled reading passages for a 5th-grade Deaf/hard-of-hearing student who uses a bone-anchored hearing aid (BAHA). He learns in a self-contained classroom with a modified curriculum that includes academics and life skills. Teachers read the passage aloud; he uses visualization, chunking and summarizing to recall key elements.
+
+${base ? `Rewrite this passage at a new reading level. Keep the same facts and topic.\nOriginal passage: """${base}"""` : `Topic: ${topic}`}
+Reading level: ${gl} grade (${levelGuide(grade)}).
+Length: ${LENGTHS[length].rule}.
+Rules: concrete, literal language; no idioms or sarcasm; one idea per sentence; facts must be accurate; respectful of a 5th grader (not babyish) even at low levels; picture-able details (who, what, where, when, colors, numbers).
+
+Reply with only JSON in this shape:
+{"title": "short title",
+ "sentences": [{"text": "one sentence", "emoji": "1 to 3 emoji that picture this sentence", "picture": "a short description of the picture to imagine"}],
+ "keyElements": [{"label": "Who | What | Where | When | Why | How | Detail", "answer": "2-6 word answer stated in the passage", "emoji": "1 emoji"}],
+ "vocabulary": [{"word": "word from the passage", "meaning": "simple meaning", "emoji": "1 emoji"}],
+ "summary": "one short sentence",
+ "summaryFrame": "a sentence frame with ___ blanks for the student",
+ "visualizePrompt": "one question that helps him picture it",
+ "questions": [{"q": "question", "a": "answer"}]}
+Give 4 to 6 keyElements (every one must be stated in the passage), 2 to 4 vocabulary words, 2 or 3 questions.`;
+}
+function normPassage(o, meta) {
+  const arr = v => Array.isArray(v) ? v : [];
+  const sentences = arr(o.sentences).map(s => typeof s === "string" ? { text: s, emoji: "", picture: "" } : { text: String(s.text || ""), emoji: String(s.emoji || ""), picture: String(s.picture || "") }).filter(s => s.text.trim());
+  if (!sentences.length) throw { code: "invalid_json" };
+  return {
+    title: String(o.title || meta.topic || "Passage"), sentences,
+    keyElements: arr(o.keyElements).map(k => ({ label: String(k.label || "Detail"), answer: String(k.answer || ""), emoji: String(k.emoji || "") })).filter(k => k.answer),
+    vocabulary: arr(o.vocabulary).map(v => ({ word: String(v.word || ""), meaning: String(v.meaning || ""), emoji: String(v.emoji || "") })).filter(v => v.word),
+    summary: String(o.summary || ""), summaryFrame: String(o.summaryFrame || ""), visualizePrompt: String(o.visualizePrompt || ""),
+    questions: arr(o.questions).map(q => ({ q: String(q.q || ""), a: String(q.a || "") })).filter(q => q.q),
+    ...meta,
+  };
+}
+async function generate(relevel) {
+  if (!S.sample || S.gen.busy) return;
+  const cur = sess().passage;
+  const topic = relevel ? (cur?.topic || cur?.title || "") : S.topic.trim();
+  if (!topic) { S.gen.error = "Type a topic first, for example “how bees make honey”."; render(); return; }
+  const ctl = new AbortController();
+  S.gen = { busy: true, error: "", ctl }; render();
+  try {
+    const base = relevel && cur ? cur.sentences.map(s => s.text).join(" ") : null;
+    const out = await S.sample.json(buildPrompt(topic, S.grade, S.length, base), { signal: ctl.signal, cache: false });
+    const p = normPassage(out, { topic, grade: S.grade, length: S.length, createdAt: Date.now(), source: "Claude" });
+    S.gen = { busy: false, error: "", ctl: null };
+    setSession({ passage: p, step: "listen", chunk: 0, revealed: {}, showText: sess().showText ?? true, summaryShown: false });
+    saveText(p);
+  } catch (e) {
+    const msg = { cancelled: "", not_granted: "Claude is turned off for this page. You can still type your own passage below.", sampling_disabled: "Claude isn't available on this account. You can type your own passage below.", rate_limited: "Too many requests right now. Wait a minute and try again.", refused: "Claude could not write that topic. Try different words.", invalid_json: "The text came back in the wrong shape. Press Create again." }[e?.code];
+    S.gen = { busy: false, error: msg ?? "Something went wrong while writing the text. Try again.", ctl: null };
+    if (e?.code === "not_granted" || e?.code === "sampling_disabled") { S.sample = null; S.manual = true; }
+    render();
+  }
+}
+function saveText(p) {
+  if (!S.db || !S.canWrite) return;
+  S.db.collection("texts").add({ ...JSON.parse(JSON.stringify(p)), studentId: S.sid }).catch(writeErr);
+}
+function useManual() {
+  const sentences = S.manualText.split(/(?<=[.!?])\s+/).map(t => t.trim()).filter(Boolean).map(text => ({ text, emoji: "", picture: "" }));
+  if (!sentences.length) { toast("Type at least one sentence."); return; }
+  const keyElements = S.manualKeys.split("\n").map(l => l.trim()).filter(Boolean).map(l => { const m = l.match(/^([^:]{1,14}):\s*(.+)$/); return m ? { label: m[1], answer: m[2], emoji: "" } : { label: "Detail", answer: l, emoji: "" }; });
+  const p = { title: sentences[0].text.slice(0, 40), sentences, keyElements, vocabulary: [], summary: "", summaryFrame: "", visualizePrompt: "", questions: [], topic: "Teacher passage", grade: S.grade, length: sentences.length <= 3 ? "short" : "medium", createdAt: Date.now(), source: "Teacher" };
+  setSession({ passage: p, step: "listen", chunk: 0, revealed: {}, summaryShown: false });
+  saveText(p); S.manualText = ""; S.manualKeys = ""; toast("Passage ready on every device.");
+}
+
+/* ---------- read aloud (on this device) ---------- */
+function speak() {
+  const p = sess().passage; if (!p || !("speechSynthesis" in window)) { toast("Read aloud isn't supported on this device."); return; }
+  speechSynthesis.cancel();
+  const idxs = kindOn("chunk") ? [Math.min(sess().chunk || 0, p.sentences.length - 1)] : p.sentences.map((_, i) => i);
+  idxs.forEach((i, n) => {
+    const u = new SpeechSynthesisUtterance(p.sentences[i].text); u.rate = S.rate;
+    u.onstart = () => { S.speaking = i; render(); };
+    u.onend = () => { if (n === idxs.length - 1) { S.speaking = -1; render(); } };
+    speechSynthesis.speak(u);
+  });
+}
+function stopSpeak() { try { speechSynthesis.cancel(); } catch {} S.speaking = -1; render(); }
+
+/* ---------- data form ---------- */
+function startForm(goalId, pre) {
+  const g = S.goals.find(x => x.id === goalId); if (!g) return;
+  const p = sess().passage;
+  const accOn = activeIds(g.id, g.accommodations || []);
+  const genOn = activeIds("general", student()?.supports || []);
+  S.form = {
+    studentId: S.sid, goalId, date: todayISO(), topic: p ? p.title : "", staff: store.get("vlh.staff", ""),
+    prompt: PROMPTS[0], reminders: sess().reminders?.[goalId] || 0, notes: "",
+    elements: g.type === "recall" ? (p?.keyElements?.length ? p.keyElements.map(k => ({ text: `${k.label}: ${k.answer}`, recalled: false })) : Array.from({ length: g.minElements || 4 }, () => ({ text: "", recalled: false }))) : [],
+    strategies: { visualize: false, chunk: false, summarize: false },
+    items: Object.fromEntries((g.items || []).map(i => [i.id, ""])),
+    accUsed: [...accOn, ...genOn],
+    passage: p ? p.sentences.map(s => s.text).join(" ") : "", grade: p ? p.grade : null,
+  };
+  if (pre?.items) Object.assign(S.form.items, pre.items);
+}
+function scoreForm(f, g) {
+  if (g.type === "recall") {
+    const total = f.elements.filter(e => e.text.trim()).length; const correct = f.elements.filter(e => e.text.trim() && e.recalled).length;
+    const pct = total ? Math.round(correct / total * 100) : 0;
+    return { correct, total, pct, met: total > 0 && correct >= (g.minElements || 0) && pct >= g.target };
+  }
+  const vals = Object.values(f.items).filter(v => v === "+" || v === "-");
+  const correct = vals.filter(v => v === "+").length, total = vals.length, pct = total ? Math.round(correct / total * 100) : 0;
+  return { correct, total, pct, met: total > 0 && pct >= g.target && f.reminders <= (g.maxReminders ?? 99) };
+}
+async function saveAttempt() {
+  const f = S.form, g = S.goals.find(x => x.id === f.goalId);
+  if (!g) return;
+  const sc = scoreForm(f, g);
+  if (!sc.total) { toast(g.type === "recall" ? "Add the key elements, then check the ones recalled." : "Mark at least one skill + or −."); return; }
+  if (!S.db) { toast("Saving is off in this view. Open the page on claude.ai while signed in."); return; }
+  const allAcc = [...(g.accommodations || []), ...(student()?.supports || [])];
+  const [y, m, d] = f.date.split("-").map(Number); const now = new Date();
+  const at = new Date(y, m - 1, d, now.getHours(), now.getMinutes()).getTime();
+  const doc = {
+    studentId: f.studentId, goalId: g.id, goalShort: g.short, type: g.type, at, savedAt: Date.now(), device: S.device, staff: f.staff,
+    topic: f.topic, passage: f.passage, grade: f.grade, prompt: f.prompt, reminders: f.reminders, notes: f.notes,
+    accommodations: f.accUsed.map(id => allAcc.find(a => a.id === id)?.label).filter(Boolean),
+    elements: g.type === "recall" ? f.elements.filter(e => e.text.trim()) : [],
+    strategies: g.type === "recall" ? Object.keys(f.strategies).filter(k => f.strategies[k]) : [],
+    items: g.type === "checklist" ? (g.items || []).map(i => ({ label: i.label, result: f.items[i.id] || "na" })) : [],
+    ...sc, target: g.target,
+  };
+  store.set("vlh.staff", f.staff);
+  try {
+    await S.db.collection("attempts").add(doc);
+    toast(`Saved to ${sname()}'s record · ${sc.pct}%`);
+    if (sess().reminders?.[g.id]) setSession({ reminders: { ...sess().reminders, [g.id]: 0 } });
+    startForm(g.id); render();
+  } catch (e) { writeErr(e); }
+}
+
+/* ---------- navigation ---------- */
+const VIEWS = ["lesson", "board", "supports", "collect", "review", "setup"];
+function go(v) { if (location.hash !== "#" + v) location.hash = v; else { S.view = v; render(); } }
+function readHash() { const v = location.hash.slice(1); S.view = VIEWS.includes(v) ? v : "lesson"; }
+window.addEventListener("hashchange", () => { readHash(); if (S.view === "collect" && !S.form) { const g = studentGoals()[0]; if (g) startForm(g.id); } render(); window.scrollTo(0, 0); });
+
+/* ---------- render ---------- */
+function render() {
+  const a = document.activeElement; const id = a && a.id; let ss = null, se = null;
+  try { ss = a.selectionStart; se = a.selectionEnd; } catch {}
+  const root = $("#app");
+  root.replaceChildren(S.view === "board" ? viewBoard() : h("div", null, topBar(), h("main", { class: "wrap" }, viewMain())));
+  if (id) { const el = document.getElementById(id); if (el && el !== document.activeElement) { el.focus({ preventScroll: true }); try { if (ss != null) el.setSelectionRange(ss, se); } catch {} } }
+}
+function viewMain() {
+  if (S.dbState === "connecting" && !S.loaded.students) return h("div", { class: "empty" }, h("p", null, "Loading your classroom data…"));
+  if (!S.students.length) return viewWelcome();
+  return ({ lesson: viewLesson, supports: viewSupports, collect: viewCollect, review: viewReview, setup: viewSetup })[S.view]();
+}
+function topBar() {
+  const syncTxt = { live: "Synced", connecting: "Connecting…", slow: "Can't reach saved data yet", off: "Saving off" }[S.dbState] || "";
+  const dotCls = { live: "live", connecting: "wait", slow: "wait", off: "off" }[S.dbState];
+  const nav = [["lesson", "Lesson", "book"], ["board", "Student board", "board"], ["supports", "Accommodations", "sliders"], ["collect", "Record data", "clip"], ["review", "Review data", "chart"], ["setup", "Goals & students", "gear"]];
+  return h("header", { class: "top" }, h("div", { class: "wrap" },
+    h("div", { class: "top-row" },
+      h("div", { class: "brand" }, h("span", { class: "brand-mark" }, icon("ear")), "Visual Learning Hub"),
+      S.students.length > 0 && h("label", { class: "chipsel" }, icon("user"), h("span", { class: "sr" }, "Student"),
+        h("select", { id: "stu-sel", onchange: e => selectStudent(e.target.value) }, S.students.map(s => h("option", { value: s.id, selected: s.id === S.sid }, s.name)))),
+      h("label", { class: "chipsel" }, "Device",
+        h("select", { id: "dev-sel", onchange: e => { S.device = e.target.value; store.set("vlh.device", S.device); render(); } },
+          [...new Set(["iPad", "Windows laptop", "Smartboard", "Android tablet", "Chromebook", S.device])].map(d => h("option", { value: d, selected: d === S.device }, d)))),
+      h("span", { class: "sync", title: "Data saves to one shared place for every device" }, h("span", { class: "dot " + dotCls }), syncTxt)),
+    h("nav", { class: "nav", "aria-label": "Sections" }, nav.map(([v, l, ic]) => h("a", { href: "#" + v, "aria-current": S.view === v ? "page" : null }, icon(ic), l)))));
+}
+function selectStudent(id) { S.sid = id; store.set("vlh.sid", id); S.form = null; S.reviewGoal = null; subscribeSession(); render(); }
+
+function viewWelcome() {
+  return h("div", { class: "panel", style: "max-width:620px;margin:40px auto" },
+    h("h2", null, "Add your first student"),
+    h("p", { class: "muted", style: "margin:8px 0 14px" }, "Use initials only. The two IEP goal templates (listening recall and BAHA self-advocacy) and their accommodations are added for you, and you can edit them later."),
+    !S.db && h("p", { class: "notice", style: "margin-bottom:12px" }, "Saving is off in this view, so students and data won't be kept. Open this page on claude.ai while signed in."),
+    h("div", { class: "search" },
+      h("input", { type: "text", id: "first-stu", placeholder: "Initials, e.g. H.J.", value: S.setup.newStudent, oninput: e => S.setup.newStudent = e.target.value }),
+      h("button", { class: "btn primary", onclick: () => addStudent(S.setup.newStudent, true) }, icon("plus"), "Add student")));
+}
+
+/* ----- Lesson (teacher) ----- */
+function viewLesson() {
+  const p = sess().passage;
+  return h("div", { class: "grid2" },
+    h("div", { class: "stack" },
+      h("section", { class: "panel" },
+        h("div", { class: "panel-h" }, h("div", null, h("div", { class: "eyebrow" }, "Leveled text"), h("h2", null, "What are we reading about?"))),
+        h("div", { class: "stack", style: "gap:14px" },
+          h("form", { class: "search", onsubmit: e => { e.preventDefault(); generate(false); } },
+            h("input", { type: "text", id: "topic", placeholder: "Search a topic: sea turtles, washing hands, the water cycle…", value: S.topic, oninput: e => S.topic = e.target.value, "aria-label": "Topic" }),
+            h("button", { class: "btn primary", type: "submit", disabled: !S.sample || S.gen.busy }, icon("spark"), S.gen.busy ? "Writing…" : "Create")),
+          h("div", { class: "slider-wrap" },
+            h("div", { class: "row", style: "justify-content:space-between" }, h("label", { for: "grade", style: "font-weight:700" }, "Reading level"), h("span", { class: "level-pill", id: "grade-lbl" }, GRADES[S.grade] === "K" ? "Kindergarten" : GRADES[S.grade] + " grade")),
+            h("input", { type: "range", id: "grade", min: 0, max: 8, step: 1, value: S.grade, oninput: e => { S.grade = +e.target.value; const l = $("#grade-lbl"); if (l) l.textContent = S.grade === 0 ? "Kindergarten" : GRADES[S.grade] + " grade"; const rb = $("#relevel"); if (rb) rb.disabled = !p || p.grade === S.grade || S.gen.busy || !S.sample; } }),
+            h("div", { class: "ticks", "aria-hidden": "true" }, GRADES.map(g => h("span", null, g)))),
+          h("div", { class: "row" }, h("span", { style: "font-weight:700" }, "Length"),
+            h("div", { class: "seg", role: "group", "aria-label": "Length" }, Object.entries(LENGTHS).map(([k, v]) => h("button", { type: "button", "aria-pressed": String(S.length === k), onclick: () => { S.length = k; render(); } }, v.label)))),
+          p && h("div", { class: "row" }, h("button", { class: "btn", id: "relevel", disabled: p.grade === S.grade || S.gen.busy || !S.sample, onclick: () => generate(true) }, icon("sliders"), "Re-level this text to the slider"), h("span", { class: "small muted" }, "Same facts, new reading level.")),
+          S.gen.busy && h("div", { class: "row notice" }, "Claude is writing a leveled passage. This can take up to a minute.", h("button", { class: "btn sm", onclick: () => S.gen.ctl?.abort() }, "Stop")),
+          S.gen.error && h("p", { class: "notice err" }, S.gen.error),
+          !S.sample && !S.gen.error && h("p", { class: "notice" }, "Creating texts with Claude isn't available in this view. Type your own passage below."),
+          h("details", { open: S.manual || !S.sample, ontoggle: e => S.manual = e.target.open },
+            h("summary", { style: "cursor:pointer;font-weight:700" }, "Or type your own passage"),
+            h("div", { class: "stack", style: "margin-top:10px;gap:10px" },
+              h("label", { class: "field" }, "Passage", h("textarea", { id: "man-text", value: S.manualText, placeholder: "The dog ran to the park after school. He found a red ball under a tree.", oninput: e => S.manualText = e.target.value })),
+              h("label", { class: "field" }, "Key elements, one per line (Label: answer)", h("textarea", { id: "man-keys", value: S.manualKeys, placeholder: "Who: the dog\nWhere: the park\nWhen: after school\nWhat: a red ball", oninput: e => S.manualKeys = e.target.value })),
+              h("div", null, h("button", { class: "btn", onclick: useManual }, icon("check"), "Use this passage")))))),
+      p ? passagePanel(p) : h("section", { class: "panel empty" }, icon("book"), h("p", null, "Create or choose a passage. It appears here and on the student board on every device.")),
+      libraryPanel()),
+    h("div", { class: "stack" }, controlPanel(), quickRecordPanel()));
+}
+function passagePanel(p) {
+  const chunkMode = kindOn("chunk"); const ch = sess().chunk || 0;
+  return h("section", { class: "panel" },
+    h("div", { class: "panel-h" },
+      h("div", null, h("div", { class: "eyebrow" }, `${p.source === "Teacher" ? "Teacher passage" : "Leveled by Claude"} · ${GRADES[p.grade] === "K" ? "Kindergarten" : GRADES[p.grade] + " grade"} level · ${p.sentences.length} sentence${p.sentences.length > 1 ? "s" : ""}`), h("h2", null, p.title)),
+      h("div", { class: "row" },
+        S.speaking >= 0 ? h("button", { class: "btn", onclick: stopSpeak }, icon("stop"), "Stop") : h("button", { class: "btn sun", onclick: speak }, icon("play"), chunkMode ? "Read this chunk" : "Read aloud"),
+        h("label", { class: "chipsel" }, "Speed", h("select", { id: "rate", onchange: e => S.rate = +e.target.value }, [[0.7, "Slow"], [0.85, "Calm"], [1, "Normal"]].map(([v, l]) => h("option", { value: v, selected: S.rate === v }, l)))))),
+    h("div", null, p.sentences.map((s, i) => h("div", { class: "sent" + (S.speaking === i || (chunkMode && i === ch) ? " on" : "") }, h("div", { class: "pic", "aria-hidden": "true" }, s.emoji || "•"), h("div", null, h("p", null, s.text), s.picture && h("div", { class: "small muted" }, "Picture: " + s.picture))))),
+    p.keyElements.length > 0 && h("div", { style: "margin-top:14px" }, h("h4", { style: "margin-bottom:8px" }, `Key elements to recall (${p.keyElements.length})`),
+      h("div", { class: "keys" }, p.keyElements.map(k => h("div", { class: "key" }, h("b", null, `${k.emoji} ${k.label}`), k.answer)))),
+    p.vocabulary.length > 0 && h("div", { style: "margin-top:14px" }, h("h4", { style: "margin-bottom:8px" }, "Vocabulary"),
+      h("div", { class: "vocab" }, p.vocabulary.map(v => h("div", null, h("strong", null, `${v.emoji} ${v.word}`), " — ", v.meaning)))),
+    (p.summary || p.questions.length > 0) && h("details", { style: "margin-top:14px" }, h("summary", { style: "cursor:pointer;font-weight:700" }, "Summary and questions (teacher)"),
+      h("div", { class: "stack", style: "gap:8px;margin-top:8px" }, p.summary && h("p", null, h("strong", null, "Summary: "), p.summary), p.summaryFrame && h("p", null, h("strong", null, "Frame: "), p.summaryFrame),
+        p.questions.map(q => h("p", null, h("strong", null, q.q), " ", h("span", { class: "muted" }, q.a))))));
+}
+function libraryPanel() {
+  const list = S.texts.filter(t => t.studentId === S.sid).slice(0, 25);
+  if (!list.length) return null;
+  return h("section", { class: "panel" }, h("div", { class: "panel-h" }, h("h3", null, "Saved texts"), h("span", { class: "small muted" }, "Tap to reuse")),
+    h("div", { class: "lib" }, list.map(t => h("button", { onclick: () => { const { id, studentId, ...p } = t; setSession({ passage: p, step: "listen", chunk: 0, revealed: {}, summaryShown: false }); window.scrollTo(0, 0); } },
+      h("span", null, h("strong", null, t.title), " ", h("span", { class: "muted small" }, `· ${GRADES[t.grade] || "?"} · ${t.sentences?.length || 0} sent.`)), h("span", { class: "small muted" }, fmtDate(t.createdAt))))));
+}
+function controlPanel() {
+  const s = sess(); const step = s.step || "ready"; const p = s.passage;
+  const checkGoals = studentGoals().filter(g => g.type === "checklist");
+  return h("section", { class: "panel" },
+    h("div", { class: "panel-h" }, h("div", null, h("div", { class: "eyebrow" }, "Live lesson"), h("h3", null, "Drive the student board")),
+      h("a", { class: "btn sm", href: "#board" }, icon("board"), "Open board")),
+    s.updatedAt && h("p", { class: "small muted", style: "margin-bottom:10px" }, `Last change on ${s.updatedBy || "a device"}, ${fmtAgo(s.updatedAt)}. Open this page on any device to pick up here.`),
+    h("div", { class: "steps", role: "group", "aria-label": "Lesson step" }, LESSON_STEPS.map(st => h("button", { "aria-pressed": String(step === st.id), onclick: () => setSession({ step: st.id }) }, icon(st.ic), st.label))),
+    p && h("div", { class: "row", style: "margin-top:12px" },
+      kindOn("chunk") && h("div", { class: "row" }, h("button", { class: "btn sm", disabled: (s.chunk || 0) <= 0, onclick: () => setSession({ chunk: Math.max(0, (s.chunk || 0) - 1) }) }, icon("prev"), "Back"),
+        h("span", { class: "small" }, `Chunk ${Math.min((s.chunk || 0) + 1, p.sentences.length)} of ${p.sentences.length}`),
+        h("button", { class: "btn sm", disabled: (s.chunk || 0) >= p.sentences.length - 1, onclick: () => setSession({ chunk: (s.chunk || 0) + 1 }) }, "Next", icon("next"))),
+      h("label", { class: "row small", style: "gap:8px" }, h("span", { class: "switch" }, h("input", { type: "checkbox", id: "showtext", checked: s.showText !== false, onchange: e => setSession({ showText: e.target.checked }) }), h("span")), "Show words on board")),
+    checkGoals.map(g => {
+      const n = s.reminders?.[g.id] || 0, max = g.maxReminders ?? 2;
+      return h("div", { style: "margin-top:14px" }, h("div", { class: "eyebrow" }, "Reminders given · " + g.short),
+        h("div", { class: "counter" }, h("button", { class: "btn sm", "aria-label": "One fewer reminder", onclick: () => setSession({ reminders: { ...(s.reminders || {}), [g.id]: Math.max(0, n - 1) } }) }, icon("minus")),
+          h("output", null, n), h("button", { class: "btn sm", "aria-label": "Add a reminder", onclick: () => setSession({ reminders: { ...(s.reminders || {}), [g.id]: n + 1 } }) }, icon("plus")),
+          h("span", { class: "small " + (n > max ? "" : "muted"), style: n > max ? "color:var(--bad);font-weight:700" : "" }, n > max ? `Over the limit of ${max}` : `Limit: ${max}`)));
+    }),
+    kindOn("checklist") && h("div", { style: "margin-top:14px" }, h("div", { class: "eyebrow", style: "margin-bottom:6px" }, "BAHA check on the board"),
+      h("div", { class: "row small" }, BAHA_STEPS.map(b => h("span", { class: "badge " + (s.baha?.[b.id] ? "met" : ""), style: s.baha?.[b.id] ? "" : "background:var(--surface-2);color:var(--muted)" }, b.e, " ", b.t))),
+      h("button", { class: "btn sm ghost", style: "margin-top:6px", onclick: () => setSession({ baha: {} }) }, "Reset checklist")));
+}
+function quickRecordPanel() {
+  const gs = studentGoals();
+  return h("section", { class: "panel" }, h("div", { class: "panel-h" }, h("h3", null, "Record an attempt")),
+    gs.length ? h("div", { class: "stack", style: "gap:8px" }, gs.map(g => h("button", { class: "btn", style: "justify-content:flex-start", onclick: () => { startForm(g.id); go("collect"); } }, icon("clip"), g.short))) : h("p", { class: "muted" }, "Add a goal in Goals & students."),
+    h("p", { class: "small muted", style: "margin-top:10px" }, `Active accommodations: ${activeAccs().length}. `, h("a", { href: "#supports" }, "Change them")));
+}
+
+/* ----- Student board ----- */
+function viewBoard() {
+  const s = sess(); const step = s.step || "ready"; const p = s.passage;
+  const on = k => kindOn(k);
+  const textCards = activeAccs().filter(a => a.kind === "text" && a.support);
+  const cue = activeAccs().find(a => a.kind === "cue");
+  const sig = activeAccs().find(a => a.kind === "signal");
+  return h("div", { class: "board" },
+    h("div", { class: "wrap board-top" },
+      h("div", { class: "board-title" }, p ? p.title : `Hi, ${sname()}!`),
+      h("div", { class: "board-ctl" },
+        h("button", { class: "btn", onclick: () => { document.documentElement.requestFullscreen?.()?.catch?.(() => {}); } }, icon("expand"), "Full screen"),
+        h("a", { class: "btn", href: "#lesson" }, "Teacher view"))),
+    h("div", { class: "wrap" }, h("div", { class: "bsteps", role: "group", "aria-label": "Lesson step" }, LESSON_STEPS.map(st => h("button", { "aria-pressed": String(step === st.id), onclick: () => setSession({ step: st.id }) }, icon(st.ic), st.label)))),
+    h("div", { class: "wrap board-body" },
+      h("section", { class: "stage", "aria-live": "polite" }, boardStage(step, p, on)),
+      h("aside", { class: "side" },
+        sig && h("button", { class: "cant-hear", onclick: sendSignal }, icon("hand"), h("span", null, "I can't hear", h("small", null, sig.support))),
+        cue && h("div", { class: "cuecard" }, icon("ear"), h("span", null, cue.support)),
+        on("anchor") && anchorCharts(),
+        textCards.map(a => h("div", { class: "cuecard" }, icon("check"), h("span", null, a.support))))),
+    S.gotIt && h("div", { class: "got-it", onclick: () => { S.gotIt = false; render(); } }, h("div", null, "✋ Your teacher got your signal.")));
+}
+function sendSignal() { setSession({ signal: { at: Date.now(), device: S.device } }); S.gotIt = true; render(); setTimeout(() => { S.gotIt = false; render(); }, 2500); }
+function anchorCharts() {
+  const hot = k => kindOn(k) ? " hot" : "";
+  return h("div", { class: "stack", style: "gap:10px" },
+    h("div", { class: "eyebrow" }, "Memory strategies"),
+    h("div", { class: "anchor" + hot("visualize") }, icon("eye"), h("div", null, h("b", null, "Visualize"), h("span", null, "Make a movie in my mind."))),
+    h("div", { class: "anchor" + hot("chunk") }, icon("blocks"), h("div", null, h("b", null, "Chunk"), h("span", null, "Remember one small part at a time."))),
+    h("div", { class: "anchor" + hot("summarize") }, icon("lines"), h("div", null, h("b", null, "Summarize"), h("span", null, "Say it short: who did what."))));
+}
+function boardStage(step, p, on) {
+  const s = sess();
+  if (step === "ready") {
+    return [h("h2", null, "Get ready to listen"),
+      on("checklist") ? h("div", { class: "ticklist" }, BAHA_STEPS.map(b => { const d = !!s.baha?.[b.id]; return h("button", { class: d ? "done" : "", "aria-pressed": String(d), onclick: () => setSession({ baha: { ...(s.baha || {}), [b.id]: !d } }) }, h("span", { class: "e", "aria-hidden": "true" }, b.e), b.t, h("span", { class: "tick" }, d ? icon("check") : "")); })) : h("p", null, "Eyes on the speaker. Check that you can hear."),
+      on("troubleshoot") && h("div", null, h("h3", { style: "font-size:1em;margin-bottom:.4em" }, "Not working? Try these steps"), h("ol", { class: "trouble" }, TROUBLE_STEPS.map(t => h("li", null, h("span", null, t))))),
+      on("readaloud") && p && h("p", { class: "frame", style: "font-size:1em" }, `Next: listen to ${p.sentences.length} sentence${p.sentences.length > 1 ? "s" : ""} about ${p.title.toLowerCase()}.`)];
+  }
+  if (!p) return [h("h2", null, "Waiting for the passage"), h("p", null, "Your teacher will choose something to read.")];
+  const pics = on("visual");
+  if (step === "listen") {
+    const chunk = on("chunk"); const upto = chunk ? Math.min(s.chunk || 0, p.sentences.length - 1) : p.sentences.length - 1;
+    const hide = s.showText === false;
+    return [h("h2", null, chunk ? `Listen: part ${upto + 1} of ${p.sentences.length}` : "Listen"),
+      p.sentences.slice(0, upto + 1).map((x, i) => h("div", { class: "bsent" + (chunk && i === upto ? " new" : "") + (hide ? " hidden-text" : "") }, h("div", { class: "pic", "aria-hidden": "true" }, pics ? x.emoji : "•"), h("p", null, x.text))),
+      chunk && h("div", { class: "row" }, h("button", { class: "btn", disabled: upto <= 0, onclick: () => setSession({ chunk: upto - 1 }) }, icon("prev"), "Back"), h("button", { class: "btn sun", disabled: upto >= p.sentences.length - 1, onclick: () => setSession({ chunk: upto + 1 }) }, "Next part", icon("next"))),
+      pics && p.vocabulary.length > 0 && h("div", { class: "vocab-b" }, p.vocabulary.map(v => h("div", null, h("strong", null, `${v.emoji} ${v.word}`), ": ", v.meaning)))];
+  }
+  if (step === "picture") {
+    return [h("h2", null, on("visualize") ? "Make a movie in your mind" : "Think about what you heard"),
+      on("visualize") && p.visualizePrompt && h("p", { class: "frame" }, p.visualizePrompt),
+      pics && h("div", { class: "bigpics", "aria-hidden": "true" }, p.sentences.map(x => h("span", null, x.emoji))),
+      pics && h("div", { class: "stack", style: "gap:.4em" }, p.sentences.filter(x => x.picture).map(x => h("div", { class: "bsent" }, h("div", { class: "pic" }, x.emoji), h("p", { style: "font-size:1em" }, x.picture))))];
+  }
+  if (step === "remember") {
+    const rev = s.revealed || {};
+    const keys = p.keyElements.length ? p.keyElements : [{ label: "Who" }, { label: "What" }, { label: "Where" }, { label: "When" }].map(k => ({ ...k, answer: "", emoji: "" }));
+    return [h("h2", null, `What do you remember? Find ${Math.max(4, Math.min(keys.length, 6))}!`),
+      on("organizer") ? h("div", { class: "borg" }, keys.map((k, i) => h("button", { class: rev[i] ? "shown" : "", onclick: () => setSession({ revealed: { ...rev, [i]: !rev[i] } }), "aria-label": `${k.label}${rev[i] ? ": " + k.answer : ", tap to show"}` },
+        h("span", { class: "e", "aria-hidden": "true" }, pics && k.emoji ? k.emoji : "❓"), h("b", null, k.label + "?"), rev[i] && k.answer && h("span", { class: "a" }, k.answer))))
+        : h("p", { class: "frame" }, "Tell your teacher everything you remember."),
+      h("p", { class: "small muted", style: "font-size:.7em" }, "Tap a box after you say it to check your answer.")];
+  }
+  return [h("h2", null, "Sum it up"),
+    on("summarize") && h("p", { class: "frame" }, p.summaryFrame || "___ did ___."),
+    h("button", { class: "btn", onclick: () => setSession({ summaryShown: !s.summaryShown }) }, s.summaryShown ? "Hide the answer" : "Check my summary"),
+    s.summaryShown && p.summary && h("p", { class: "frame", style: "background:var(--good-soft);border-color:var(--good)" }, p.summary)];
+}
+
+/* ----- Accommodations ----- */
+function viewSupports() {
+  const groups = accGroups();
+  return h("div", { class: "stack" },
+    h("div", null, h("div", { class: "eyebrow" }, "This lesson"), h("h2", null, `Accommodations for ${sname()}`),
+      h("p", { class: "muted", style: "margin-top:6px;max-width:70ch" }, "Turn each accommodation on or off for today. Choices sync to every device, change what the student board shows, and are copied onto each attempt you record.")),
+    groups.map(g => {
+      const on = activeIds(g.key, g.list);
+      return h("section", { class: "panel" },
+        h("div", { class: "panel-h" }, h("div", null, h("h3", null, g.title), g.goal && h("p", { class: "goal-text", style: "margin-top:8px;max-width:80ch" }, g.goal.text)),
+          h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => setSession({ active: { ...(sess().active || {}), [g.key]: g.list.map(a => a.id) } }) }, "All on"), h("button", { class: "btn sm", onclick: () => setSession({ active: { ...(sess().active || {}), [g.key]: [] } }) }, "All off"))),
+        g.list.length ? g.list.map(a => h("div", { class: "acc-row" },
+          h("span", { class: "switch" }, h("input", { type: "checkbox", id: "acc-" + a.id, checked: on.includes(a.id), onchange: e => toggleAcc(g.key, g.list, a.id, e.target.checked), "aria-label": a.label }), h("span")),
+          h("label", { for: "acc-" + a.id, style: "cursor:pointer;min-width:0" }, h("strong", null, a.label), a.support && h("p", null, "Student sees: “" + a.support + "”")),
+          h("span", { class: "kind" }, KINDS[a.kind] || a.kind))) : h("p", { class: "muted" }, "No accommodations yet."),
+        addAccRow(g));
+    }));
+}
+function addAccRow(g) {
+  const k = "newacc-" + g.key; const st = S[k] || (S[k] = { label: "", support: "" });
+  return h("details", { style: "margin-top:10px" }, h("summary", { style: "cursor:pointer;font-weight:700;color:var(--primary)" }, "Add an accommodation"),
+    h("div", { class: "row", style: "margin-top:10px;align-items:flex-end" },
+      h("label", { class: "field", style: "flex:1 1 200px" }, "Accommodation", h("input", { type: "text", id: k + "-l", value: st.label, placeholder: "e.g. Peer buddy check-in", oninput: e => st.label = e.target.value })),
+      h("label", { class: "field", style: "flex:2 1 260px" }, "What the student sees (optional)", h("input", { type: "text", id: k + "-s", value: st.support, placeholder: "e.g. Ask your buddy: what did they say?", oninput: e => st.support = e.target.value })),
+      h("button", { class: "btn primary", onclick: () => { if (!st.label.trim()) return toast("Name the accommodation first."); const acc = { id: uid(), kind: "text", label: st.label.trim(), support: st.support.trim() }; S[k] = null; addAccTo(g, acc); } }, icon("plus"), "Add")));
+}
+function addAccTo(g, acc) {
+  if (!S.db) return toast("Saving is off in this view.");
+  const curOn = activeIds(g.key, g.list);
+  if (g.goal) serial("goals/" + g.goal.id, () => S.db.doc("goals/" + g.goal.id).update({ accommodations: [...g.list, acc] })).catch(writeErr);
+  else serial("students/" + S.sid, () => S.db.doc("students/" + S.sid).update({ supports: [...g.list, acc] })).catch(writeErr);
+  if (Array.isArray(sess().active?.[g.key])) setSession({ active: { ...sess().active, [g.key]: [...curOn, acc.id] } });
+  toast("Accommodation added.");
+}
+
+/* ----- Record data ----- */
+function viewCollect() {
+  const gs = studentGoals();
+  if (!gs.length) return h("div", { class: "panel empty" }, h("p", null, "Add a goal first."), h("a", { class: "btn primary", href: "#setup" }, "Goals & students"));
+  if (!S.form || S.form.studentId !== S.sid || !gs.find(g => g.id === S.form.goalId)) startForm(gs[0].id);
+  const f = S.form, g = gs.find(x => x.id === f.goalId), sc = scoreForm(f, g);
+  const accList = [...(g.accommodations || []), ...(student()?.supports || [])];
+  return h("div", { class: "grid2" },
+    h("div", { class: "stack" },
+      h("section", { class: "panel" },
+        h("div", { class: "eyebrow" }, "Record an attempt"), h("h2", { style: "margin-bottom:12px" }, `${sname()} · ${g.short}`),
+        h("div", { class: "seg", role: "group", "aria-label": "Goal", style: "margin-bottom:12px" }, gs.map(x => h("button", { "aria-pressed": String(x.id === f.goalId), onclick: () => { startForm(x.id); render(); } }, x.short))),
+        h("p", { class: "goal-text" }, g.text),
+        h("div", { class: "row", style: "margin-top:14px;align-items:flex-end" },
+          h("label", { class: "field", style: "flex:0 1 170px" }, "Date", h("input", { type: "date", id: "f-date", value: f.date, oninput: e => f.date = e.target.value || todayISO() })),
+          h("label", { class: "field", style: "flex:1 1 200px" }, g.type === "recall" ? "Passage / activity" : "Activity or setting", h("input", { type: "text", id: "f-topic", value: f.topic, placeholder: g.type === "recall" ? "e.g. Sea turtles" : "e.g. Morning arrival", oninput: e => f.topic = e.target.value })),
+          h("label", { class: "field", style: "flex:0 1 120px" }, "Staff", h("input", { type: "text", id: "f-staff", value: f.staff, placeholder: "Initials", oninput: e => f.staff = e.target.value })))),
+      g.type === "recall" ? recallSection(f, g) : checklistSection(f, g),
+      h("section", { class: "panel" },
+        h("h3", { style: "margin-bottom:10px" }, "Support given"),
+        h("div", { class: "row", style: "align-items:flex-end" },
+          h("label", { class: "field", style: "flex:1 1 220px" }, "Prompt level", h("select", { id: "f-prompt", onchange: e => f.prompt = e.target.value }, PROMPTS.map(p => h("option", { selected: p === f.prompt }, p)))),
+          h("div", { class: "field" }, "Reminders", h("div", { class: "counter" },
+            h("button", { class: "btn sm", "aria-label": "One fewer reminder", onclick: () => { f.reminders = Math.max(0, f.reminders - 1); render(); } }, icon("minus")), h("output", null, f.reminders),
+            h("button", { class: "btn sm", "aria-label": "Add a reminder", onclick: () => { f.reminders++; render(); } }, icon("plus")),
+            h("span", { class: "small muted" }, `limit ${g.maxReminders ?? "–"}`)))),
+        h("h4", { style: "margin:14px 0 6px" }, "Accommodations used"),
+        accList.length ? accList.map(a => h("label", { class: "check-row", style: "grid-template-columns:auto minmax(0,1fr)" }, h("input", { type: "checkbox", class: "big-check", checked: f.accUsed.includes(a.id), onchange: e => { f.accUsed = e.target.checked ? [...f.accUsed, a.id] : f.accUsed.filter(x => x !== a.id); } }), a.label)) : h("p", { class: "muted small" }, "None listed."),
+        h("label", { class: "field", style: "margin-top:12px" }, "Notes / work sample description", h("textarea", { id: "f-notes", value: f.notes, placeholder: "What did he say or do? Which strategy helped?", oninput: e => f.notes = e.target.value })))),
+    h("div", { class: "stack", style: "position:sticky;top:calc(130px + env(safe-area-inset-top, 0px))" },
+      h("section", { class: "panel" },
+        h("div", { class: "eyebrow" }, "Score"),
+        h("div", { class: "score", style: "margin:10px 0" }, h("div", null, h("div", { class: "num" }, sc.pct + "%"), h("div", { class: "small muted" }, `${sc.correct} of ${sc.total} ${g.type === "recall" ? "elements recalled" : "skills correct"}`)),
+          h("span", { class: "badge " + (sc.met ? "met" : "not") }, sc.met ? icon("check") : icon("x"), sc.met ? "Meets criterion" : "Below criterion")),
+        h("p", { class: "small muted" }, g.type === "recall" ? `Criterion: at least ${g.minElements} elements and ${g.target}% accuracy.` : `Criterion: ${g.target}% accuracy with no more than ${g.maxReminders} reminders.`),
+        h("p", { class: "small muted", style: "margin-top:6px" }, `Saving from: ${S.device}`),
+        h("button", { class: "btn primary", style: "width:100%;margin-top:12px", disabled: !S.canWrite, onclick: saveAttempt }, icon("check"), "Save attempt"),
+        !S.db && h("p", { class: "notice", style: "margin-top:10px" }, "Saving is off in this view. Open this page on claude.ai while signed in."))));
+}
+function recallSection(f, g) {
+  const p = sess().passage;
+  return h("section", { class: "panel" },
+    h("div", { class: "panel-h" }, h("h3", null, "Key elements recalled"),
+      p && h("button", { class: "btn sm", onclick: () => { f.elements = p.keyElements.map(k => ({ text: `${k.label}: ${k.answer}`, recalled: false })); f.topic = p.title; f.passage = p.sentences.map(s => s.text).join(" "); f.grade = p.grade; render(); } }, "Load from current passage")),
+    f.elements.map((el, i) => h("div", { class: "check-row" },
+      h("input", { type: "checkbox", class: "big-check", "aria-label": "Recalled", checked: el.recalled, onchange: e => { el.recalled = e.target.checked; render(); } }),
+      h("input", { type: "text", id: "el-" + i, value: el.text, placeholder: "e.g. Who: the turtle", oninput: e => { el.text = e.target.value; } , onchange: () => render() }),
+      h("button", { class: "btn sm ghost", "aria-label": "Remove element", onclick: () => { f.elements.splice(i, 1); render(); } }, icon("x")))),
+    h("button", { class: "btn sm", style: "margin-top:6px", onclick: () => { f.elements.push({ text: "", recalled: false }); render(); } }, icon("plus"), "Add element"),
+    h("h4", { style: "margin:14px 0 6px" }, "Strategies he used"),
+    h("div", { class: "row" }, [["visualize", "Visualization", "eye"], ["chunk", "Chunking", "blocks"], ["summarize", "Summarizing", "lines"]].map(([k, l, ic]) =>
+      h("button", { class: "btn sm", "aria-pressed": String(f.strategies[k]), style: f.strategies[k] ? "background:var(--teal-soft);border-color:var(--teal)" : "", onclick: () => { f.strategies[k] = !f.strategies[k]; render(); } }, icon(f.strategies[k] ? "check" : ic), l))));
+}
+function checklistSection(f, g) {
+  return h("section", { class: "panel" }, h("h3", { style: "margin-bottom:6px" }, "Skills observed"),
+    h("p", { class: "small muted", style: "margin-bottom:8px" }, "+ did it, − did not, N/A no chance to show it."),
+    (g.items || []).map(it => h("div", { class: "check-row" }, h("span", { style: "font-size:1.4rem", "aria-hidden": "true" }, it.emoji || "•"), h("span", null, it.label),
+      h("div", { class: "pm", role: "group", "aria-label": it.label }, [["+", "plus"], ["-", "minus"], ["na", "na"]].map(([v, c]) => h("button", { class: c, "aria-pressed": String(f.items[it.id] === v), onclick: () => { f.items[it.id] = f.items[it.id] === v ? "" : v; render(); } }, v === "na" ? "N/A" : v === "-" ? "−" : "+"))))));
+}
+
+/* ----- Review ----- */
+function viewReview() {
+  const gs = studentGoals();
+  if (!gs.length) return h("div", { class: "panel empty" }, h("p", null, "No goals yet."));
+  if (!S.reviewGoal || !gs.find(g => g.id === S.reviewGoal)) S.reviewGoal = gs[0].id;
+  const g = gs.find(x => x.id === S.reviewGoal);
+  const cutoff = { all: 0, d30: Date.now() - 30 * 864e5, d90: Date.now() - 90 * 864e5 }[S.reviewRange];
+  const list = S.attempts.filter(a => a.studentId === S.sid && a.goalId === g.id && a.at >= cutoff).sort((a, b) => b.at - a.at);
+  const last5 = list.slice(0, 5); const avg = arr => arr.length ? Math.round(arr.reduce((s, a) => s + a.pct, 0) / arr.length) : null;
+  const metLast5 = last5.filter(a => a.met).length;
+  return h("div", { class: "stack" },
+    h("div", { class: "row", style: "justify-content:space-between" },
+      h("div", null, h("div", { class: "eyebrow" }, "Review data"), h("h2", null, `${sname()}'s progress`)),
+      h("div", { class: "row" },
+        h("div", { class: "seg", role: "group", "aria-label": "Date range" }, [["all", "All"], ["d90", "90 days"], ["d30", "30 days"]].map(([k, l]) => h("button", { "aria-pressed": String(S.reviewRange === k), onclick: () => { S.reviewRange = k; render(); } }, l))),
+        h("button", { class: "btn", onclick: exportCsv, disabled: !S.downloads }, icon("download"), "Export CSV"))),
+    h("div", { class: "seg", role: "group", "aria-label": "Goal" }, gs.map(x => h("button", { "aria-pressed": String(x.id === g.id), onclick: () => { S.reviewGoal = x.id; S.note = { busy: false, text: "", error: "" }; render(); } }, x.short))),
+    h("section", { class: "panel" },
+      h("p", { class: "goal-text", style: "margin-bottom:14px" }, g.text),
+      h("div", { class: "stats" },
+        h("div", { class: "stat" }, h("span", { class: "small muted" }, "Attempts"), h("b", null, list.length)),
+        h("div", { class: "stat" }, h("span", { class: "small muted" }, "Last 5 average"), h("b", null, avg(last5) == null ? "–" : avg(last5) + "%")),
+        h("div", { class: "stat" }, h("span", { class: "small muted" }, "Overall average"), h("b", null, avg(list) == null ? "–" : avg(list) + "%")),
+        h("div", { class: "stat" }, h("span", { class: "small muted" }, "Met criterion, last 5"), h("b", null, last5.length ? `${metLast5} of ${last5.length}` : "–"))),
+      list.length ? trendChart(list.slice(0, 30).reverse(), g.target) : h("div", { class: "empty" }, icon("chart"), h("p", null, "No attempts yet in this range. Record one from the Lesson or Record data tab."))),
+    list.length > 0 && h("section", { class: "panel" }, h("h3", { style: "margin-bottom:10px" }, "Attempts"),
+      h("div", { class: "tbl-wrap" }, h("table", null,
+        h("thead", null, h("tr", null, ["Date", "Activity", "Score", "Reminders", "Prompt", "Device", ""].map(t => h("th", null, t)))),
+        h("tbody", null, list.map(a => [
+          h("tr", null, h("td", { class: "num" }, fmtDate(a.at)), h("td", null, a.topic || "–", a.grade != null && h("div", { class: "small muted" }, GRADES[a.grade] + " level")),
+            h("td", { class: "num" }, h("span", { class: "badge " + (a.met ? "met" : "not") }, `${a.pct}%`), h("div", { class: "small muted" }, `${a.correct}/${a.total}`)),
+            h("td", { class: "num" }, a.reminders ?? 0), h("td", null, a.prompt || "–"), h("td", null, a.device || "–"),
+            h("td", null, h("button", { class: "btn sm ghost", "aria-expanded": String(S.openRow === a.id), onclick: () => { S.openRow = S.openRow === a.id ? null : a.id; S.confirmDel = null; render(); } }, S.openRow === a.id ? "Hide" : "Details"))),
+          S.openRow === a.id && h("tr", { class: "detail" }, h("td", { colspan: 7 }, attemptDetail(a)))]))))),
+    h("section", { class: "panel" }, h("div", { class: "panel-h" }, h("h3", null, "Progress note draft"),
+      h("button", { class: "btn", disabled: !S.sample || S.note.busy || !list.length, onclick: () => draftNote(g, list) }, icon("spark"), S.note.busy ? "Writing…" : "Draft with Claude")),
+      h("p", { class: "small muted" }, "Writes an IEP progress-report paragraph from the attempts shown above. Review and edit before you use it."),
+      S.note.error && h("p", { class: "notice err", style: "margin-top:10px" }, S.note.error),
+      S.note.text && h("div", { style: "margin-top:10px" }, h("div", { class: "note-out", id: "note-out" }, S.note.text),
+        h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => { navigator.clipboard?.writeText(S.note.text).then(() => toast("Copied."), () => { const r = document.createRange(); r.selectNodeContents($("#note-out")); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Selected. Copy it with your keyboard or menu."); }); } }, icon("copy"), "Copy"))));
+}
+function attemptDetail(a) {
+  return h("div", { class: "stack", style: "gap:8px" },
+    a.elements?.length > 0 && h("div", null, h("strong", null, "Key elements"), h("ul", null, a.elements.map(e => h("li", null, e.recalled ? "✔ " : "✘ ", e.text)))),
+    a.items?.length > 0 && h("div", null, h("strong", null, "Skills"), h("ul", null, a.items.map(i => h("li", null, `${i.result === "+" ? "+" : i.result === "-" ? "−" : "N/A"}  ${i.label}`)))),
+    a.strategies?.length > 0 && h("p", null, h("strong", null, "Strategies: "), a.strategies.join(", ")),
+    a.accommodations?.length > 0 && h("p", null, h("strong", null, "Accommodations: "), a.accommodations.join("; ")),
+    a.passage && h("p", null, h("strong", null, "Passage: "), a.passage),
+    a.notes && h("p", null, h("strong", null, "Notes: "), a.notes),
+    h("p", { class: "small muted" }, `Recorded ${new Date(a.savedAt || a.at).toLocaleString()} on ${a.device || "unknown device"}${a.staff ? " by " + a.staff : ""}`),
+    S.confirmDel === a.id ? h("div", { class: "confirm" }, "Delete this attempt for good?", h("button", { class: "btn sm danger", onclick: () => { S.db?.doc("attempts/" + a.id).delete().then(() => toast("Attempt deleted."), writeErr); S.confirmDel = null; S.openRow = null; } }, "Delete"), h("button", { class: "btn sm", onclick: () => { S.confirmDel = null; render(); } }, "Keep"))
+      : h("div", null, h("button", { class: "btn sm danger", disabled: !S.canWrite, onclick: () => { S.confirmDel = a.id; render(); } }, icon("trash"), "Delete attempt")));
+}
+function trendChart(pts, target) {
+  const W = 720, H = 230, L = 40, R = 14, T = 14, B = 30, iw = W - L - R, ih = H - T - B;
+  const x = i => L + (pts.length === 1 ? iw / 2 : i * iw / (pts.length - 1)), y = v => T + ih - v / 100 * ih;
+  const ns = "http://www.w3.org/2000/svg"; const el = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": `Accuracy over ${pts.length} attempts, target ${target}%` });
+  [0, 25, 50, 75, 100].forEach(v => { svg.append(el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "grid" })); const t = el("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end" }); t.textContent = v + "%"; svg.append(t); });
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.pct)}`).join("");
+  if (pts.length > 1) svg.append(el("path", { d: `${line}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z`, class: "area" }), el("path", { d: line, class: "line" }));
+  svg.append(el("line", { x1: L, x2: W - R, y1: y(target), y2: y(target), class: "target" }));
+  const tl = el("text", { x: W - R, y: y(target) - 6, "text-anchor": "end" }); tl.textContent = `Goal ${target}%`; svg.append(tl);
+  pts.forEach((p, i) => { const c = el("circle", { cx: x(i), cy: y(p.pct), r: i === pts.length - 1 ? 7 : 5, class: p.met ? "pt-met" : "pt-not" }); const tt = el("title", {}); tt.textContent = `${fmtDate(p.at)}: ${p.pct}%`; c.append(tt); svg.append(c); });
+  const step = Math.max(1, Math.ceil(pts.length / 6));
+  pts.forEach((p, i) => { if (i % step === 0 || i === pts.length - 1) { const t = el("text", { x: x(i), y: H - 8, "text-anchor": "middle" }); t.textContent = new Date(p.at).toLocaleDateString(undefined, { month: "short", day: "numeric" }); svg.append(t); } });
+  return h("div", { style: "margin-top:16px" }, svg, h("div", { class: "row small muted", style: "margin-top:6px" }, h("span", { class: "badge met" }, "● met"), h("span", { class: "badge not" }, "● below"), "Dashed line = goal"));
+}
+async function exportCsv() {
+  const goals = Object.fromEntries(S.goals.map(g => [g.id, g]));
+  const rows = S.attempts.filter(a => a.studentId === S.sid).sort((a, b) => a.at - b.at);
+  const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Date", "Student", "Goal", "Activity", "Reading level", "Correct", "Total", "Percent", "Met criterion", "Reminders", "Prompt level", "Strategies", "Accommodations", "Details", "Notes", "Device", "Staff"];
+  const lines = [head.map(esc).join(",")].concat(rows.map(a => [new Date(a.at).toLocaleDateString(), sname(), goals[a.goalId]?.short || a.goalShort, a.topic, a.grade != null ? GRADES[a.grade] : "", a.correct, a.total, a.pct, a.met ? "Yes" : "No", a.reminders, a.prompt, (a.strategies || []).join("; "), (a.accommodations || []).join("; "),
+    a.type === "recall" ? (a.elements || []).map(e => (e.recalled ? "+ " : "- ") + e.text).join("; ") : (a.items || []).map(i => `${i.result} ${i.label}`).join("; "), a.notes, a.device, a.staff].map(esc).join(",")));
+  try { await S.downloads.save({ filename: `${sname().replace(/[^A-Za-z0-9]+/g, "")}-goal-data-${todayISO()}.csv`, data: lines.join("\r\n") }); }
+  catch (e) { if (e?.code !== "cancelled" && e?.code !== "declined") toast("The file was not saved."); }
+}
+async function draftNote(g, list) {
+  S.note = { busy: true, text: "", error: "" }; render();
+  const rows = list.slice(0, 30).reverse().map(a => `${fmtDate(a.at)} | ${a.topic || ""} | ${a.correct}/${a.total} = ${a.pct}% | met: ${a.met ? "yes" : "no"} | reminders: ${a.reminders ?? 0} | prompt: ${a.prompt || ""} | strategies: ${(a.strategies || []).join(", ")} | accommodations: ${(a.accommodations || []).join(", ")} | notes: ${a.notes || ""}`).join("\n");
+  try {
+    const { text } = await S.sample(`Write a concise IEP progress-report note (4-6 sentences, plain professional language, third person, use only the student's initials "${sname()}") for this goal, based only on the data below. State the number of data points, recent average vs the ${g.target}% criterion, the trend, which supports/strategies appear linked to success, and one next step. Do not invent data.\n\nGoal: ${g.text}\n\nData (oldest to newest):\n${rows}`, { cache: false, onText: ({ text }) => { S.note.text = text; const o = $("#note-out"); if (o) o.textContent = text; else render(); } });
+    S.note = { busy: false, text, error: "" };
+  } catch (e) { S.note = { busy: false, text: e?.text || "", error: e?.code === "cancelled" ? "" : "Could not draft the note. Try again in a moment." }; if (e?.code === "not_granted") S.sample = null; }
+  render();
+}
+
+/* ----- Goals & students ----- */
+function viewSetup() {
+  const st = student(); const gs = studentGoals(); const ed = S.setup.editGoal;
+  return h("div", { class: "grid2" },
+    h("div", { class: "stack" },
+      h("section", { class: "panel" }, h("div", { class: "panel-h" }, h("div", null, h("div", { class: "eyebrow" }, "IEP goals"), h("h2", null, `${sname()}'s goals`))),
+        gs.length ? gs.map(g => ed === g.id ? goalEditor(g) : h("div", { class: "acc-row", style: "grid-template-columns:minmax(0,1fr) auto" },
+          h("div", { style: "min-width:0" }, h("strong", null, g.short), " ", h("span", { class: "kind" }, g.type === "recall" ? "Recall" : "Skills checklist"), h("p", null, `${g.target}% target · ${(g.accommodations || []).length} accommodations${g.type === "checklist" ? ` · ${(g.items || []).length} skills` : ""}`)),
+          h("button", { class: "btn sm", onclick: () => { S.setup.editGoal = g.id; S.setup.draft = JSON.parse(JSON.stringify(g)); render(); } }, "Edit"))) : h("p", { class: "muted" }, "No goals yet."),
+        h("div", { class: "row", style: "margin-top:14px" },
+          h("span", { class: "small muted" }, "Add goal:"),
+          h("button", { class: "btn sm", onclick: () => addGoal("recall") }, "Listening recall (template)"),
+          h("button", { class: "btn sm", onclick: () => addGoal("advocacy") }, "BAHA self-advocacy (template)"),
+          h("button", { class: "btn sm", onclick: () => addGoal("blankRecall") }, "Blank recall goal"),
+          h("button", { class: "btn sm", onclick: () => addGoal("blankChecklist") }, "Blank checklist goal")))),
+    h("div", { class: "stack" },
+      h("section", { class: "panel" }, h("h3", { style: "margin-bottom:10px" }, "Students"),
+        S.students.map(s => h("div", { class: "row", style: "justify-content:space-between;padding:6px 0" }, h("span", null, h("strong", null, s.name), s.id === S.sid && h("span", { class: "small muted" }, " · selected")), s.id !== S.sid && h("button", { class: "btn sm", onclick: () => selectStudent(s.id) }, "Select"))),
+        h("div", { class: "search", style: "margin-top:10px" },
+          h("input", { type: "text", id: "new-stu", placeholder: "Initials only", value: S.setup.newStudent, oninput: e => S.setup.newStudent = e.target.value }),
+          h("button", { class: "btn", onclick: () => addStudent(S.setup.newStudent, true) }, icon("plus"), "Add")),
+        h("p", { class: "small muted", style: "margin-top:8px" }, "New students start with both goal templates. Use initials, not full names.")),
+      h("section", { class: "panel" }, h("h3", { style: "margin-bottom:8px" }, "Where your data lives"),
+        h("p", { class: "small" }, "Students, goals, attempts and the live lesson are saved in this page's own database on claude.ai. Every device you open this page on, signed in to your account, reads and writes the same records."),
+        h("p", { class: "small muted", style: "margin-top:8px" }, "The page is private to you unless you share it. Share it with co-teachers as Contributor so they can record data too."))));
+}
+function goalEditor(g) {
+  const d = S.setup.draft;
+  const set = (k, v) => { d[k] = v; };
+  return h("div", { class: "stack", style: "border:2px solid var(--primary);border-radius:12px;padding:14px;margin:8px 0" },
+    h("div", { class: "row", style: "align-items:flex-end" },
+      h("label", { class: "field", style: "flex:2 1 220px" }, "Short name", h("input", { type: "text", id: "g-short", value: d.short, oninput: e => set("short", e.target.value) })),
+      h("label", { class: "field", style: "flex:0 1 110px" }, "Target %", h("input", { type: "number", id: "g-target", min: 1, max: 100, value: d.target, oninput: e => set("target", +e.target.value || 80) })),
+      d.type === "recall" && h("label", { class: "field", style: "flex:0 1 130px" }, "Min. elements", h("input", { type: "number", id: "g-min", min: 1, max: 12, value: d.minElements, oninput: e => set("minElements", +e.target.value || 1) })),
+      h("label", { class: "field", style: "flex:0 1 130px" }, "Max reminders", h("input", { type: "number", id: "g-rem", min: 0, max: 10, value: d.maxReminders, oninput: e => set("maxReminders", +e.target.value || 0) }))),
+    h("label", { class: "field" }, "Full goal text", h("textarea", { id: "g-text", value: d.text, style: "min-height:110px", oninput: e => set("text", e.target.value) })),
+    d.type === "checklist" && h("div", null, h("h4", { style: "margin-bottom:6px" }, "Skills scored"),
+      h("div", { class: "list-ed" }, d.items.map((it, i) => h("div", { class: "row" },
+        h("input", { type: "text", id: "it-e-" + i, value: it.emoji, style: "width:64px", "aria-label": "Picture", oninput: e => it.emoji = e.target.value }),
+        h("input", { type: "text", id: "it-l-" + i, value: it.label, style: "flex:1 1 200px;width:auto", "aria-label": "Skill", oninput: e => it.label = e.target.value }),
+        h("button", { class: "btn sm ghost", "aria-label": "Remove skill", onclick: () => { d.items.splice(i, 1); render(); } }, icon("x"))))),
+      h("button", { class: "btn sm", style: "margin-top:6px", onclick: () => { d.items.push({ id: uid(), label: "", emoji: "⭐" }); render(); } }, icon("plus"), "Add skill")),
+    h("div", null, h("h4", { style: "margin-bottom:6px" }, "Accommodations"),
+      h("p", { class: "small muted", style: "margin-bottom:8px" }, "The type decides what appears on the student board. “Student sees” is the strategy text shown to him."),
+      h("div", { class: "list-ed" }, d.accommodations.map((a, i) => h("div", { class: "acc-ed" },
+        h("input", { type: "text", id: "a-l-" + i, value: a.label, "aria-label": "Accommodation", oninput: e => a.label = e.target.value }),
+        h("select", { id: "a-k-" + i, "aria-label": "Type", onchange: e => a.kind = e.target.value }, Object.entries(KINDS).map(([k, l]) => h("option", { value: k, selected: a.kind === k }, l))),
+        h("input", { type: "text", id: "a-s-" + i, value: a.support, placeholder: "Student sees…", "aria-label": "Student sees", oninput: e => a.support = e.target.value }),
+        h("button", { class: "btn sm ghost", "aria-label": "Remove accommodation", onclick: () => { d.accommodations.splice(i, 1); render(); } }, icon("x"))))),
+      h("button", { class: "btn sm", style: "margin-top:6px", onclick: () => { d.accommodations.push(mkAcc("text", { label: "" })); render(); } }, icon("plus"), "Add accommodation")),
+    h("div", { class: "row" },
+      h("button", { class: "btn primary", onclick: () => saveGoal(d) }, icon("check"), "Save goal"),
+      h("button", { class: "btn", onclick: () => { S.setup.editGoal = null; render(); } }, "Cancel"),
+      h("span", { style: "flex:1" }),
+      S.setup.confirmGoal === g.id ? h("div", { class: "confirm" }, "Delete this goal? Its attempts stay in the record.", h("button", { class: "btn sm danger", onclick: () => { S.db?.doc("goals/" + g.id).delete().catch(writeErr); S.setup = { ...S.setup, editGoal: null, confirmGoal: null }; } }, "Delete"), h("button", { class: "btn sm", onclick: () => { S.setup.confirmGoal = null; render(); } }, "Keep"))
+        : h("button", { class: "btn danger", onclick: () => { S.setup.confirmGoal = g.id; render(); } }, icon("trash"), "Delete goal")));
+}
+function saveGoal(d) {
+  if (!S.db) return toast("Saving is off in this view.");
+  const { id, ...body } = d; body.items = (body.items || []).filter(i => i.label.trim()); body.accommodations = body.accommodations.filter(a => a.label.trim());
+  serial("goals/" + id, () => S.db.doc("goals/" + id).set(body)).then(() => toast("Goal saved."), writeErr);
+  S.setup.editGoal = null; render();
+}
+async function addGoal(tpl) {
+  if (!S.db || !S.sid) return toast("Saving is off in this view.");
+  const t = TEMPLATES[tpl](); t.text = t.text.replaceAll("{name}", sname());
+  const order = Math.max(0, ...studentGoals().map(g => g.order || 0)) + 1;
+  try { const ref = await S.db.collection("goals").add({ ...t, studentId: S.sid, order, createdAt: Date.now() }); S.setup.editGoal = ref.id; S.setup.draft = { id: ref.id, ...t, studentId: S.sid, order }; render(); } catch (e) { writeErr(e); }
+}
+async function addStudent(name, withGoals) {
+  name = (name || "").trim(); if (!name) return toast("Type the student's initials.");
+  if (!S.db) return toast("Saving is off in this view.");
+  try {
+    const ref = await S.db.collection("students").add({ name, supports: GENERAL_SUPPORTS(), createdAt: Date.now() });
+    if (withGoals) {
+      let o = 1;
+      for (const k of ["recall", "advocacy"]) { const t = TEMPLATES[k](); t.text = t.text.replaceAll("{name}", name); await S.db.collection("goals").add({ ...t, studentId: ref.id, order: o++, createdAt: Date.now() }); }
+    }
+    S.setup.newStudent = ""; selectStudent(ref.id); toast(`${name} added.`);
+  } catch (e) { writeErr(e); }
+}
+
+/* ---------- boot ---------- */
+readHash(); render();
+(async () => {
+  const c = window.claude;
+  if (!c?.use) { S.dbState = "off"; S.loaded.students = true; render(); return; }
+  const [db, user, sample, downloads] = await Promise.all(["db", "user", "sample", "downloads"].map(n => c.use(n).catch(() => null)));
+  S.user = user; S.sample = sample; S.downloads = downloads;
+  if (user) user.can("data.write").then(v => { if (v === false) { S.canWrite = false; render(); } }).catch(() => {});
+  if (!db) { S.dbState = "off"; S.loaded.students = true; render(); return; }
+  S.db = db;
+  const slow = setTimeout(() => { if (S.dbState === "connecting") { S.dbState = "slow"; S.loaded.students = true; render(); } }, 10000);
+  const ok = snap => { if (!snap.metadata.fromCache) { clearTimeout(slow); S.dbState = "live"; } };
+  db.collection("students").orderBy("createdAt").onSnapshot(snap => {
+    ok(snap); S.students = snap.docs.map(d => ({ id: d.id, ...d.data() })); S.loaded.students = true;
+    if (!S.students.find(s => s.id === S.sid) && S.students.length) { S.sid = S.students[0].id; store.set("vlh.sid", S.sid); subscribeSession(); }
+    else if (S.sid && !S.sessUnsub) subscribeSession();
+    render();
+  }, () => { S.dbState = "off"; S.loaded.students = true; render(); });
+  db.collection("goals").onSnapshot(snap => { ok(snap); S.goals = snap.docs.map(d => ({ id: d.id, ...JSON.parse(JSON.stringify(d.data())) })); render(); }, () => {});
+  db.collection("attempts").orderBy("at", "desc").limit(1000).onSnapshot(snap => { S.attempts = snap.docs.map(d => ({ id: d.id, ...d.data() })); if (S.view !== "collect") render(); }, () => {});
+  db.collection("texts").orderBy("createdAt", "desc").limit(80).onSnapshot(snap => { S.texts = snap.docs.map(d => ({ id: d.id, ...JSON.parse(JSON.stringify(d.data())) })); if (S.view === "lesson") render(); }, () => {});
+})();
+</script>
