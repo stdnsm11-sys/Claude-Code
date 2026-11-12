@@ -705,7 +705,9 @@ function controlPanel() {
     p && h("div", { class: "row", style: "margin-top:12px" },
       kindOn("chunk") && h("div", { class: "row" }, h("button", { class: "btn sm", disabled: (s.chunk || 0) <= 0, onclick: () => setSession({ chunk: Math.max(0, (s.chunk || 0) - 1) }) }, icon("prev"), "Back"),
         h("span", { class: "small" }, `Chunk ${Math.min((s.chunk || 0) + 1, p.sentences.length)} of ${p.sentences.length}`),
-        h("button", { class: "btn sm", disabled: (s.chunk || 0) >= p.sentences.length - 1, onclick: () => setSession({ chunk: (s.chunk || 0) + 1 }) }, "Next", icon("next"))),
+        (s.chunk || 0) >= p.sentences.length - 1
+          ? h("button", { class: "btn sm sun", onclick: () => setSession({ step: "picture" }) }, "Picture it", icon("next"))
+          : h("button", { class: "btn sm", onclick: () => setSession({ chunk: (s.chunk || 0) + 1 }) }, "Next", icon("next"))),
       h("label", { class: "row small", style: "gap:8px" }, h("span", { class: "switch" }, h("input", { type: "checkbox", id: "showtext", checked: s.showText !== false, onchange: e => setSession({ showText: e.target.checked }) }), h("span")), "Show words on board")),
     checkGoals.map(g => {
       const n = s.reminders?.[g.id] || 0, max = g.maxReminders ?? 2;
@@ -772,7 +774,10 @@ function boardStage(step, p, on) {
     const hide = s.showText === false;
     return [h("h2", null, chunk ? `Listen: part ${upto + 1} of ${p.sentences.length}` : "Listen"),
       p.sentences.slice(0, upto + 1).map((x, i) => h("div", { class: "bsent" + (chunk && i === upto ? " new" : "") + (hide ? " hidden-text" : "") }, h("div", { class: "pic", "aria-hidden": "true" }, pics ? x.emoji : "•"), h("p", null, x.text))),
-      chunk && h("div", { class: "row" }, h("button", { class: "btn", disabled: upto <= 0, onclick: () => setSession({ chunk: upto - 1 }) }, icon("prev"), "Back"), h("button", { class: "btn sun", disabled: upto >= p.sentences.length - 1, onclick: () => setSession({ chunk: upto + 1 }) }, "Next part", icon("next"))),
+      chunk && h("div", { class: "row" }, h("button", { class: "btn", disabled: upto <= 0, onclick: () => setSession({ chunk: upto - 1 }) }, icon("prev"), "Back"), upto >= p.sentences.length - 1
+        ? h("button", { class: "btn sun", onclick: () => setSession({ step: "picture" }) }, "Done listening: Picture it", icon("next"))
+        : h("button", { class: "btn sun", onclick: () => setSession({ chunk: upto + 1 }) }, "Next part", icon("next"))),
+      !chunk && h("div", { class: "row" }, h("button", { class: "btn sun", onclick: () => setSession({ step: "picture" }) }, "Done listening: Picture it", icon("next"))),
       pics && p.vocabulary.length > 0 && h("div", { class: "vocab-b" }, p.vocabulary.map(v => h("div", null, h("strong", null, `${v.emoji} ${v.word}`), ": ", v.meaning)))];
   }
   if (step === "picture") {
